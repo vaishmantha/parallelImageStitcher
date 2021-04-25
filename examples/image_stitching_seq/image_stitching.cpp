@@ -219,7 +219,5 @@ int main(int argc, char *argv[])
     
     auto bestH = computeRansac(match_list);
     std::cout << "homography: " << bestH << std::endl;
-
-    // computeNormalizedHomography(match_list);
     return 0;
 }
