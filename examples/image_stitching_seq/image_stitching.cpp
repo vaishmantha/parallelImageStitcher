@@ -40,7 +40,7 @@ MatrixXd computeHomography(MatrixXd x1, MatrixXd x2){
     Eigen::JacobiSVD<MatrixXd> svd(A, Eigen::ComputeThinU | Eigen::ComputeFullV);
     
     MatrixXd V = svd.matrixV();
-    std::cout << V << std::endl;
+    // std::cout << V << std::endl;
 
     MatrixXd H = V.block(8,0,1,9);
     
@@ -51,12 +51,15 @@ MatrixXd computeHomography(MatrixXd x1, MatrixXd x2){
     return finalH.transpose();
 }
 
-MatrixXd computeNormalizedHomography(MatrixXd x1, MatrixXd x2){
+MatrixXd computeNormalizedHomography(MatrixXd x1, MatrixXd x2, 
+                                    MatrixXd homogeneous_x1, 
+                                    MatrixXd homogeneous_x2){
     // x1 and x2 should be (1, 3)
     printf("enter norm\n"); 
-
-    MatrixXd centroid1 = x1.colwise().mean();
-    MatrixXd centroid2 = x2.colwise().mean();
+    
+    MatrixXd centroid1 = x1.colwise().mean(); //shape: (1,2)
+    MatrixXd centroid2 = x2.colwise().mean(); //shape: (1,2)
+    std::cout << centroid1.rows() << centroid1.cols() << std::endl;
 
     double scale1 = sqrt(2) / x1.colwise().norm().maxCoeff();
     double scale2 = sqrt(2) / x2.colwise().norm().maxCoeff();
@@ -81,15 +84,13 @@ MatrixXd computeNormalizedHomography(MatrixXd x1, MatrixXd x2){
 
     // compute homography
     printf("start4\n");
-    MatrixXd x1Norm = (T1 * x1.transpose()).transpose();
-    MatrixXd x2Norm = (T2 * x2.transpose()).transpose();
+    MatrixXd x1Norm = (T1 * homogeneous_x1.transpose()).transpose();
+    MatrixXd x2Norm = (T2 * homogeneous_x2.transpose()).transpose();
     printf("end4\n");
 
     MatrixXd H = computeHomography(x1Norm(Eigen::all, {0, 1}), x2Norm(Eigen::all, {0, 1}));
 
     // denormalize
-    printf("exit norm\n"); 
-
     return T1.inverse() * (H * T2); 
 }
 
@@ -149,7 +150,7 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
     printf("enter ransac\n");
     // std::vector<ezsift::MatchPair> match_vector(match_li.begin(), match_li.end());
     int iterations= 1000; 
-    int threshold = 57; 
+    int threshold = 250; //check on this threshold
     int maxCount = 0; 
     // std::list<bool> inliers; 
     
@@ -163,7 +164,7 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
         locs1(i, 0) = itr->r1;
         locs1(i, 1) = itr->c1;
         locs2(i, 0) = itr->r2;
-        locs2(i, 0) = itr->c2;
+        locs2(i, 1) = itr->c2;
         homogeneous_loc1(i, 0) = itr->r1;
         homogeneous_loc1(i, 1) = itr->c1;
         homogeneous_loc1(i, 2) = 1.0;
@@ -183,21 +184,23 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
             double r = rand() % match_li.size(); 
             rand_inds.push_back(r);
         }
-        MatrixXd x1 = homogeneous_loc1(rand_inds, Eigen::all); //MatrixXd::Constant(rand_inds.size(), 3); 
-        MatrixXd x2 = homogeneous_loc2(rand_inds, Eigen::all); //MatrixXd::Constant(rand_inds.size(), 3); 
+        MatrixXd x1 = locs1(rand_inds, Eigen::all); //MatrixXd::Constant(rand_inds.size(), 3); 
+        MatrixXd x2 = locs2(rand_inds, Eigen::all); //MatrixXd::Constant(rand_inds.size(), 3); 
+        MatrixXd x1_res_h = homogeneous_loc1(rand_inds, Eigen::all); //MatrixXd::Constant(rand_inds.size(), 3); 
+        MatrixXd x2_res_h = homogeneous_loc2(rand_inds, Eigen::all); //MatrixXd::Constant(rand_inds.size(), 3); 
        
-        MatrixXd H = computeNormalizedHomography(x1, x2); 
+        MatrixXd H = computeNormalizedHomography(x1, x2, x1_res_h, x2_res_h); 
         int count = 0; 
         MatrixXd prod = H * homogeneous_loc2.transpose();
         std::vector<int> inlier_inds_current; 
         double diff;
         //might need to turn back to non homogeneous coordinates below
         for(int i = 0; i < prod.rows(); i++){
-            printf("iterator: %d\n", i); 
-            std::cout << prod(i, Eigen::all).rows() << ", " << prod(i, Eigen::all).cols() << " | " << homogeneous_loc1(i, Eigen::all).rows() << ", " <<  homogeneous_loc1(i, Eigen::all).cols()<< std::endl;
+            // printf("iterator: %d\n", i); 
+            // std::cout << prod(i, Eigen::all).rows() << ", " << prod(i, Eigen::all).cols() << " | " << homogeneous_loc1(i, Eigen::all).rows() << ", " <<  homogeneous_loc1(i, Eigen::all).cols()<< std::endl;
 
-            diff = (prod.transpose()(i, Eigen::all) - homogeneous_loc1(i, Eigen::all)).squaredNorm();
-            printf("after iterator\n");
+            diff = (prod.transpose()(i, Eigen::all) - homogeneous_loc1(i, Eigen::all)).norm();
+            std::cout << "diff " << diff << std::endl; 
             if(diff < threshold){
                 count++;
                 inlier_inds_current.push_back(i);
@@ -208,9 +211,13 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
             inlier_inds = inlier_inds_current;
         }      
     }
+    std::cout << "Computing normalized homography after ransac" << std::endl;
+    std::cout << inlier_inds.size() << std::endl;
     MatrixXd x1_res = locs1(inlier_inds, Eigen::all); 
     MatrixXd x2_res = locs2(inlier_inds, Eigen::all);
-    MatrixXd bestNormalizedHomography = computeNormalizedHomography(x1_res, x2_res);
+    MatrixXd x1_res_h = homogeneous_loc1(inlier_inds, Eigen::all); 
+    MatrixXd x2_res_h = homogeneous_loc2(inlier_inds, Eigen::all);
+    MatrixXd bestNormalizedHomography = computeNormalizedHomography(x1_res, x2_res, x1_res_h, x2_res_h);
     printf("exit ransac\n"); 
 
     return bestNormalizedHomography;
