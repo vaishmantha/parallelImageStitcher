@@ -8,17 +8,54 @@ using Eigen::MatrixXd;
 
 #define USE_FIX_FILENAME 0
 
-MatrixXd computeHomography(std::list<ezsift::MatchPair> match_list){
+// MatrixXd computeHomography(std::list<ezsift::MatchPair> match_list){
+//     MatrixXd A;
+
+//     std::list<ezsift::MatchPair>::iterator it;
+//     for (it = match_list.begin(); it != match_list.end(); it++){
+//         int y = it->r1;
+//         int x = it->c1;
+//         int y_p = it->r2; 
+//         int x_p = it->c2;
+
+//         if(it == match_list.begin()){
+//             A = MatrixXd::Constant(2,9, 0);
+//             A << -x, -y, -1, 0, 0, 0, x*x_p, y*x_p, x_p,
+//                   0, 0, 0,-x, -y, -1, x*y_p, y*y_p, y_p;
+//         }else{
+//             MatrixXd B = MatrixXd::Constant(2,9, 0);
+//             B << -x, -y, -1, 0, 0, 0, x*x_p, y*x_p, x_p,
+//                   0, 0, 0,-x, -y, -1, x*y_p, y*y_p, y_p;
+
+//             MatrixXd C(A.rows()+B.rows(), A.cols());
+//             C << A, 
+//                 B;
+//             A = C;
+//         }
+//     }
+//     Eigen::JacobiSVD<MatrixXd> svd(A, Eigen::ComputeThinU | Eigen::ComputeFullV);
+    
+//     MatrixXd V = svd.matrixV();
+//     std::cout << V << std::endl;
+
+//     MatrixXd H = V.block(8,0,1,9);
+    
+//     Eigen::Map<MatrixXd> finalH(H.data(), 3, 3); 
+//     std::cout << finalH.transpose()<< std::endl;
+//     return finalH.transpose();
+// }
+
+MatrixXd computeHomography(MatrixXd x1, MatrixXd x2){
     MatrixXd A;
 
-    std::list<ezsift::MatchPair>::iterator it;
-    for (it = match_list.begin(); it != match_list.end(); it++){
-        int y = it->r1;
-        int x = it->c1;
-        int y_p = it->r2; 
-        int x_p = it->c2;
+    for (int i = 0; i < x1.rows(); i++){
+        // QUESTION: what is this x y switching 
+        int y = x1(i, 0);
+        int x = x1(i, 1);
+        int y_p = x2(i, 0); 
+        int x_p = x2(i, 1);
 
-        if(it == match_list.begin()){
+        if(i == 0){
             A = MatrixXd::Constant(2,9, 0);
             A << -x, -y, -1, 0, 0, 0, x*x_p, y*x_p, x_p,
                   0, 0, 0,-x, -y, -1, x*y_p, y*y_p, y_p;
@@ -45,9 +82,56 @@ MatrixXd computeHomography(std::list<ezsift::MatchPair> match_list){
     return finalH.transpose();
 }
 
-MatrixXd computeNormalizedHomography(){
-    std::list<ezsift::MatchPair> match_list;
-    
+MatrixXd computeNormalizedHomography(std::list<ezsift::MatchPair> match_list){
+    MatrixXd x1 = MatrixXd::Constant(match_list.size(), 3, 0); 
+    MatrixXd x2 = MatrixXd::Constant(match_list.size(), 3, 0); 
+    std::list<ezsift::MatchPair>::iterator it;
+    int index = 0; 
+    for (it = match_list.begin(); it != match_list.end(); it++, index++){
+        // FIX: double check
+        x1(index, 0) = it->r1; 
+        x1(index, 1) = it->c1; 
+        x2(index, 0) = it->r2; 
+        x2(index, 1) = it->c2; 
+        // homogenous coordinates
+        x1(index, 2) = 1; 
+        x2(index, 2) = 1; 
+
+    }
+
+    // this should be (1, 3)
+    MatrixXd centroid1 = x1.colwise().mean();
+    MatrixXd centroid2 = x2.colwise().mean();
+
+    double scale1 = sqrt(2) / x1.colwise().norm().maxCoeff();
+    double scale2 = sqrt(2) / x2.colwise().norm().maxCoeff();
+
+    // similarity transform 1
+    MatrixXd T1 = MatrixXd::Constant(3, 3, 0); 
+    T1(0, 0) = scale1; 
+    T1(1, 1) = scale1; 
+    T1(2, 2) = 1; 
+
+    T1(0, 2) = -1 * centroid1(0, 0) * scale1;
+    T1(1, 2) = -1 * centroid1(0, 1) * scale1;
+
+    // similarity transfor m2
+    MatrixXd T2 = MatrixXd::Constant(3, 3, 0); 
+    T2(0, 0) = scale2; 
+    T2(1, 1) = scale2; 
+    T2(2, 2) = 1; 
+
+    T2(0, 2) = -1 * centroid2(0, 0) * scale2;
+    T2(1, 2) = -1 * centroid2(0, 1) * scale2;
+
+    // compute homography
+    MatrixXd x1Norm = (T1 * x1.transpose()).transpose();
+    MatrixXd x2Norm = (T2 * x2.transpose()).transpose();
+
+    MatrixXd H = computeHomography(x1Norm(Eigen::all, {0, 1}), x2Norm(Eigen::all, {0, 1}));
+
+    // denormalize
+    return T1.inverse() * (H * T2); 
 }
 
 
@@ -115,7 +199,7 @@ int main(int argc, char *argv[])
     ezsift::draw_match_lines_to_ppm_file("sift_matching_a_b.ppm", image1,
                                          image2, match_list);
     
-    computeHomography(match_list);
+    computeNormalizedHomography(match_list);
 
     return 0;
 }
