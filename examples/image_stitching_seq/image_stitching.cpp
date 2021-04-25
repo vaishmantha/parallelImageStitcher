@@ -126,10 +126,10 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
     int maxCount = 0; 
     // std::list<bool> inliers; 
     
-    MatrixXd locs1 = MatrixXd::Constant(match_li.size(), 2);
-    MatrixXd locs2 = MatrixXd::Constant(match_li.size(), 2);
-    MatrixXd homogeneous_loc1 = MatrixXd::Constant(match_li.size(), 3);
-    MatrixXd homogeneous_loc2 = MatrixXd::Constant(match_li.size(), 3);
+    MatrixXd locs1 = MatrixXd(match_li.size(), 2);
+    MatrixXd locs2 = MatrixXd(match_li.size(), 2);
+    MatrixXd homogeneous_loc1 = MatrixXd(match_li.size(), 3);
+    MatrixXd homogeneous_loc2 = MatrixXd(match_li.size(), 3);
     std::list<ezsift::MatchPair>::iterator itr;
     int i=0;
     for (itr = match_li.begin(); itr != match_li.end(); itr++){
