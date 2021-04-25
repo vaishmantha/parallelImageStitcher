@@ -9,25 +9,23 @@ using Eigen::MatrixXd;
 #define USE_FIX_FILENAME 0
 
 MatrixXd computeHomography(MatrixXd x1, MatrixXd x2){
-    printf("enter homograpjy\n"); 
+    // printf("enter homograpjy\n"); 
     MatrixXd A;
 
     for (int i = 0; i < x1.rows(); i++){
-        // QUESTION: what is this x y switching 
-        printf("%d \n", i);
-        int y = x1(i, 0);
-        int x = x1(i, 1);
-        int y_p = x2(i, 0); 
-        int x_p = x2(i, 1);
+        double x = x1(i, 0);
+        double y = x1(i, 1);
+        double x_p = x2(i, 0); 
+        double y_p = x2(i, 1);
 
         if(i == 0){
-            A = MatrixXd::Constant(2,9, 0);
-            A << -x, -y, -1, 0, 0, 0, x*x_p, y*x_p, x_p,
-                  0, 0, 0,-x, -y, -1, x*y_p, y*y_p, y_p;
+            A = MatrixXd::Constant(2,9, 0.0);
+            A << -x, -y, -1.0, 0.0, 0.0, 0.0, x*x_p, y*x_p, x_p,
+                  0.0, 0.0, 0.0,-x, -y, -1.0, x*y_p, y*y_p, y_p;
         }else{
-            MatrixXd B = MatrixXd::Constant(2,9, 0);
-            B << -x, -y, -1, 0, 0, 0, x*x_p, y*x_p, x_p,
-                  0, 0, 0,-x, -y, -1, x*y_p, y*y_p, y_p;
+            MatrixXd B = MatrixXd::Constant(2,9, 0.0);
+            B << -x, -y, -1.0, 0.0, 0.0, 0.0, x*x_p, y*x_p, x_p,
+                  0.0, 0.0, 0.0,-x, -y, -1.0, x*y_p, y*y_p, y_p;
             
             MatrixXd C(A.rows()+B.rows(), A.cols());
             C << A, 
@@ -35,19 +33,12 @@ MatrixXd computeHomography(MatrixXd x1, MatrixXd x2){
             A = C;
         }
     }
-    printf("exit loop\n"); 
-
     Eigen::JacobiSVD<MatrixXd> svd(A, Eigen::ComputeThinU | Eigen::ComputeFullV);
     
     MatrixXd V = svd.matrixV();
-    // std::cout << V << std::endl;
-
     MatrixXd H = V.block(8,0,1,9);
     
     Eigen::Map<MatrixXd> finalH(H.data(), 3, 3); 
-    // std::cout << finalH.transpose()<< std::endl;
-    printf("exit homograpjy\n"); 
-
     return finalH.transpose();
 }
 
@@ -55,11 +46,8 @@ MatrixXd computeNormalizedHomography(MatrixXd x1, MatrixXd x2,
                                     MatrixXd homogeneous_x1, 
                                     MatrixXd homogeneous_x2){
     // x1 and x2 should be (1, 3)
-    printf("enter norm\n"); 
-    
     MatrixXd centroid1 = x1.colwise().mean(); //shape: (1,2)
     MatrixXd centroid2 = x2.colwise().mean(); //shape: (1,2)
-    std::cout << centroid1.rows() << centroid1.cols() << std::endl;
 
     double scale1 = sqrt(2) / x1.colwise().norm().maxCoeff();
     double scale2 = sqrt(2) / x2.colwise().norm().maxCoeff();
@@ -83,10 +71,10 @@ MatrixXd computeNormalizedHomography(MatrixXd x1, MatrixXd x2,
     T2(1, 2) = -1 * centroid2(0, 1) * scale2;
 
     // compute homography
-    printf("start4\n");
+    // printf("start4\n");
     MatrixXd x1Norm = (T1 * homogeneous_x1.transpose()).transpose();
     MatrixXd x2Norm = (T2 * homogeneous_x2.transpose()).transpose();
-    printf("end4\n");
+    // printf("end4\n");
 
     MatrixXd H = computeHomography(x1Norm(Eigen::all, {0, 1}), x2Norm(Eigen::all, {0, 1}));
 
@@ -94,65 +82,10 @@ MatrixXd computeNormalizedHomography(MatrixXd x1, MatrixXd x2,
     return T1.inverse() * (H * T2); 
 }
 
-// MatrixXd computeNormalizedHomography(std::list<ezsift::MatchPair> match_list){
-//     MatrixXd x1 = MatrixXd::Constant(match_list.size(), 3, 0); 
-//     MatrixXd x2 = MatrixXd::Constant(match_list.size(), 3, 0); 
-//     std::list<ezsift::MatchPair>::iterator it;
-//     int index = 0; 
-//     for (it = match_list.begin(); it != match_list.end(); it++, index++){
-//         // FIX: double check
-//         x1(index, 0) = it->r1; 
-//         x1(index, 1) = it->c1; 
-//         x2(index, 0) = it->r2; 
-//         x2(index, 1) = it->c2; 
-//         // homogenous coordinates
-//         x1(index, 2) = 1; 
-//         x2(index, 2) = 1; 
-
-//     }
-
-//     // this should be (1, 3)
-//     MatrixXd centroid1 = x1.colwise().mean();
-//     MatrixXd centroid2 = x2.colwise().mean();
-
-//     double scale1 = sqrt(2) / x1.colwise().norm().maxCoeff();
-//     double scale2 = sqrt(2) / x2.colwise().norm().maxCoeff();
-
-//     // similarity transform 1
-//     MatrixXd T1 = MatrixXd::Constant(3, 3, 0); 
-//     T1(0, 0) = scale1; 
-//     T1(1, 1) = scale1; 
-//     T1(2, 2) = 1; 
-
-//     T1(0, 2) = -1 * centroid1(0, 0) * scale1;
-//     T1(1, 2) = -1 * centroid1(0, 1) * scale1;
-
-//     // similarity transfor m2
-//     MatrixXd T2 = MatrixXd::Constant(3, 3, 0); 
-//     T2(0, 0) = scale2; 
-//     T2(1, 1) = scale2; 
-//     T2(2, 2) = 1; 
-
-//     T2(0, 2) = -1 * centroid2(0, 0) * scale2;
-//     T2(1, 2) = -1 * centroid2(0, 1) * scale2;
-
-//     // compute homography
-//     MatrixXd x1Norm = (T1 * x1.transpose()).transpose();
-//     MatrixXd x2Norm = (T2 * x2.transpose()).transpose();
-
-//     MatrixXd H = computeHomography(x1Norm(Eigen::all, {0, 1}), x2Norm(Eigen::all, {0, 1}));
-
-//     // denormalize
-//     return T1.inverse() * (H * T2); 
-// }
-
 MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
-    printf("enter ransac\n");
-    // std::vector<ezsift::MatchPair> match_vector(match_li.begin(), match_li.end());
     int iterations= 1000; 
     int threshold = 250; //check on this threshold
     int maxCount = 0; 
-    // std::list<bool> inliers; 
     
     MatrixXd locs1 = MatrixXd(match_li.size(), 2);
     MatrixXd locs2 = MatrixXd(match_li.size(), 2);
@@ -180,9 +113,11 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
     for(it = 0; it < iterations; it++){
         std::vector<int> rand_inds; 
         while(rand_inds.size() != 4){
-            // FIX: randomization might be sus syntax; need to make sure randoms don't repeat but not sure if C++ takes care of that 
             double r = rand() % match_li.size(); 
             rand_inds.push_back(r);
+        }
+        for(auto v : rand_inds){
+            std::cout << v << ", " << std::endl;
         }
         MatrixXd x1 = locs1(rand_inds, Eigen::all); //MatrixXd::Constant(rand_inds.size(), 3); 
         MatrixXd x2 = locs2(rand_inds, Eigen::all); //MatrixXd::Constant(rand_inds.size(), 3); 
@@ -197,10 +132,7 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
         //might need to turn back to non homogeneous coordinates below
         for(int i = 0; i < prod.rows(); i++){
             // printf("iterator: %d\n", i); 
-            // std::cout << prod(i, Eigen::all).rows() << ", " << prod(i, Eigen::all).cols() << " | " << homogeneous_loc1(i, Eigen::all).rows() << ", " <<  homogeneous_loc1(i, Eigen::all).cols()<< std::endl;
-
             diff = (prod.transpose()(i, Eigen::all) - homogeneous_loc1(i, Eigen::all)).norm();
-            std::cout << "diff " << diff << std::endl; 
             if(diff < threshold){
                 count++;
                 inlier_inds_current.push_back(i);
@@ -211,17 +143,15 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
             inlier_inds = inlier_inds_current;
         }      
     }
-    std::cout << "Computing normalized homography after ransac" << std::endl;
-    std::cout << inlier_inds.size() << std::endl;
     MatrixXd x1_res = locs1(inlier_inds, Eigen::all); 
     MatrixXd x2_res = locs2(inlier_inds, Eigen::all);
     MatrixXd x1_res_h = homogeneous_loc1(inlier_inds, Eigen::all); 
     MatrixXd x2_res_h = homogeneous_loc2(inlier_inds, Eigen::all);
     MatrixXd bestNormalizedHomography = computeNormalizedHomography(x1_res, x2_res, x1_res_h, x2_res_h);
-    printf("exit ransac\n"); 
 
     return bestNormalizedHomography;
 }
+
 
 int main(int argc, char *argv[])
 {
@@ -287,12 +217,9 @@ int main(int argc, char *argv[])
     ezsift::draw_match_lines_to_ppm_file("sift_matching_a_b.ppm", image1,
                                          image2, match_list);
     
-    computeRansac(match_list);
+    auto bestH = computeRansac(match_list);
+    std::cout << "homography: " << bestH << std::endl;
+
     // computeNormalizedHomography(match_list);
     return 0;
 }
-
-
-// NOTE: transposing in ransac made it go a few iterations; gets stuck now in norm and I pinpointed exact line with print statements. 
-// The homography matrices seem to be the same every round so we really need to double check random
-// I pasted in old HNorm code to be able to test without ransac
