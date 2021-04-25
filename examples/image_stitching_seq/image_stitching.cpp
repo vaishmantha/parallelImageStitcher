@@ -82,24 +82,9 @@ MatrixXd computeHomography(MatrixXd x1, MatrixXd x2){
     return finalH.transpose();
 }
 
-MatrixXd computeNormalizedHomography(std::list<ezsift::MatchPair> match_list){
-    MatrixXd x1 = MatrixXd::Constant(match_list.size(), 3, 0); 
-    MatrixXd x2 = MatrixXd::Constant(match_list.size(), 3, 0); 
-    std::list<ezsift::MatchPair>::iterator it;
-    int index = 0; 
-    for (it = match_list.begin(); it != match_list.end(); it++, index++){
-        // FIX: double check
-        x1(index, 0) = it->r1; 
-        x1(index, 1) = it->c1; 
-        x2(index, 0) = it->r2; 
-        x2(index, 1) = it->c2; 
-        // homogenous coordinates
-        x1(index, 2) = 1; 
-        x2(index, 2) = 1; 
+MatrixXd computeNormalizedHomography(MatrixXd x1, MatrixXd x2){
+    // x1 and x2 should be (1, 3)
 
-    }
-
-    // this should be (1, 3)
     MatrixXd centroid1 = x1.colwise().mean();
     MatrixXd centroid2 = x2.colwise().mean();
 
@@ -134,6 +119,83 @@ MatrixXd computeNormalizedHomography(std::list<ezsift::MatchPair> match_list){
     return T1.inverse() * (H * T2); 
 }
 
+MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
+    std::vector<ezsift::MatchPair> match_list(match_li.begin(), match_li.end());
+    int iterations= 1000; 
+    int threshold = 57; 
+    int maxCount = 0; 
+    std::list<bool> inliers; 
+    int it; 
+    for(it = 0; it < iterations; it++){
+        std::vector<int> rand_inds; 
+        while(rand_inds.size() != 4){
+            // FIX: randomization might be sus syntax; need to make sure randoms don't repeat but not sure if C++ takes care of that 
+            double r = rand() % match_list.size(); 
+            rand_inds.push_back(r);
+        }
+        MatrixXd x1 = MatrixXd::Constant(rand_inds.size(), 3); 
+        MatrixXd x2 = MatrixXd::Constant(rand_inds.size(), 3); 
+        // rand_inds.size() should be 4
+        for (int i  = 0; i < rand_inds.size(); i++){
+            // FIX: check r1 c1 r2 c2 order 
+            x1(i, 0) = match_list.at(rand_inds.at(i)).r1;
+            x1(i, 1) = match_list.at(rand_inds.at(i)).c1;
+            x2(i, 0) = match_list.at(rand_inds.at(i)).r2;
+            x2(i, 1) = match_list.at(rand_inds.at(i)).c2;
+            // homogenous coordinates
+            x1(i, 2) = 1; 
+            x2(i, 2) = 1; 
+        }
+        MatrixXd H = computeNormalizedHomography(x1, x2); 
+        int count = 0; 
+        std::list<bool> inlier_current; 
+        for(int i = 0; i < match_list.size(); i++){
+            // INCOMPLETE BUT NEED TO RESUME BELOW PYTHON CODE
+            // MatrixXd l2 = H * 
+        }
+    }
+
+
+    // def computeH_ransac(locs1, locs2):
+    // iterations = 10000
+    // # threshold = 50
+    // threshold = 57
+    // max_count = 0
+    // inliers = list()
+    // for it in range(iterations):
+    //     rand_inds = list()
+    //     while len(rand_inds) != 4:
+    //         r = np.random.randint(0, len(locs1))
+    //         if r not in rand_inds: rand_inds.append(r)
+    //     x1 = list()
+    //     x2 = list()
+    //     for i in rand_inds:
+    //         x1.append(locs1[i])
+    //         x2.append(locs2[i])
+    //     H = computeH_norm(x1,x2)
+    //     count = 0
+    //     inlier_current = list()
+    //     for x in range(len(locs1)):
+    //         l2 = np.matmul(H, (np.append(locs2[x],1)))
+    //         l1 = (np.append(locs1[x],1))
+    //         diff = np.linalg.norm(np.subtract(l2, l1))
+    //         if diff < threshold:
+    //             count += 1
+    //             inlier_current.append(True)
+    //         else:
+    //             inlier_current.append(False)
+    //     if max_count <= count:
+    //         max_count = count
+    //         inliers = inlier_current
+    // x1_res = list()
+    // x2_res = list()
+    // for x in range(len(inliers)):
+    //     if inliers[x]:
+    //         x1_res.append(locs1[x])
+    //         x2_res.append(locs2[x])
+    // bestH2to1 = computeH_norm(x1_res, x2_res)
+    // return bestH2to1, np.array(inliers)
+}
 
 int main(int argc, char *argv[])
 {
