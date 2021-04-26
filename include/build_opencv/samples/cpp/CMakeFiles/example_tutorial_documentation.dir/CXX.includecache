@@ -1,0 +1,12 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Users/vmantha/Desktop/parallelImageStitcher/include/opencv/samples/cpp/tutorial_code/introduction/documentation/documentation.cpp
+iostream
+-
+

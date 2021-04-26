@@ -1,0 +1,9 @@
+# Target labels
+ Main
+ opencv_gapi
+ Sample
+# Source files and their labels
+/Users/vmantha/Desktop/parallelImageStitcher/include/opencv/modules/gapi/samples/semantic_segmentation.cpp
+ Main
+ opencv_gapi
+ Sample

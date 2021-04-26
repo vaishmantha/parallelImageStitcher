@@ -1,0 +1,35 @@
+# Target labels
+ Main
+ opencv_highgui
+ Module
+# Source files and their labels
+/Users/vmantha/Desktop/parallelImageStitcher/include/opencv/modules/highgui/include/opencv2/highgui.hpp
+ Main
+ opencv_highgui
+ Module
+/Users/vmantha/Desktop/parallelImageStitcher/include/opencv/modules/highgui/include/opencv2/highgui/highgui.hpp
+ Main
+ opencv_highgui
+ Module
+/Users/vmantha/Desktop/parallelImageStitcher/include/opencv/modules/highgui/include/opencv2/highgui/highgui_c.h
+ Main
+ opencv_highgui
+ Module
+/Users/vmantha/Desktop/parallelImageStitcher/include/opencv/modules/highgui/src/window.cpp
+ Main
+ opencv_highgui
+ Module
+/Users/vmantha/Desktop/parallelImageStitcher/include/opencv/modules/highgui/src/roiSelector.cpp
+ Main
+ opencv_highgui
+ Module
+/Users/vmantha/Desktop/parallelImageStitcher/include/opencv/modules/highgui/src/window_cocoa.mm
+ Main
+ opencv_highgui
+ Module
+/Users/vmantha/Desktop/parallelImageStitcher/include/opencv/modules/highgui/src/precomp.hpp
+ Main
+ opencv_highgui
+ Module
+/Users/vmantha/Desktop/parallelImageStitcher/include/build_opencv/cvconfig.h
+/Users/vmantha/Desktop/parallelImageStitcher/include/build_opencv/opencv2/opencv_modules.hpp

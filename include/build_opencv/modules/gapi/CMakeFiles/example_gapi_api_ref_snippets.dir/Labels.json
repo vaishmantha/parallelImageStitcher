@@ -1,0 +1,24 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/Users/vmantha/Desktop/parallelImageStitcher/include/opencv/modules/gapi/samples/api_ref_snippets.cpp",
+			"labels" : 
+			[
+				"Main",
+				"opencv_gapi",
+				"Sample"
+			]
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"Main",
+			"opencv_gapi",
+			"Sample"
+		],
+		"name" : "example_gapi_api_ref_snippets"
+	}
+}

@@ -1,0 +1,9 @@
+# Target labels
+ Main
+ opencv_gapi
+ Sample
+# Source files and their labels
+/Users/vmantha/Desktop/parallelImageStitcher/include/opencv/modules/gapi/samples/gaze_estimation.cpp
+ Main
+ opencv_gapi
+ Sample

@@ -1,0 +1,9 @@
+# Target labels
+ Main
+ opencv_gapi
+ Sample
+# Source files and their labels
+/Users/vmantha/Desktop/parallelImageStitcher/include/opencv/modules/gapi/samples/infer_ie_onnx_hybrid.cpp
+ Main
+ opencv_gapi
+ Sample

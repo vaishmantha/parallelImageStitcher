@@ -4,8 +4,8 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/Users/adithirao/Documents/parallel/ezSIFT/src/ezsift.cpp" "/Users/adithirao/Documents/parallel/ezSIFT/build/CMakeFiles/ezsift.dir/src/ezsift.cpp.o"
-  "/Users/adithirao/Documents/parallel/ezSIFT/src/image_utility.cpp" "/Users/adithirao/Documents/parallel/ezSIFT/build/CMakeFiles/ezsift.dir/src/image_utility.cpp.o"
+  "/Users/vmantha/Desktop/parallelImageStitcher/src/ezsift.cpp" "/Users/vmantha/Desktop/parallelImageStitcher/build/CMakeFiles/ezsift.dir/src/ezsift.cpp.o"
+  "/Users/vmantha/Desktop/parallelImageStitcher/src/image_utility.cpp" "/Users/vmantha/Desktop/parallelImageStitcher/build/CMakeFiles/ezsift.dir/src/image_utility.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "Clang")
 

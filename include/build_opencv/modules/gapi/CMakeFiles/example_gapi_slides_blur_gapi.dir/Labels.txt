@@ -1,0 +1,9 @@
+# Target labels
+ Main
+ opencv_gapi
+ Sample
+# Source files and their labels
+/Users/vmantha/Desktop/parallelImageStitcher/include/opencv/modules/gapi/samples/slides_blur_gapi.cpp
+ Main
+ opencv_gapi
+ Sample
