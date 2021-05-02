@@ -1,4 +1,4 @@
-# Install script for directory: /Users/vmantha/Desktop/parallelImageStitcher/examples/image_stitching_seq
+# Install script for directory: /Users/adithirao/Documents/parallel/parallelImageStitcher/examples/image_stitching_seq
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

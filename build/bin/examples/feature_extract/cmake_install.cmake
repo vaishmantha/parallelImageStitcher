@@ -1,4 +1,4 @@
-# Install script for directory: /Users/vmantha/Desktop/parallelImageStitcher/examples/feature_extract
+# Install script for directory: /Users/adithirao/Documents/parallel/parallelImageStitcher/examples/feature_extract
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

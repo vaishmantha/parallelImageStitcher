@@ -1,4 +1,4 @@
-# Install script for directory: /Users/vmantha/Desktop/parallelImageStitcher/examples/image_match
+# Install script for directory: /Users/adithirao/Documents/parallel/parallelImageStitcher/examples/image_match
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

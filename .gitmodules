@@ -1,3 +1,9 @@
 [submodule "include/eigen"]
 	path = include/eigen
 	url = https://gitlab.com/libeigen/eigen.git
+[submodule "include/opencv"]
+	path = include/opencv
+	url = https://github.com/opencv/opencv.git
+[submodule "include/opencv_contrib"]
+	path = include/opencv_contrib
+	url = https://github.com/opencv/opencv_contrib.git

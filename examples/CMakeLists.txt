@@ -4,5 +4,8 @@ add_subdirectory(feature_extract)
 add_subdirectory(image_match)
 add_subdirectory(image_stitching_seq)
 
-file(GLOB_RECURSE TEST_IMAGES "../data/*.pgm")
+file(GLOB_RECURSE TEST_IMAGES "../data/*.png")
 file(COPY ${TEST_IMAGES} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+
+# file(GLOB_RECURSE TEST_IMAGES "../data/*.pgm")
+# file(COPY ${TEST_IMAGES} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
