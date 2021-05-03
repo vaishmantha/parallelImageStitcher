@@ -193,9 +193,63 @@ cv::Mat imageStitch(MatrixXd bestNormalizedH, char* file1, char* file2){
     return dstImg2; 
 }
 
-void findDimensions(std::list<ezsift::MatchPair> matches, MatrixXd H, 
-                    int *min_x, int *min_y, int *max_x, int *max_y){
+void findDimensions(ezsift::Image<unsigned char> image, MatrixXd H, 
+                    double *min_x, double *min_y, double *max_x, double *max_y){
+    float h2 = image.h;
+    float w2 = image.w;
+    cv::Mat imgDimsTemp (4, 3, CV_64F);
+    imgDimsTemp.at<double>(1, 1) = w2; 
+    imgDimsTemp.at<double>(2, 0) = h2; 
+    imgDimsTemp.at<double>(2, 1) = w2; 
+    imgDimsTemp.at<double>(3, 0) = h2; 
+    imgDimsTemp.at<double>(0, 2) = 1.0; 
+    imgDimsTemp.at<double>(1, 2) = 1.0; 
+    imgDimsTemp.at<double>(2, 2) = 1.0; 
+    imgDimsTemp.at<double>(3, 2) = 1.0; 
+
+    // convert H into CV matrix 
+    cv::Mat H_new ((int)(3), (int)(3), CV_64F);
+    for (int i = 0; i < H.rows(); i++){
+        for(int j = 0; j < H.cols(); j++){
+            H_new.at<double>(i, j) = H(i, j); 
+        }
+    }
+    // H_new.at<double>(3,0) = 1.0;
+    // H_new.at<double>(3,1) = 1.0;
+    // H_new.at<double>(3,2) = 1.0;
+    // H_new.at<double>(3,3) = 1.0;
     
+    
+    // cv::perspectiveTransform(imgDimsTemp,imgDims, H_new);
+    cv::Mat imgDims = H_new * imgDimsTemp.t(); 
+    // cv::Mat imgDims = imgDimsTemp ;
+
+    // std::cout << "imgDims: " << imgDimsTemp << std::endl;
+    cv::minMaxLoc(imgDims.row(0), min_x, max_x, NULL, NULL);
+    cv::minMaxLoc(imgDims.row(1), min_y, max_y, NULL, NULL);
+    printf("in function: max y: %f   min_y: %f    max_x: %f    min_x: %f \n", *min_x, *min_y, *max_x, *max_y );
+}
+
+void placeImage(cv::Mat base, cv::Mat newImage){
+    printf("placeimage\n ");
+    int h = newImage.rows;
+    int w = newImage.cols;
+    printf("two\n");
+
+    cv::Mat dstImg(base(cv::Rect(0, 0, w, h)));
+    printf("three\n");
+
+    cv::add(dstImg, dstImg, newImage); 
+    printf("added succesfully");
+    cv::Mat dstImgOg(base(cv::Rect(0, 0, w, h)));
+
+    dstImg.copyTo(dstImgOg);
+    printf("copy1 succesfully");
+
+    // put back onto accumulator
+    dstImg.copyTo(base); 
+    printf("copy2 succesfully");
+
 }
 
 
@@ -259,13 +313,80 @@ int main(int argc, char *argv[])
     int pano_min_y = std::numeric_limits<int>::max();
     int pano_max_x = std::numeric_limits<int>::min();
     int pano_max_y = std::numeric_limits<int>::min();
+
     for(int i=0; i<images.size()-1; i++){
-        int min_x;
-        int min_y;
-        int max_x;
-        int max_y;
-        findDimensions(matches[i], homographies[i], &min_x, &min_y, &max_x, &max_y);
+        double min_x;
+        double min_y;
+        double max_x;
+        double max_y;
+        printf("before findDimensions1\n");
+
+        findDimensions(images[i], homographies[i], &min_x, &min_y, &max_x, &max_y);
+        printf("max y: %f   min_y: %f    max_x: %f    min_x: %f \n", min_x, min_y, max_x,max_y );
+
+        printf("after findDimensions1\n");
+
+        pano_min_x = (int) (fmin(min_x, pano_min_x)); 
+        pano_min_y = (int) (fmin(min_y, pano_min_y)); 
+        pano_max_x = (int) (fmax(max_x, pano_max_x)); 
+        pano_max_y = (int) (fmax(max_y, pano_max_y));
+        printf(" PANOO: max y: %d   min_y: %d    max_x: %d    min_x: %d \n", pano_max_y, pano_min_y, pano_max_x,pano_min_x );
+
+
     }
+    printf("coord finding done\n");
+
+    // Defining pan_size
+    int pan_width = pano_max_y - pano_min_y; 
+    int pan_height = pano_max_x - pano_min_x;
+
+
+    cv::Mat resultImage (pan_width, pan_height, CV_64F);
+    
+    for (int i = 0; i < images.size()-1; i++){
+        double min_x; 
+        double min_y; 
+        double max_x; 
+        double max_y; 
+        printf("before findDimensions2\n");
+        findDimensions(images[i], homographies[i], &min_x, &min_y, &max_x, &max_y); 
+        printf("after findDimensions2\n");
+        max_x = fmax(pano_max_x, max_x); 
+        max_y = fmax(pano_max_y, max_y); 
+        min_x = fmin(pano_min_x, min_x); 
+        min_y = fmin(pano_min_y, min_y); 
+
+        int curr_width = max_y - min_y; 
+        int curr_height = max_x - min_x;
+        printf("before conversion H\n");
+
+        // convert homographies[i] into CV matrix 
+        cv::Mat H ((int)(homographies[i].rows()), (int)(homographies[i].cols()), CV_64F); 
+        for (int i = 0; i < homographies[i].rows(); i++){
+            for(int j = 0; j < homographies[i].cols(); j++){
+                H.at<double>(i, j) = homographies[i](i, j); 
+            }
+        }
+        printf("after conversion H\n");
+
+        cv::Mat newImg (curr_height, curr_width, CV_64F); 
+        printf("before write perspective\n");
+        cv::Mat inpImg = cv::imread(files[i]); 
+        cv::warpPerspective(inpImg, newImg, H, cv::Size(curr_height, curr_width));
+        printf("after write perspective\n");
+        printf("dimensions %d %d %d %d", resultImage.rows, resultImage.cols, newImg.rows, newImg.cols);
+        placeImage(resultImage, newImg); 
+        printf("finised place Image\n");
+
+    }
+
+    printf("before writing image\n");
+
+
+    // write out resultImg
+    cv::imwrite("result.png", resultImage); 
+
+
     //Needs to be sequential
     // cv::Mat resultImage;
     // for(int i=images.size()-1; i>0;i--){

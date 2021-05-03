@@ -1,4 +1,4 @@
-# Install script for directory: /Users/adithirao/Documents/parallel/parallelImageStitcher/examples
+# Install script for directory: /Users/vmantha/Desktop/parallelImageStitcher/examples
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -39,9 +39,9 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("/Users/adithirao/Documents/parallel/parallelImageStitcher/build/bin/examples/feature_extract/cmake_install.cmake")
-  include("/Users/adithirao/Documents/parallel/parallelImageStitcher/build/bin/examples/image_match/cmake_install.cmake")
-  include("/Users/adithirao/Documents/parallel/parallelImageStitcher/build/bin/examples/image_stitching_seq/cmake_install.cmake")
+  include("/Users/vmantha/Desktop/parallelImageStitcher/build/bin/examples/feature_extract/cmake_install.cmake")
+  include("/Users/vmantha/Desktop/parallelImageStitcher/build/bin/examples/image_match/cmake_install.cmake")
+  include("/Users/vmantha/Desktop/parallelImageStitcher/build/bin/examples/image_stitching_seq/cmake_install.cmake")
 
 endif()
 

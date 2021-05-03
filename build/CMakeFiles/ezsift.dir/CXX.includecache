@@ -36,7 +36,7 @@ typeinfo
 list
 -
 
-/Users/adithirao/Documents/parallel/parallelImageStitcher/src/common.h
+/Users/vmantha/Desktop/parallelImageStitcher/src/common.h
 math.h
 -
 stdarg.h
@@ -44,17 +44,17 @@ stdarg.h
 stdio.h
 -
 
-/Users/adithirao/Documents/parallel/parallelImageStitcher/src/ezsift.cpp
+/Users/vmantha/Desktop/parallelImageStitcher/src/ezsift.cpp
 ezsift.h
-/Users/adithirao/Documents/parallel/parallelImageStitcher/src/ezsift.h
+/Users/vmantha/Desktop/parallelImageStitcher/src/ezsift.h
 common.h
-/Users/adithirao/Documents/parallel/parallelImageStitcher/src/common.h
+/Users/vmantha/Desktop/parallelImageStitcher/src/common.h
 image.h
-/Users/adithirao/Documents/parallel/parallelImageStitcher/src/image.h
+/Users/vmantha/Desktop/parallelImageStitcher/src/image.h
 timer.h
-/Users/adithirao/Documents/parallel/parallelImageStitcher/src/timer.h
+/Users/vmantha/Desktop/parallelImageStitcher/src/timer.h
 vvector.h
-/Users/adithirao/Documents/parallel/parallelImageStitcher/src/vvector.h
+/Users/vmantha/Desktop/parallelImageStitcher/src/vvector.h
 cmath
 -
 cstdio
@@ -68,15 +68,15 @@ limits
 list
 -
 
-/Users/adithirao/Documents/parallel/parallelImageStitcher/src/image_utility.cpp
+/Users/vmantha/Desktop/parallelImageStitcher/src/image_utility.cpp
 image_utility.h
-/Users/adithirao/Documents/parallel/parallelImageStitcher/src/image_utility.h
+/Users/vmantha/Desktop/parallelImageStitcher/src/image_utility.h
 common.h
-/Users/adithirao/Documents/parallel/parallelImageStitcher/src/common.h
+/Users/vmantha/Desktop/parallelImageStitcher/src/common.h
 ezsift.h
-/Users/adithirao/Documents/parallel/parallelImageStitcher/src/ezsift.h
+/Users/vmantha/Desktop/parallelImageStitcher/src/ezsift.h
 image.h
-/Users/adithirao/Documents/parallel/parallelImageStitcher/src/image.h
+/Users/vmantha/Desktop/parallelImageStitcher/src/image.h
 cassert
 -
 cmath
@@ -92,7 +92,7 @@ ctype.h
 limits
 -
 
-/Users/adithirao/Documents/parallel/parallelImageStitcher/src/timer.h
+/Users/vmantha/Desktop/parallelImageStitcher/src/timer.h
 time.h
 -
 windows.h
@@ -100,7 +100,7 @@ windows.h
 sys/time.h
 -
 
-/Users/adithirao/Documents/parallel/parallelImageStitcher/src/vvector.h
+/Users/vmantha/Desktop/parallelImageStitcher/src/vvector.h
 math.h
 -
 

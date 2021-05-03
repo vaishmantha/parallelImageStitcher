@@ -4,7 +4,7 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/Users/adithirao/Documents/parallel/parallelImageStitcher/examples/feature_extract/feature_extract.cpp" "/Users/adithirao/Documents/parallel/parallelImageStitcher/build/bin/examples/feature_extract/CMakeFiles/feature_extract.dir/feature_extract.cpp.o"
+  "/Users/vmantha/Desktop/parallelImageStitcher/examples/feature_extract/feature_extract.cpp" "/Users/vmantha/Desktop/parallelImageStitcher/build/bin/examples/feature_extract/CMakeFiles/feature_extract.dir/feature_extract.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "Clang")
 
@@ -16,7 +16,7 @@ set(CMAKE_CXX_TARGET_INCLUDE_PATH
 
 # Targets to which this target links.
 set(CMAKE_TARGET_LINKED_INFO_FILES
-  "/Users/adithirao/Documents/parallel/parallelImageStitcher/build/CMakeFiles/ezsift.dir/DependInfo.cmake"
+  "/Users/vmantha/Desktop/parallelImageStitcher/build/CMakeFiles/ezsift.dir/DependInfo.cmake"
   )
 
 # Fortran module output directory.
