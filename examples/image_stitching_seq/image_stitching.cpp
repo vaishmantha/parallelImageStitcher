@@ -198,6 +198,11 @@ void findDimensions(ezsift::Image<unsigned char> image, MatrixXd H,
     float h2 = image.h;
     float w2 = image.w;
     // creating endpoint coordinates (homogenous)
+    /*np.float32([[0, 0,1], 
+                    [0, w2,1], 
+                    [h2, w2,1], 
+                    [h2, 0,1]]).reshape(-1, 1, 2)
+    */
     cv::Mat imgDimsTemp = cv::Mat::zeros (4, 3, CV_64F);
     imgDimsTemp.at<double>(1, 1) = w2; 
     imgDimsTemp.at<double>(2, 0) = h2; 
@@ -219,6 +224,13 @@ void findDimensions(ezsift::Image<unsigned char> image, MatrixXd H,
     // Mapping to new end coordinates using H matrix
     // cv::perspectiveTransform(imgDimsTemp,imgDims, H_new);
     cv::Mat imgDims = H_new * imgDimsTemp.t(); 
+    cv::Mat lastRow = imgDims.row( 2 );
+    cv::Mat tmp;
+    cv::repeat(lastRow, 3, 1, tmp );
+    // std::cout << "imgDims shape " << imgDims.rows << " " << imgDims.cols << std::endl;
+    // std::cout << "last row shape " << lastRow.rows << " " << lastRow.cols << std::endl;
+    imgDims = imgDims / tmp;
+    // std::cout << "image dims " << imgDims << std::endl;
 
     // Finding min and max end points
     cv::minMaxLoc(imgDims.row(0), min_x, max_x, NULL, NULL);
@@ -303,15 +315,15 @@ int main(int argc, char *argv[])
     std::vector<MatrixXd> homographies;
     MatrixXd first = MatrixXd::Identity(3, 3);
     homographies.push_back(first);
-    for(int i=0; i<images.size()-1; i++){
-        MatrixXd bestH = computeRansac(matches[i]);
-        homographies.push_back(bestH);
+    for(int i=1; i<images.size(); i++){
+        MatrixXd bestH = computeRansac(matches[i-1]);
+        homographies.push_back(homographies[i-1]*bestH);
     }
 
     int pano_min_x = std::numeric_limits<int>::max();
     int pano_min_y = std::numeric_limits<int>::max();
-    int pano_max_x = std::numeric_limits<int>::min();
-    int pano_max_y = std::numeric_limits<int>::min();
+    int pano_max_x = -std::numeric_limits<int>::max();
+    int pano_max_y = -std::numeric_limits<int>::max();
 
     for(int i=0; i<images.size(); i++){
         double min_x;
@@ -330,8 +342,8 @@ int main(int argc, char *argv[])
     }
     printf("coord finding done\n");
 
-    int pan_height  = pano_max_y - pano_min_y; 
-    int  pan_width = pano_max_x - pano_min_x;
+    int pan_height  = 2*(pano_max_y - pano_min_y); 
+    int pan_width = 2*(pano_max_x - pano_min_x);
 
     cv::Mat resultImage (pan_height, pan_width, CV_8U);
     
@@ -346,8 +358,8 @@ int main(int argc, char *argv[])
         min_x = fmin(pano_min_x, min_x); 
         min_y = fmin(pano_min_y, min_y); 
 
-        int curr_width = max_x - min_x;
-        int curr_height  = max_y - min_y; 
+        int curr_width = (max_x - min_x);
+        int curr_height  = (max_y - min_y); 
 
         // convert homographies[i] into CV matrix 
         cv::Mat H (3, 3, CV_64F); 
@@ -363,10 +375,11 @@ int main(int argc, char *argv[])
         // cv::Mat grayImage;
         // cv::cvtColor(inpImg, grayImage, cv::COLOR_BGR2GRAY);
 
-        cv::warpPerspective(inpImg, newImg, H, cv::Size(curr_width, curr_height));
+        cv::warpPerspective(inpImg, newImg, H, cv::Size(2*curr_width, 2*curr_height));
         printf("filename %d: %s", i, files[i]);
-        if (i == 0) cv::imwrite("temp1.png", inpImg); 
-        if(i == 1) cv::imwrite("temp2.png", inpImg); 
+        if (i == 0) cv::imwrite("temp1.png", newImg); 
+        if(i == 1) cv::imwrite("temp2.png", newImg); 
+        if(i == 2) cv::imwrite("temp3.png", newImg); 
 
 
         // FIXME: wont resultImage and newImg always have same dimensions
