@@ -198,7 +198,7 @@ void findDimensions(ezsift::Image<unsigned char> image, MatrixXd H,
     float h2 = image.h;
     float w2 = image.w;
     // creating endpoint coordinates (homogenous)
-    cv::Mat imgDimsTemp (4, 3, CV_64F);
+    cv::Mat imgDimsTemp = cv::Mat::zeros (4, 3, CV_64F);
     imgDimsTemp.at<double>(1, 1) = w2; 
     imgDimsTemp.at<double>(2, 0) = h2; 
     imgDimsTemp.at<double>(2, 1) = w2; 
@@ -227,7 +227,6 @@ void findDimensions(ezsift::Image<unsigned char> image, MatrixXd H,
 }
 
 void placeImage(cv::Mat base, cv::Mat newImage){
-    printf("placeimage\n ");
     int h = newImage.rows;
     int w = newImage.cols;
     cv::Mat dstImg(base(cv::Rect(0, 0, w, h)));
@@ -287,6 +286,8 @@ int main(int argc, char *argv[])
     }
 
     std::vector<MatrixXd> homographies;
+    MatrixXd first = MatrixXd::Identity(3, 3);
+    homographies.push_back(first);
     for(int i=0; i<images.size()-1; i++){
         MatrixXd bestH = computeRansac(matches[i]);
         homographies.push_back(bestH);
@@ -297,7 +298,7 @@ int main(int argc, char *argv[])
     int pano_max_x = std::numeric_limits<int>::min();
     int pano_max_y = std::numeric_limits<int>::min();
 
-    for(int i=0; i<images.size()-1; i++){
+    for(int i=0; i<images.size(); i++){
         double min_x;
         double min_y;
         double max_x;
@@ -306,28 +307,25 @@ int main(int argc, char *argv[])
         findDimensions(images[i], homographies[i], &min_x, &min_y, &max_x, &max_y);
         printf("after findDimensions1\n");
 
-        pano_min_x = (int) (fmin(min_x, pano_min_x)); 
-        pano_min_y = (int) (fmin(min_y, pano_min_y)); 
-        pano_max_x = (int) (fmax(max_x, pano_max_x)); 
-        pano_max_y = (int) (fmax(max_y, pano_max_y));
+        pano_min_x = (int) (floor(fmin(min_x, pano_min_x))); 
+        pano_min_y = (int) (floor(fmin(min_y, pano_min_y))); 
+        pano_max_x = (int) (ceil(fmax(max_x, pano_max_x))); 
+        pano_max_y = (int) (ceil(fmax(max_y, pano_max_y)));
         printf("pano_size: max y: %d, min_y: %d, max_x: %d, min_x: %d \n", pano_max_y, pano_min_y, pano_max_x,pano_min_x );
     }
     printf("coord finding done\n");
 
-    // FIXME: probably not an issue but some of these mins are negative 
     int pan_width = pano_max_y - pano_min_y; 
     int pan_height = pano_max_x - pano_min_x;
 
     cv::Mat resultImage (pan_width, pan_height, CV_64F);
     
-    for (int i = 0; i < images.size()-1; i++){
+    for (int i = 0; i < images.size(); i++){
         double min_x; 
         double min_y; 
         double max_x; 
         double max_y; 
-        printf("before findDimensions2\n");
         findDimensions(images[i], homographies[i], &min_x, &min_y, &max_x, &max_y); 
-        printf("after findDimensions2\n");
         max_x = fmax(pano_max_x, max_x); 
         max_y = fmax(pano_max_y, max_y); 
         min_x = fmin(pano_min_x, min_x); 
@@ -336,26 +334,22 @@ int main(int argc, char *argv[])
         int curr_height = max_y - min_y; 
         int curr_width  = max_x - min_x;
 
-        // FIXME: sometimes randomly segfaults inside this conversion loop 
-        printf("before conversion H\n");
         // convert homographies[i] into CV matrix 
-        cv::Mat H ((int)(homographies[i].rows()), (int)(homographies[i].cols()), CV_64F); 
-        for (int i = 0; i < homographies[i].rows(); i++){
-            for(int j = 0; j < homographies[i].cols(); j++){
-                H.at<double>(i, j) = homographies[i](i, j); 
+        cv::Mat H (3, 3, CV_64F); 
+        for (int r = 0; r < homographies[i].rows(); r++){
+            for(int c = 0; c < homographies[i].cols(); c++){
+                H.at<double>(r, c) = homographies[i](r, c); 
             }
         }
         printf("after conversion H\n");
-
 
         cv::Mat newImg (curr_width, curr_height, CV_64F); 
         cv::Mat inpImg = cv::imread(files[i]); 
         cv::warpPerspective(inpImg, newImg, H, cv::Size(curr_width, curr_height));
         // FIXME: placeImage issue sometimes because resultImg is smaller dims than newImage so the slicing gets confused
-        printf("dimensions %d %d %d %d", resultImage.rows, resultImage.cols, newImg.rows, newImg.cols);
-        placeImage(resultImage, newImg); 
+        printf("dimensions %d %d %d %d\n", resultImage.rows, resultImage.cols, newImg.rows, newImg.cols);
+        placeImage(resultImage, newImg);
     }
-    // FIXME: There are only n-1 homography matrices so we loop through n-1 but how do we make sure all n images are stitched on
 
     // Write out resultImg
     cv::imwrite("result.png", resultImage); 
