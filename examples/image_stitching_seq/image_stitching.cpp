@@ -227,12 +227,23 @@ void findDimensions(ezsift::Image<unsigned char> image, MatrixXd H,
 }
 
 void placeImage(cv::Mat base, cv::Mat newImage){
+
+    // h, w = img.shape[:2]
+    // dest_slice = np.s_[0:h, 0:w]
+    // dest = base[dest_slice]
+    // mask = (255 - img[..., 3])
+    // dest_bg = cv2.bitwise_and(dest, dest, mask=mask)
+    // dest = cv2.add(dest_bg, img)
+    // base[dest_slice] = dest
+
+
     // std::cout << newImage << std::endl;
-    // int h = newImage.cols;
-    // int w = newImage.rows;
-    // cv::Mat dstImg(base(cv::Rect(0, 0, w, h)));
+    int w = newImage.cols;
+    int h = newImage.rows;
+    printf("w: %d, h: %d", w, h);
     printf("placeImage inside %d %d %d %d\n", base.rows, base.cols, newImage.rows, newImage.cols);
-    cv::add(newImage, base, base); 
+    cv::Mat dstImg(base(cv::Rect(0, 0, w, h)));
+    cv::add(newImage, dstImg, base(cv::Rect(0, 0, w, h))); 
     printf("done adding\n");
     // cv::Mat dstImgOg(base(cv::Rect(0, 0, w, h)));
 
@@ -255,7 +266,7 @@ int main(int argc, char *argv[])
     std::vector<char * > files;
     // All image files
     for(int i=1; i<argc; i++){
-        char file[255];
+        char* file = (char *)calloc(sizeof(char), strlen(argv[i]));
         memcpy(file, argv[i], sizeof(char) * strlen(argv[i]));
         file[strlen(argv[i])] = 0;
         files.push_back(file);
@@ -270,6 +281,9 @@ int main(int argc, char *argv[])
             return -1;
         }
         images.push_back(image);
+    }
+    for(int i=0; i<images.size(); i++){
+        printf("FILENAME HERE: %s \n", files[i]); 
     }
     
     std::vector<std::list<ezsift::MatchPair>> matches;
@@ -350,6 +364,11 @@ int main(int argc, char *argv[])
         // cv::cvtColor(inpImg, grayImage, cv::COLOR_BGR2GRAY);
 
         cv::warpPerspective(inpImg, newImg, H, cv::Size(curr_width, curr_height));
+        printf("filename %d: %s", i, files[i]);
+        if (i == 0) cv::imwrite("temp1.png", inpImg); 
+        if(i == 1) cv::imwrite("temp2.png", inpImg); 
+
+
         // FIXME: wont resultImage and newImg always have same dimensions
         // printf("dimensions %d %d %d %d\n", resultImage.rows, resultImage.cols, newImg.rows, newImg.cols);
         // printf("dimensions %d %d %d %d\n", pan_width, pan_height, curr_width, curr_height);
