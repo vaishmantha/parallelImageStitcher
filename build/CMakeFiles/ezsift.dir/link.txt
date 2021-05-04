@@ -1,2 +1,0 @@
-/Library/Developer/CommandLineTools/usr/bin/ar qc lib/libezsift.a CMakeFiles/ezsift.dir/src/ezsift.cpp.o CMakeFiles/ezsift.dir/src/image_utility.cpp.o
-/Library/Developer/CommandLineTools/usr/bin/ranlib lib/libezsift.a
