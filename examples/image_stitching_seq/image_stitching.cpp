@@ -237,30 +237,21 @@ void findDimensions(ezsift::Image<unsigned char> image, MatrixXd H,
 }
 
 void placeImage(cv::Mat base, cv::Mat newImage){
-
-    // h, w = img.shape[:2]
-    // dest_slice = np.s_[0:h, 0:w]
-    // dest = base[dest_slice]
-    // mask = (255 - img[..., 3])
-    // dest_bg = cv2.bitwise_and(dest, dest, mask=mask)
-    // dest = cv2.add(dest_bg, img)
-    // base[dest_slice] = dest
-
-
-    // std::cout << newImage << std::endl;
     int w = newImage.cols;
     int h = newImage.rows;
-    // printf("w: %d, h: %d", w, h);
-    // printf("placeImage inside %d %d %d %d\n", base.rows, base.cols, newImage.rows, newImage.cols);
+    printf("w: %d, h: %d", w, h);
     cv::Mat dstImg(base(cv::Rect(0, 0, w, h)));
-    cv::add(newImage, dstImg, base(cv::Rect(0, 0, w, h))); 
-    // printf("done adding\n");
-    // cv::Mat dstImgOg(base(cv::Rect(0, 0, w, h)));
-
-    // dstImg.copyTo(dstImgOg);
-    // put back onto accumulator
-    // newImage.copyTo(dstImg); 
-    // std::cout << base << std::endl;
+    // cv::bitwise_or(dstImg, newImage, base(cv::Rect(0, 0, w, h))); 
+    for (int i = 0; i < h; i++){
+        for (int j = 0; j < w; j++){
+            if (dstImg.at<uint8_t>(i, j) == 0){
+                dstImg.at<uint8_t>(i, j) = newImage.at<uint8_t>(i, j);
+            }
+            if (dstImg.at<uint8_t>(i, j) != 0 && newImage.at<uint8_t>(i, j) != 0){
+                dstImg.at<uint8_t>(i, j) = fmax(newImage.at<uint8_t>(i, j), dstImg.at<uint8_t>(i, j));
+            }
+        }
+    }
 }
 
 
@@ -283,7 +274,7 @@ int main(int argc, char *argv[])
         ezsift::Image<unsigned char> image;
 
         //Finally can convert pngs
-        cv::Mat pngImage = cv::imread(file, cv::IMREAD_GRAYSCALE);
+        cv::Mat pngImage = cv::imread(file, cv::IMREAD_UNCHANGED);
         cv::imwrite("tmp.pgm", pngImage);  
 
         if (image.read_pgm("tmp.pgm") != 0) {
@@ -374,7 +365,7 @@ int main(int argc, char *argv[])
         // printf("after conversion H\n");
 
         cv::Mat newImg (curr_width, curr_height, CV_8U); 
-        cv::Mat inpImg = cv::imread(files[i], cv::IMREAD_GRAYSCALE); 
+        cv::Mat inpImg = cv::imread(files[i], cv::IMREAD_UNCHANGED); 
         // cv::Mat grayImage;
         // cv::cvtColor(inpImg, grayImage, cv::COLOR_BGR2GRAY);
 
