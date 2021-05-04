@@ -146,27 +146,27 @@ ezsift/fast:
 # Target rules for targets named feature_extract
 
 # Build rule for target.
-feature_extract: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 feature_extract
-.PHONY : feature_extract
+# feature_extract: cmake_check_build_system
+# 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 feature_extract
+# .PHONY : feature_extract
 
-# fast build rule for target.
-feature_extract/fast:
-	$(MAKE) $(MAKESILENT) -f bin/examples/feature_extract/CMakeFiles/feature_extract.dir/build.make bin/examples/feature_extract/CMakeFiles/feature_extract.dir/build
-.PHONY : feature_extract/fast
+# # fast build rule for target.
+# feature_extract/fast:
+# 	$(MAKE) $(MAKESILENT) -f bin/examples/feature_extract/CMakeFiles/feature_extract.dir/build.make bin/examples/feature_extract/CMakeFiles/feature_extract.dir/build
+# .PHONY : feature_extract/fast
 
 #=============================================================================
 # Target rules for targets named image_match
 
 # Build rule for target.
-image_match: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 image_match
-.PHONY : image_match
+# image_match: cmake_check_build_system
+# 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 image_match
+# .PHONY : image_match
 
 # fast build rule for target.
-image_match/fast:
-	$(MAKE) $(MAKESILENT) -f bin/examples/image_match/CMakeFiles/image_match.dir/build.make bin/examples/image_match/CMakeFiles/image_match.dir/build
-.PHONY : image_match/fast
+# image_match/fast:
+# 	$(MAKE) $(MAKESILENT) -f bin/examples/image_match/CMakeFiles/image_match.dir/build.make bin/examples/image_match/CMakeFiles/image_match.dir/build
+# .PHONY : image_match/fast
 
 src/ezsift.o: src/ezsift.cpp.o
 
@@ -258,7 +258,7 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... ezsift"
-	@echo "... feature_extract"
+    @echo "... feature_extract"
 	@echo "... image_match"
 	@echo "... src/ezsift.o"
 	@echo "... src/ezsift.i"
