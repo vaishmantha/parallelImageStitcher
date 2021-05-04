@@ -245,7 +245,6 @@ void placeImage(cv::Mat base, cv::Mat newImage){
 
 int main(int argc, char *argv[])
 {
-    //TODO: Add the ability to take a variable number of images
     if (argc < 3) {
         printf("Please input at least two image filenames.\n");
         printf("usage: image_match img1 img2 ...\n");
@@ -264,8 +263,6 @@ int main(int argc, char *argv[])
 
         //Finally can convert pngs
         cv::Mat pngImage = cv::imread(file, cv::IMREAD_GRAYSCALE);
-        // cv::Mat grayImage;
-        // cv::cvtColor(pngImage, grayImage, cv::COLOR_BGR2GRAY);
         cv::imwrite("tmp.pgm", pngImage);  
 
         if (image.read_pgm("tmp.pgm") != 0) {
