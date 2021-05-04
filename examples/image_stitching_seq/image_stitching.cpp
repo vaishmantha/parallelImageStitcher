@@ -227,15 +227,19 @@ void findDimensions(ezsift::Image<unsigned char> image, MatrixXd H,
 }
 
 void placeImage(cv::Mat base, cv::Mat newImage){
-    int h = newImage.rows;
-    int w = newImage.cols;
-    cv::Mat dstImg(base(cv::Rect(0, 0, w, h)));
-    cv::add(dstImg, dstImg, newImage); 
-    cv::Mat dstImgOg(base(cv::Rect(0, 0, w, h)));
+    // std::cout << newImage << std::endl;
+    // int h = newImage.cols;
+    // int w = newImage.rows;
+    // cv::Mat dstImg(base(cv::Rect(0, 0, w, h)));
+    printf("placeImage inside %d %d %d %d\n", base.rows, base.cols, newImage.rows, newImage.cols);
+    cv::add(newImage, base, base); 
+    printf("done adding\n");
+    // cv::Mat dstImgOg(base(cv::Rect(0, 0, w, h)));
 
-    dstImg.copyTo(dstImgOg);
+    // dstImg.copyTo(dstImgOg);
     // put back onto accumulator
-    dstImg.copyTo(base); 
+    // newImage.copyTo(dstImg); 
+    // std::cout << base << std::endl;
 }
 
 
@@ -259,10 +263,10 @@ int main(int argc, char *argv[])
         ezsift::Image<unsigned char> image;
 
         //Finally can convert pngs
-        cv::Mat pngImage = cv::imread(file);
-        cv::Mat grayImage;
-        cv::cvtColor(pngImage, grayImage, cv::COLOR_BGR2GRAY);
-        cv::imwrite("tmp.pgm", grayImage);  
+        cv::Mat pngImage = cv::imread(file, cv::IMREAD_GRAYSCALE);
+        // cv::Mat grayImage;
+        // cv::cvtColor(pngImage, grayImage, cv::COLOR_BGR2GRAY);
+        cv::imwrite("tmp.pgm", pngImage);  
 
         if (image.read_pgm("tmp.pgm") != 0) {
             std::cerr << "Failed to open input image!" << std::endl;
@@ -315,10 +319,10 @@ int main(int argc, char *argv[])
     }
     printf("coord finding done\n");
 
-    int pan_width = pano_max_y - pano_min_y; 
-    int pan_height = pano_max_x - pano_min_x;
+    int pan_height  = pano_max_y - pano_min_y; 
+    int  pan_width = pano_max_x - pano_min_x;
 
-    cv::Mat resultImage (pan_width, pan_height, CV_64F);
+    cv::Mat resultImage (pan_height, pan_width, CV_8U);
     
     for (int i = 0; i < images.size(); i++){
         double min_x; 
@@ -331,8 +335,8 @@ int main(int argc, char *argv[])
         min_x = fmin(pano_min_x, min_x); 
         min_y = fmin(pano_min_y, min_y); 
 
-        int curr_height = max_y - min_y; 
-        int curr_width  = max_x - min_x;
+        int curr_width = max_x - min_x;
+        int curr_height  = max_y - min_y; 
 
         // convert homographies[i] into CV matrix 
         cv::Mat H (3, 3, CV_64F); 
@@ -343,11 +347,18 @@ int main(int argc, char *argv[])
         }
         printf("after conversion H\n");
 
-        cv::Mat newImg (curr_width, curr_height, CV_64F); 
-        cv::Mat inpImg = cv::imread(files[i]); 
+        cv::Mat newImg (curr_width, curr_height, CV_8U); 
+        cv::Mat inpImg = cv::imread(files[i], cv::IMREAD_GRAYSCALE); 
+        // cv::Mat grayImage;
+        // cv::cvtColor(inpImg, grayImage, cv::COLOR_BGR2GRAY);
+
         cv::warpPerspective(inpImg, newImg, H, cv::Size(curr_width, curr_height));
-        // FIXME: placeImage issue sometimes because resultImg is smaller dims than newImage so the slicing gets confused
-        printf("dimensions %d %d %d %d\n", resultImage.rows, resultImage.cols, newImg.rows, newImg.cols);
+        // FIXME: wont resultImage and newImg always have same dimensions
+        // printf("dimensions %d %d %d %d\n", resultImage.rows, resultImage.cols, newImg.rows, newImg.cols);
+        // printf("dimensions %d %d %d %d\n", pan_width, pan_height, curr_width, curr_height);
+
+        printf("channels %d %d\n", resultImage.type(), newImg.type());
+
         placeImage(resultImage, newImg);
     }
 
