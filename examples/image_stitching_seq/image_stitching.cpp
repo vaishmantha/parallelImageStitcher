@@ -283,15 +283,13 @@ int main(int argc, char *argv[])
         }
         images.push_back(image);
     }
-    // for(int i=0; i<images.size(); i++){
-    //     printf("FILENAME HERE: %s \n", files[i]); 
-    // }
+    
     
     std::vector<std::list<ezsift::MatchPair>> matches;
     for(int i=0; i<images.size()-1; i++){
         int j = i+1;
         std::list<ezsift::SiftKeypoint> kpt_list1, kpt_list2;
-        // ezsift::double_original_image(true);
+        ezsift::double_original_image(true);
         ezsift::sift_cpu(images[i], kpt_list1, true); //will write gpu version of this function
         ezsift::sift_cpu(images[j], kpt_list2, true);
 
