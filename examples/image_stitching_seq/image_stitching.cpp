@@ -286,10 +286,10 @@ int main(int argc, char *argv[])
     
     
     std::vector<std::list<ezsift::MatchPair>> matches;
+    ezsift::double_original_image(true);
     for(int i=0; i<images.size()-1; i++){
         int j = i+1;
         std::list<ezsift::SiftKeypoint> kpt_list1, kpt_list2;
-        ezsift::double_original_image(true);
         ezsift::sift_cpu(images[i], kpt_list1, true); //will write gpu version of this function
         ezsift::sift_cpu(images[j], kpt_list2, true);
 
@@ -335,6 +335,11 @@ int main(int argc, char *argv[])
     int pan_width = (int)(pano_max_x - pano_min_x);
 
     cv::Mat resultImage (pan_height, pan_width, CV_8U);
+    for (int i = 0; i < pan_height; i++){
+        for (int j = 0; j < pan_width; j++){
+            resultImage.at<uint8_t>(i, j) = 0;
+        }
+    }
     
     for (int i = 0; i < images.size(); i++){
         double min_x; 
@@ -395,99 +400,5 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    //Needs to be sequential
-    // cv::Mat resultImage;
-    // for(int i=images.size()-1; i>0;i--){
-    //     printf("Case 1 before before\n");
-    //     accH = homographies[i-1];
-    //     char res[255];
-    //     strcpy(res, "result.png");
-    //     if(i == images.size()-1){
-    //         printf("Case 1 before\n");
-    //         cv::Mat resultImage = imageStitch(accH, files[i-1], files[i]); //1,2
-    //         cv::imwrite("result.png", resultImage); 
-    //         printf("Case 1 after\n");
-    //     }else{
-    //         printf("Case 2 before\n");
-    //         cv::Mat resultImage = imageStitch(accH, files[i-1], res);
-    //         printf("Case 2 after\n");
-    //         cv::imwrite("result.png", resultImage); 
-    //     }
-    // }
-    // cv::Mat resultImage;
-    // for(int i=0; i<images.size()-1;i++){
-    //     printf("Case 1 before before\n");
-    //     accH = accH*homographies[i];
-    //     char res[255];
-    //     strcpy(res, "result.png");
-    //     if(i == 0){
-    //         printf("Case 1 before\n");
-    //         cv::Mat resultImage = imageStitch(accH, files[i], files[i+1]); //1,2
-    //         cv::imwrite("result.png", resultImage); 
-    //         printf("Case 1 after\n");
-    //     }else{
-    //         printf("Case 2 before\n");
-    //         cv::Mat resultImage = imageStitch(accH, res, files[i+1]);
-    //         printf("Case 2 after\n");
-    //         cv::imwrite("result.png", resultImage); 
-    //     }
-    // }
-    
-    
-    //////////////////
-
-    // auto bestH = computeRansac(match_list);
-    // auto resultImage = imageStitch(bestH, file1, file2);
-    // cv::imwrite("result.png", resultImage); 
-
-    // char file1[255];
-    // char file2[255];
-    // printf("%s", argv[1]);
-    // memcpy(file1, argv[1], sizeof(char) * strlen(argv[1]));
-    // file1[strlen(argv[1])] = 0;
-    // memcpy(file2, argv[2], sizeof(char) * strlen(argv[2]));
-    // file2[strlen(argv[2])] = 0;
-// #endif
-    
-    // Read two input images
-    // ezsift::Image<unsigned char> image1, image2;
-    // if (image1.read_pgm(file1) != 0) {
-    //     std::cerr << "Failed to open input image1!" << std::endl;
-    //     return -1;
-    // }
-
-    // if (image2.read_pgm(file2) != 0) {
-    //     printf("Failed to open input image2!\n");
-    //     return -1;
-    // }
-
-    // Double the original image as the first octive.
-    // ezsift::double_original_image(true); //CHECK WHAT THIS DOES
-
-    // Detect keypoints
-    // std::list<ezsift::SiftKeypoint> kpt_list1, kpt_list2;
-    // ezsift::sift_cpu(image1, kpt_list1, true); //will write gpu version of this function
-
-    // ezsift::sift_cpu(image2, kpt_list2, true);
-
-    // Save keypoint list, and draw keypoints on images.
-    // ezsift::draw_keypoints_to_ppm_file("sift_keypoints_a.ppm", image1,
-    //                                    kpt_list1);
-
-    // ezsift::draw_keypoints_to_ppm_file("sift_keypoints_b.ppm", image2,
-    //                                    kpt_list2);
-
-    // Match keypoints.
-    // std::list<ezsift::MatchPair> match_list;
-    // ezsift::match_keypoints(kpt_list1, kpt_list2, match_list);
-
-    // Draw result image where the two images are matched
-    // ezsift::draw_match_lines_to_ppm_file("sift_matching_a_b.ppm", image1,
-    //                                      image2, match_list);
-    
-    // auto bestH = computeRansac(match_list);
-    // auto resultImage = imageStitch(bestH, file1, file2);
-    // // std::cout << resultImage << std::endl;
-    // cv::imwrite("result.png", resultImage);  
     return 0;
 }
