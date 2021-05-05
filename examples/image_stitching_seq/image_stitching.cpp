@@ -210,8 +210,7 @@ void findDimensions(ezsift::Image<unsigned char> image, MatrixXd H,
     imgDimsTemp.at<double>(1, 2) = 1.0; 
     imgDimsTemp.at<double>(2, 2) = 1.0; 
     imgDimsTemp.at<double>(3, 2) = 1.0; 
-    std::cout << "Imgdims temp" << imgDimsTemp << std::endl;
-    std::cout <<"H_old " << H << std::endl;
+    
     // convert H into CV matrix 
     cv::Mat H_new ((int)(3), (int)(3), CV_64F);
     for (int i = 0; i < 3; i++){
@@ -219,29 +218,26 @@ void findDimensions(ezsift::Image<unsigned char> image, MatrixXd H,
             H_new.at<double>(i, j) = H(i, j); 
         }
     }
-    std::cout <<"H_new " << H_new << std::endl;
     // Mapping to new end coordinates using H matrix
-    // cv::perspectiveTransform(imgDimsTemp, imgDims, H_new);
     cv::Mat imgDims = H_new * imgDimsTemp.t(); 
-    // std::cout << "image dims pre division" << imgDims << std::endl;
     cv::Mat lastRow = imgDims.row( 2 );
     cv::Mat tmp;
     cv::repeat(lastRow, 3, 1, tmp );
     // std::cout << "imgDims shape " << imgDims.rows << " " << imgDims.cols << std::endl;
     // std::cout << "last row shape " << lastRow.rows << " " << lastRow.cols << std::endl;
     imgDims = imgDims / tmp;
-    std::cout << "image dims " << imgDims << std::endl;
+    // std::cout << "image dims " << imgDims << std::endl;
 
     // Finding min and max end points
     cv::minMaxLoc(imgDims.row(0), min_x, max_x, NULL, NULL);
     cv::minMaxLoc(imgDims.row(1), min_y, max_y, NULL, NULL);
-    printf("findDimensions: max y: %f, min_y: %f, max_x: %f, min_x: %f \n", *min_x, *min_y, *max_x, *max_y );
+    // printf("findDimensions: max y: %f, min_y: %f, max_x: %f, min_x: %f \n", *min_x, *min_y, *max_x, *max_y );
 }
 
 void placeImage(cv::Mat base, cv::Mat newImage){
     int w = newImage.cols;
     int h = newImage.rows;
-    printf("w: %d, h: %d", w, h);
+    // printf("w: %d, h: %d", w, h);
     cv::Mat dstImg(base(cv::Rect(0, 0, w, h)));
     // cv::bitwise_or(dstImg, newImage, base(cv::Rect(0, 0, w, h))); 
     for (int i = 0; i < h; i++){
@@ -259,31 +255,60 @@ void placeImage(cv::Mat base, cv::Mat newImage){
 
 int main(int argc, char *argv[])
 {
-    if (argc < 3) {
+    bool VIDEO_MODE;
+    char* suffix = strrchr(argv[1], '.');
+    if (argc < 2) {
+        printf("Please input at least two image filenames or one video filename.\n");
+        return -1;
+    }
+
+    if(strncmp(suffix, ".mp4", 4) == 0){
+        VIDEO_MODE = true;  
+    }else{
+        VIDEO_MODE = false;
+    }
+
+    if (argc < 3 && !VIDEO_MODE) {
         printf("Please input at least two image filenames.\n");
         printf("usage: image_match img1 img2 ...\n");
         return -1;
     }
 
+    
     std::vector<ezsift::Image<unsigned char> > images;
-    std::vector<char * > files;
-    // All image files
-    for(int i=1; i<argc; i++){
-        char* file = (char *)calloc(sizeof(char), strlen(argv[i]));
-        memcpy(file, argv[i], sizeof(char) * strlen(argv[i]));
-        file[strlen(argv[i])] = 0;
-        files.push_back(file);
-        ezsift::Image<unsigned char> image;
+    std::vector<char * > files; //Should probably switch away from this when switching to video
+    if(!VIDEO_MODE){
+        // All image files
+        for(int i=1; i<argc; i++){
+            char* file = (char *)calloc(sizeof(char), strlen(argv[i]));
+            memcpy(file, argv[i], sizeof(char) * strlen(argv[i]));
+            file[strlen(argv[i])] = 0;
+            files.push_back(file);
+            ezsift::Image<unsigned char> image;
 
-        //Finally can convert pngs
-        cv::Mat pngImage = cv::imread(file, cv::IMREAD_UNCHANGED);
-        cv::imwrite("tmp.pgm", pngImage);  
+            //Finally can convert pngs
+            cv::Mat pngImage = cv::imread(file, cv::IMREAD_UNCHANGED);
+            cv::imwrite("tmp.pgm", pngImage);  
 
-        if (image.read_pgm("tmp.pgm") != 0) {
-            std::cerr << "Failed to open input image!" << std::endl;
-            return -1;
+            if (image.read_pgm("tmp.pgm") != 0) {
+                std::cerr << "Failed to open input image!" << std::endl;
+                return -1;
+            }
+            images.push_back(image);
         }
-        images.push_back(image);
+    }else{
+        char* file;
+        memcpy(file, argv[1], sizeof(char) * strlen(argv[1]));
+        file[strlen(argv[1])] = 0;
+        // cv::VideoCapture cap(file);
+        // if ( !cap.isOpened() ){  // isOpened() returns true if capturing has been initialized.
+        //     std::cout << "Cannot open the video file. \n";
+        //     return -1;
+        // }
+        // pos_frame = cap.get(cv2.cv.CV_CAP_PROP_POS_FRAMES)
+        // while(true){
+
+        // }
     }
     
     
@@ -349,12 +374,12 @@ int main(int argc, char *argv[])
         double max_x; 
         double max_y; 
         findDimensions(images[i], homographies[i], &min_x, &min_y, &max_x, &max_y); 
-        printf("max y: %lf, min_y: %lf, max_x: %lf, min_x: %lf \n", max_y, min_y, max_x, min_x );
+        // printf("max y: %lf, min_y: %lf, max_x: %lf, min_x: %lf \n", max_y, min_y, max_x, min_x );
         max_x = fmax(pano_max_x, max_x); 
         max_y = fmax(pano_max_y, max_y); 
         min_x = fmax(fmin(pano_min_x, min_x),0); 
         min_y = fmax(fmin(pano_min_y, min_y),0); 
-        printf("pano_size: max y: %d, min_y: %d, max_x: %d, min_x: %d \n", pano_max_y, pano_min_y, pano_max_x,pano_min_x );
+        // printf("pano_size: max y: %d, min_y: %d, max_x: %d, min_x: %d \n", pano_max_y, pano_min_y, pano_max_x,pano_min_x );
         
 
         int curr_width = (int)(max_x - min_x);
@@ -376,19 +401,12 @@ int main(int argc, char *argv[])
 
         cv::warpPerspective(inpImg, newImg, H, cv::Size(curr_width, curr_height));
 
-        if (i == 0) cv::imwrite("temp1.png", newImg); 
-        if(i == 1) cv::imwrite("temp2.png", newImg); 
-        if(i == 2) cv::imwrite("temp3.png", newImg); 
-        if(i == 3) cv::imwrite("temp4.png", newImg); 
-        if(i == 4) cv::imwrite("temp5.png", newImg); 
-        if(i == 5) cv::imwrite("temp6.png", newImg); 
-
-
-        // FIXME: wont resultImage and newImg always have same dimensions
-        // printf("dimensions %d %d %d %d\n", resultImage.rows, resultImage.cols, newImg.rows, newImg.cols);
-        // printf("dimensions %d %d %d %d\n", pan_width, pan_height, curr_width, curr_height);
-
-        // printf("channels %d %d\n", resultImage.type(), newImg.type());
+        // if (i == 0) cv::imwrite("temp1.png", newImg); 
+        // if(i == 1) cv::imwrite("temp2.png", newImg); 
+        // if(i == 2) cv::imwrite("temp3.png", newImg); 
+        // if(i == 3) cv::imwrite("temp4.png", newImg); 
+        // if(i == 4) cv::imwrite("temp5.png", newImg); 
+        // if(i == 5) cv::imwrite("temp6.png", newImg); 
 
         placeImage(resultImage, newImg);
     }
