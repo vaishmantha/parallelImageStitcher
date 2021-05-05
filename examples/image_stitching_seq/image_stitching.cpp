@@ -202,15 +202,16 @@ void findDimensions(ezsift::Image<unsigned char> image, MatrixXd H,
                     [h2, 0,1]]).reshape(-1, 1, 2)
     */
     cv::Mat imgDimsTemp = cv::Mat::zeros (4, 3, CV_64F);
-    imgDimsTemp.at<double>(1, 1) = w2; 
-    imgDimsTemp.at<double>(2, 0) = h2; 
-    imgDimsTemp.at<double>(2, 1) = w2; 
-    imgDimsTemp.at<double>(3, 0) = h2; 
+    imgDimsTemp.at<double>(1, 1) = h2; 
+    imgDimsTemp.at<double>(2, 0) = w2; 
+    imgDimsTemp.at<double>(2, 1) = h2; 
+    imgDimsTemp.at<double>(3, 0) = w2; 
     imgDimsTemp.at<double>(0, 2) = 1.0; 
     imgDimsTemp.at<double>(1, 2) = 1.0; 
     imgDimsTemp.at<double>(2, 2) = 1.0; 
     imgDimsTemp.at<double>(3, 2) = 1.0; 
-
+    std::cout << "Imgdims temp" << imgDimsTemp << std::endl;
+    std::cout <<"H_old " << H << std::endl;
     // convert H into CV matrix 
     cv::Mat H_new ((int)(3), (int)(3), CV_64F);
     for (int i = 0; i < 3; i++){
@@ -218,10 +219,11 @@ void findDimensions(ezsift::Image<unsigned char> image, MatrixXd H,
             H_new.at<double>(i, j) = H(i, j); 
         }
     }
-    
+    std::cout <<"H_new " << H_new << std::endl;
     // Mapping to new end coordinates using H matrix
-    // cv::perspectiveTransform(imgDimsTemp,imgDims, H_new);
+    // cv::perspectiveTransform(imgDimsTemp, imgDims, H_new);
     cv::Mat imgDims = H_new * imgDimsTemp.t(); 
+    // std::cout << "image dims pre division" << imgDims << std::endl;
     cv::Mat lastRow = imgDims.row( 2 );
     cv::Mat tmp;
     cv::repeat(lastRow, 3, 1, tmp );
@@ -233,7 +235,7 @@ void findDimensions(ezsift::Image<unsigned char> image, MatrixXd H,
     // Finding min and max end points
     cv::minMaxLoc(imgDims.row(0), min_x, max_x, NULL, NULL);
     cv::minMaxLoc(imgDims.row(1), min_y, max_y, NULL, NULL);
-    // printf("findDimensions: max y: %f, min_y: %f, max_x: %f, min_x: %f \n", *min_x, *min_y, *max_x, *max_y );
+    printf("findDimensions: max y: %f, min_y: %f, max_x: %f, min_x: %f \n", *min_x, *min_y, *max_x, *max_y );
 }
 
 void placeImage(cv::Mat base, cv::Mat newImage){
@@ -311,21 +313,21 @@ int main(int argc, char *argv[])
         homographies.push_back(homographies[i-1]*bestH);
     }
 
-    int pano_min_x = std::numeric_limits<int>::max();
-    int pano_min_y = std::numeric_limits<int>::max();
-    int pano_max_x = -std::numeric_limits<int>::max();
-    int pano_max_y = -std::numeric_limits<int>::max();
+    int pano_min_x = 0; //std::numeric_limits<int>::max();
+    int pano_min_y = 0; //std::numeric_limits<int>::max();
+    int pano_max_x = images[0].w; //-std::numeric_limits<int>::max();
+    int pano_max_y = images[0].h;  //-std::numeric_limits<int>::max();
     // printf("pano_max_x %d\n", pano_max_x);
 
-    for(int i=0; i<images.size(); i++){
+    for(int i=1; i<images.size(); i++){
         double min_x;
         double min_y;
         double max_x;
         double max_y;
         findDimensions(images[i], homographies[i], &min_x, &min_y, &max_x, &max_y);
 
-        pano_min_x = (int) (floor(fmin(min_x, pano_min_x))); 
-        pano_min_y = (int) (floor(fmin(min_y, pano_min_y))); 
+        pano_min_x = (int) fmax((floor(fmin(min_x, pano_min_x))),0); 
+        pano_min_y = (int) fmax((floor(fmin(min_y, pano_min_y))),0); 
         pano_max_x = (int) (ceil(fmax(max_x, pano_max_x))); 
         pano_max_y = (int) (ceil(fmax(max_y, pano_max_y)));
         // printf("pano_size: max y: %d, min_y: %d, max_x: %d, min_x: %d \n", pano_max_y, pano_min_y, pano_max_x,pano_min_x );
@@ -350,8 +352,8 @@ int main(int argc, char *argv[])
         printf("max y: %lf, min_y: %lf, max_x: %lf, min_x: %lf \n", max_y, min_y, max_x, min_x );
         max_x = fmax(pano_max_x, max_x); 
         max_y = fmax(pano_max_y, max_y); 
-        min_x = fmin(pano_min_x, min_x); 
-        min_y = fmin(pano_min_y, min_y); 
+        min_x = fmax(fmin(pano_min_x, min_x),0); 
+        min_y = fmax(fmin(pano_min_y, min_y),0); 
         printf("pano_size: max y: %d, min_y: %d, max_x: %d, min_x: %d \n", pano_max_y, pano_min_y, pano_max_x,pano_min_x );
         
 
@@ -392,11 +394,12 @@ int main(int argc, char *argv[])
     }
 
     // Write out resultImg
-    cv::imwrite("result.png", resultImage); 
+    
     cv::imshow("windowName",resultImage);
     int k = cv::waitKey(0);
     if(k == 'q')
-    {
+    {   
+        cv::imwrite("result.png", resultImage); 
         return 0;
     }
 
