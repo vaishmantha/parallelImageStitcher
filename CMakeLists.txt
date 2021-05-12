@@ -8,6 +8,7 @@ project(${EZSIFT})
 
 option(EZSIFT_BUILD_EXAMPLES "Build with examples" ON)
 
+
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
@@ -42,3 +43,4 @@ target_include_directories(${EZSIFT} PUBLIC ${EZSIFT_SRC_DIR})
 if(EZSIFT_BUILD_EXAMPLES)
   add_subdirectory(${EZSIFT_ROOT}/examples ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/examples/)
 endif()
+
