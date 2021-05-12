@@ -90,6 +90,7 @@
         "cinttypes": "cpp",
         "hash_set": "cpp",
         "codecvt": "cpp",
-        "alignedvector3": "cpp"
+        "alignedvector3": "cpp",
+        "dense": "cpp"
     }
 }

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 set(CMAKE_C_COMPILER "/usr/bin/gcc")
-#set(CMAKE_CXX_COMPILER "/usr/bin/g++")
-set(CMAKE_CXX_COMPILER "/opt/rh/devtoolset-9/root/bin/g++")
+#set(CMAKE_CXX_COMPILER "/usr/bin/g++") #local version
+set(CMAKE_CXX_COMPILER "/opt/rh/devtoolset-9/root/bin/g++") #ghc version
 
 set(EZSIFT ezsift)
 project(${EZSIFT})
