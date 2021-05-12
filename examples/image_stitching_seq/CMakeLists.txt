@@ -7,9 +7,3 @@ target_link_libraries(image_stitching_seq
 	ezsift
 )
 
-find_package( OpenCV REQUIRED )
-include_directories( ${OpenCV_INCLUDE_DIRS} )
-
-target_link_libraries(image_stitching_seq
-	${OpenCV_LIBS}
-)

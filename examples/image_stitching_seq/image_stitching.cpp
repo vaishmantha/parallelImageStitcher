@@ -83,7 +83,7 @@ MatrixXd computeNormalizedHomography(MatrixXd x1, MatrixXd x2,
     MatrixXd x1Norm = (T1 * homogeneous_x1.transpose()).transpose();
     MatrixXd x2Norm = (T2 * homogeneous_x2.transpose()).transpose();
 
-    MatrixXd H = computeHomography(x1Norm(Eigen::all, {0, 1}), x2Norm(Eigen::all, {0, 1}));
+    MatrixXd H = computeHomography(x1Norm(Eigen::seqN(0,x1Norm.rows()), {0, 1}), x2Norm(Eigen::seqN(0,x2Norm.rows()), {0, 1}));
     return T1.inverse() * (H * T2);  //correct
 }
 
@@ -122,11 +122,11 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
             int r = (int)((size_t)rand() % match_li.size()); 
             rand_inds.push_back(r);
         }
-        MatrixXd x1 = locs1(rand_inds, Eigen::all); 
-        MatrixXd x2 = locs2(rand_inds, Eigen::all); 
+        MatrixXd x1 = locs1(rand_inds, Eigen::seqN(0,locs1.cols())); 
+        MatrixXd x2 = locs2(rand_inds, Eigen::seqN(0,locs2.cols())); 
 
-        MatrixXd x1_res_h = homogeneous_loc1(rand_inds, Eigen::all); 
-        MatrixXd x2_res_h = homogeneous_loc2(rand_inds, Eigen::all); 
+        MatrixXd x1_res_h = homogeneous_loc1(rand_inds,  Eigen::seqN(0,homogeneous_loc1.cols())); 
+        MatrixXd x2_res_h = homogeneous_loc2(rand_inds, Eigen::seqN(0,homogeneous_loc2.cols())); 
 
         MatrixXd H = computeNormalizedHomography(x1, x2, x1_res_h, x2_res_h); 
         int count = 0; 
@@ -139,7 +139,7 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
                 divide_by_zero = true;
                 break;
             }
-            diff = (prod.transpose()(i, {0,1})/prod.transpose()(i, 2) - locs1(i, Eigen::all)).norm();
+            diff = (prod.transpose()(i, {0,1})/prod.transpose()(i, 2) - locs1(i,  Eigen::seqN(0,locs1.cols()))).norm();
             if(diff < threshold){
                 count++;
                 inlier_inds_current.push_back(i);
@@ -150,10 +150,10 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
             inlier_inds = inlier_inds_current;
         }      
     }
-    MatrixXd x1_res = locs1(inlier_inds, Eigen::all); 
-    MatrixXd x2_res = locs2(inlier_inds, Eigen::all);
-    MatrixXd x1_res_h = homogeneous_loc1(inlier_inds, Eigen::all); 
-    MatrixXd x2_res_h = homogeneous_loc2(inlier_inds, Eigen::all);
+    MatrixXd x1_res = locs1(inlier_inds, Eigen::seqN(0,locs1.cols())); 
+    MatrixXd x2_res = locs2(inlier_inds, Eigen::seqN(0,locs2.cols()));
+    MatrixXd x1_res_h = homogeneous_loc1(inlier_inds, Eigen::seqN(0,homogeneous_loc1.cols())); 
+    MatrixXd x2_res_h = homogeneous_loc2(inlier_inds, Eigen::seqN(0,homogeneous_loc2.cols()));
     MatrixXd bestNormalizedHomography = computeNormalizedHomography(x1_res, x2_res, x1_res_h, x2_res_h);
     // std::cout << bestNormalizedHomography << std::endl;
     return bestNormalizedHomography;
@@ -175,7 +175,7 @@ void findDimensions(ezsift::Image<unsigned char> image, MatrixXd H,
     imgDimsTmp(3,2) = 1.0;
 
     MatrixXd imgDimss = H*(imgDimsTmp.transpose());
-    MatrixXd lRow = imgDimss({2}, Eigen::all); 
+    MatrixXd lRow = imgDimss({2}, Eigen::seqN(0,imgDimss.cols())); 
     MatrixXd tm = lRow.replicate(3,1);
     for(int i=0; i< tm.rows(); i++){
         for(int j=0; j< tm.cols(); j++){
@@ -183,10 +183,10 @@ void findDimensions(ezsift::Image<unsigned char> image, MatrixXd H,
         }
     }
     imgDimss = imgDimss.cwiseProduct(tm);
-    *min_x = imgDimss({0}, Eigen::all).minCoeff();
-    *max_x = imgDimss({0}, Eigen::all).maxCoeff();
-    *min_y = imgDimss({1}, Eigen::all).minCoeff();
-    *max_y = imgDimss({1}, Eigen::all).maxCoeff();
+    *min_x = imgDimss({0}, Eigen::seqN(0,imgDimss.cols())).minCoeff();
+    *max_x = imgDimss({0}, Eigen::seqN(0,imgDimss.cols())).maxCoeff();
+    *min_y = imgDimss({1}, Eigen::seqN(0,imgDimss.cols())).minCoeff();
+    *max_y = imgDimss({1}, Eigen::seqN(0,imgDimss.cols())).maxCoeff();
 }
 
 MatrixXd warpPerspective(unsigned char* png_image, int png_width, int png_height, MatrixXd newIm, MatrixXd H){
@@ -197,7 +197,7 @@ MatrixXd warpPerspective(unsigned char* png_image, int png_width, int png_height
             tmp(0,1) = i;
             tmp(0,2) = 1;
             MatrixXd res = H*tmp.transpose();
-            MatrixXd tm = res({2}, Eigen::all).replicate(3,1);
+            MatrixXd tm = res({2}, Eigen::seqN(0, res.cols())).replicate(3,1);
             res = res.cwiseQuotient(tm);
             if ((int)res(0,0) >= 0 && (int)res(0,0) < newIm.cols() && (int)res(1,0) >= 0 && (int)res(1,0) < newIm.rows()){
                 newIm((int)res(1,0), (int)res(0,0)) = (int)png_image[i*png_width + j];

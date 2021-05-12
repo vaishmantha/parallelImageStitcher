@@ -1,10 +1,8 @@
 /* Copyright (c) 2013, Robert Wang, email: robertwgh (at) gmail.com
    All rights reserved. https://github.com/robertwgh/ezSIFT
-
    Description:
    This image class is a helper class designed for image related operations.
    There is definitely room to optimize these functions.
-
    Revision history:
       September, 15, 2013: initial version.
       July 8th, 2014: fixed arrary access bug in sample_2x(). Thanks Kyungmo
@@ -15,7 +13,6 @@
 
 #include "image_utility.h"
 
-#include <iostream>
 #include <assert.h>
 #include <ctype.h>
 #include <math.h>
@@ -50,7 +47,7 @@ class Image {
 
     void release();
 
-    int read_pgm(const char *filename, unsigned char* data, unsigned width, unsigned height);
+    int read_pgm(const char *filename);
     int write_pgm(const char *filename);
 
     Image<unsigned char> to_uchar() const;
@@ -139,19 +136,8 @@ void Image<T>::release()
 }
 
 template <typename T>
-int Image<T>::read_pgm(const char *filename, unsigned char* data_inp, unsigned width, unsigned height)
+int Image<T>::read_pgm(const char *filename)
 {
-    // init(w, h);
-    // // _data = new unsigned char[w * h];
-
-    // for (int i = 0; i < height; i++) {
-    //     for (int j = 0; j < width; j++) {
-    //         // std::cout << "Here " << i << " " << j<< std::endl;
-    //         // std::cout << (T)data_inp[i * width + j] << std::endl;
-    //         data[i * width + j] = data_inp[i * width + j];
-    //     }
-    // }
-    // std::cout << "Reaching end" << std::endl;
     FILE *in_file;
     char ch, type;
     int dummy;
@@ -192,7 +178,6 @@ int Image<T>::read_pgm(const char *filename, unsigned char* data_inp, unsigned w
 
     init(w, h);
     if (typeid(T) == typeid(unsigned char)) {
-        std::cout << w << " " << h << std::endl;
         fread(data, sizeof(unsigned char), (w) * (h), in_file);
     }
     else {
