@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 set(CMAKE_C_COMPILER "/usr/bin/gcc")
-set(CMAKE_CXX_COMPILER "/usr/bin/g++")
+#set(CMAKE_CXX_COMPILER "/usr/bin/g++")
+set(CMAKE_CXX_COMPILER "/opt/rh/devtoolset-9/root/bin/g++")
 
 set(EZSIFT ezsift)
 project(${EZSIFT})
@@ -23,7 +24,7 @@ set(EZSIFT_SRC_DIR ${EZSIFT_ROOT}/src)
 
 file(GLOB_RECURSE SRC RELATIVE ${PROJECT_SOURCE_DIR} "${EZSIFT_SRC_DIR}/*.cpp")
 file(GLOB_RECURSE HEADERS RELATIVE ${PROJECT_SOURCE_DIR} "${EZSIFT_SRC_DIR}/*.h" "${EZSIFT_INCLUDE_DIR}/*.h")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 
 add_library(${EZSIFT} ${SRC})
 
