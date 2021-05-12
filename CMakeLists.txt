@@ -39,7 +39,6 @@ include_directories(
 
 target_include_directories(${EZSIFT} PUBLIC ${EZSIFT_SRC_DIR})
 
-# message( ${EZSIFT_ROOT} )
 if(EZSIFT_BUILD_EXAMPLES)
   add_subdirectory(${EZSIFT_ROOT}/examples ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/examples/)
 endif()

@@ -4,9 +4,9 @@ option(USE_CUDA "Use CUDA" ON)
 file(GLOB gpu_source_files "*.cu")
 
 file(GLOB_RECURSE EXAMPLE_SRC "image_stitching.cpp")
-add_executable(image_stitching_parallel ${EXAMPLE_SRC})
+add_executable(image_stitching_cuda ${EXAMPLE_SRC})
 
-target_link_libraries(image_stitching_parallel
+target_link_libraries(image_stitching_cuda
 	ezsift
 )
 
@@ -16,8 +16,8 @@ if(USE_CUDA)
         message(STATUS "CUDA not found")
         set(USE_CUDA OFF)
     else()
-        CUDA_ADD_LIBRARY(image_stitching_parallel_gpu ${gpu_source_files})
-        target_link_libraries(image_stitching_parallel image_stitching_parallel_gpu)
+        CUDA_ADD_LIBRARY(image_stitching_cuda_gpu ${gpu_source_files})
+        target_link_libraries(image_stitching_cuda image_stitching_cuda_gpu)
     endif()
 endif()
 
