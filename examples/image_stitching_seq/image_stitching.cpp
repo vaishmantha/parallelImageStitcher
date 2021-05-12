@@ -7,13 +7,13 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 
-#undef cimg_display
-#define cimg_display 0
-#include "CImg/CImg.h"
+// #undef cimg_display
+// #define cimg_display 0
+// #include "CImg/CImg.h"
 #include "lodepng/lodepng.h"
 // #include "CImg.h"
 
-using namespace cimg_library;
+// using namespace cimg_library;
 using Eigen::MatrixXd;
 
 #define USE_FIX_FILENAME 0
@@ -209,6 +209,7 @@ void warpPerspective(unsigned char* png_image, int png_width, int png_height, Ma
             res = res.cwiseQuotient(tm);
             // std::cout << "step 3 done" << std::endl;
             if ((int)res(0,0) >= 0 && (int)res(0,0) < newIm.rows() && (int)res(1,0) >= 0 && (int)res(1,0) < newIm.cols()){
+                std::cout << "IN here" << (int)png_image[i*png_width + j] << std::endl;
                 newIm((int)res(0,0), (int)res(1,0)) = (int)png_image[i*png_width + j];
             }
         }
@@ -220,10 +221,12 @@ void placeImage(cv::Mat base, cv::Mat newImage){
     int h = newImage.rows;
     printf("Base image dimensions width %d height %d\n", base.cols, base.rows);
     printf("w: %d, h: %d\n", w, h);
-    cv::Mat dstImg(base(cv::Rect(0, 0, w, h)));
+    cv::Mat dstImg(base(cv::Rect(0, 0, h, w))); ///////
+    printf("one\n");
     // cv::bitwise_or(dstImg, newImage, base(cv::Rect(0, 0, w, h))); 
     for (int i = 0; i < h; i++){ 
         for (int j = 0; j < w; j++){
+            // printf("coord %d %d\n", i, j); 
             if (dstImg.at<uint8_t>(i, j) == 0){
                 dstImg.at<uint8_t>(i, j) = newImage.at<uint8_t>(i, j);
             }
@@ -232,6 +235,7 @@ void placeImage(cv::Mat base, cv::Mat newImage){
             }
         }
     }
+    printf("forloop done\n");
 }
 
 void write_pgm(const char *filename, unsigned char *data, int w, int h)
@@ -403,19 +407,22 @@ int main(int argc, char *argv[])
         // printf("after conversion H\n");
         MatrixXd newIm = MatrixXd::Constant(curr_width, curr_height, 0);
         warpPerspective(png_images[i], widths[i], heights[i], newIm, homographies[i]);
-        std::cout << "Png image width " << widths[i] << " height " << heights[i] << std::endl;
+        // std::cout << "Png image width " << widths[i] << " height " << heights[i] << std::endl;
 
-        cv::Mat newImg (curr_width, curr_height, CV_8U); 
-        cv::Mat inpImg = cv::imread(files[i], cv::IMREAD_UNCHANGED); 
-        std::cout << "Input image width " << inpImg.cols << " height " << inpImg.rows << std::endl;
-        cv::warpPerspective(inpImg, newImg, H, cv::Size(curr_width, curr_height));
-        // std::cout << "Finished warp perspective " << std::endl;
         // cv::Mat newImg (curr_width, curr_height, CV_8U); 
-        // for(int i=0; i <curr_width; i++){
-        //     for(int j=0; j< curr_height; j++){
-        //         newImg.at<double>(i,j) = newIm(i,j);
-        //     }
-        // }
+        // cv::Mat inpImg = cv::imread(files[i], cv::IMREAD_UNCHANGED); 
+        // std::cout << "Input image width " << inpImg.cols << " height " << inpImg.rows << std::endl;
+        // cv::warpPerspective(inpImg, newImg, H, cv::Size(curr_width, curr_height));
+        // std::cout << "Finished warp perspective " << std::endl;
+
+        // printf("newImg: %ld %ld newIm %ld %ld \n", curr_width, curr_height, newIm.rows(), newIm.cols());
+        cv::Mat newImg (curr_width, curr_height, CV_8U); 
+        for(int i=0; i <curr_width; i++){
+            for(int j=0; j< curr_height; j++){
+                // printf("coord %d %d", i, j);
+                newImg.at<double>(j,i) = newIm(i, j);
+            }
+        }
         std::cout << "Finished converting to " << std::endl;
 
         placeImage(resultImage, newImg);
