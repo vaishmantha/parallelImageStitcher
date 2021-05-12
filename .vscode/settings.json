@@ -89,6 +89,7 @@
         "stop_token": "cpp",
         "cinttypes": "cpp",
         "hash_set": "cpp",
-        "codecvt": "cpp"
+        "codecvt": "cpp",
+        "alignedvector3": "cpp"
     }
 }

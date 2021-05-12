@@ -4,14 +4,16 @@
 #include <list>
 #include <eigen/Eigen/Dense>
 #include <opencv2/opencv.hpp>
+#include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 
-// #undef cimg_display
-// #define cimg_display 0
+#undef cimg_display
+#define cimg_display 0
+#include "CImg/CImg.h"
+#include "lodepng/lodepng.h"
 // #include "CImg.h"
 
-// using namespace cimg_library;
-
+using namespace cimg_library;
 using Eigen::MatrixXd;
 
 #define USE_FIX_FILENAME 0
@@ -20,8 +22,6 @@ MatrixXd computeHomography(MatrixXd x1, MatrixXd x2){
     MatrixXd A;
 
     for (int i = 0; i < x1.rows(); i++){
-        // QUESTION: what is this x y switching 
-        // printf("%d \n", i);
         double x = x2(i, 0);
         double y = x2(i, 1);
         double x_p = x1(i, 0); 
@@ -89,11 +89,6 @@ MatrixXd computeNormalizedHomography(MatrixXd x1, MatrixXd x2,
     MatrixXd x2Norm = (T2 * homogeneous_x2.transpose()).transpose();
 
     MatrixXd H = computeHomography(x1Norm(Eigen::all, {0, 1}), x2Norm(Eigen::all, {0, 1}));
-    // std::cout << "H before normalization " << H << std::endl;
-
-    // std::cout << "H after normalization " << T1.inverse() * (H * T2) << std::endl;
-    // denormalize
-    // printf("end norm\n"); 
     return T1.inverse() * (H * T2);  //correct
 }
 
@@ -169,78 +164,65 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
     return bestNormalizedHomography;
 }
 
-cv::Mat imageStitch(MatrixXd bestNormalizedH, char* file1, char* file2){
-    cv::Mat H ((int)(bestNormalizedH.rows()), (int)(bestNormalizedH.cols()), CV_64F);
-    for (int i = 0; i < bestNormalizedH.rows(); i++){
-        for(int j = 0; j < bestNormalizedH.cols(); j++){
-            H.at<double>(i, j) = bestNormalizedH(i, j); 
-        }
-    } 
-    cv::Mat temp = cv::imread(file1); 
-    cv::Mat img = cv::imread(file2); 
-
-    int width = temp.size().width + img.size().width; 
-    int height = temp.size().height + img.size().height;
-    cv::Mat dstImg2; 
-
-    cv::warpPerspective(img, dstImg2, H, cv::Size(width, height)); 
-
-    cv::Mat dstImg(dstImg2(cv::Rect(0, 0, temp.size().width, temp.size().height)));
-    temp.copyTo(dstImg);
-
-    return dstImg2; 
-}
-
 void findDimensions(ezsift::Image<unsigned char> image, MatrixXd H, 
                     double *min_x, double *min_y, double *max_x, double *max_y){
     float h2 = image.h;
     float w2 = image.w;
-    // creating endpoint coordinates (homogenous)
-    /*np.float32([[0, 0,1], 
-                    [0, w2,1], 
-                    [h2, w2,1], 
-                    [h2, 0,1]]).reshape(-1, 1, 2)
-    */
-    cv::Mat imgDimsTemp = cv::Mat::zeros (4, 3, CV_64F);
-    imgDimsTemp.at<double>(1, 1) = h2; 
-    imgDimsTemp.at<double>(2, 0) = w2; 
-    imgDimsTemp.at<double>(2, 1) = h2; 
-    imgDimsTemp.at<double>(3, 0) = w2; 
-    imgDimsTemp.at<double>(0, 2) = 1.0; 
-    imgDimsTemp.at<double>(1, 2) = 1.0; 
-    imgDimsTemp.at<double>(2, 2) = 1.0; 
-    imgDimsTemp.at<double>(3, 2) = 1.0; 
-    
-    // convert H into CV matrix 
-    cv::Mat H_new ((int)(3), (int)(3), CV_64F);
-    for (int i = 0; i < 3; i++){
-        for(int j = 0; j < 3; j++){
-            H_new.at<double>(i, j) = H(i, j); 
+
+    MatrixXd imgDimsTmp = MatrixXd::Constant(4,3,0.0);
+    imgDimsTmp(1,1) = h2;
+    imgDimsTmp(2,0) = w2;
+    imgDimsTmp(2,1) = h2;
+    imgDimsTmp(3,0) = w2;
+    imgDimsTmp(0,2) = 1.0;
+    imgDimsTmp(1,2) = 1.0;
+    imgDimsTmp(2,2) = 1.0;
+    imgDimsTmp(3,2) = 1.0;
+
+    MatrixXd imgDimss = H*(imgDimsTmp.transpose());
+    MatrixXd lRow = imgDimss({2}, Eigen::all); 
+    MatrixXd tm = lRow.replicate(3,1);
+    for(int i=0; i< tm.rows(); i++){
+        for(int j=0; j< tm.cols(); j++){
+            tm(i,j) = 1.0/tm(i,j);
         }
     }
-    // Mapping to new end coordinates using H matrix
-    cv::Mat imgDims = H_new * imgDimsTemp.t(); 
-    cv::Mat lastRow = imgDims.row( 2 );
-    cv::Mat tmp;
-    cv::repeat(lastRow, 3, 1, tmp );
-    // std::cout << "imgDims shape " << imgDims.rows << " " << imgDims.cols << std::endl;
-    // std::cout << "last row shape " << lastRow.rows << " " << lastRow.cols << std::endl;
-    imgDims = imgDims / tmp;
-    // std::cout << "image dims " << imgDims << std::endl;
+    imgDimss = imgDimss.cwiseProduct(tm);
+    *min_x = imgDimss({0}, Eigen::all).minCoeff();
+    *max_x = imgDimss({0}, Eigen::all).maxCoeff();
+    *min_y = imgDimss({1}, Eigen::all).minCoeff();
+    *max_y = imgDimss({1}, Eigen::all).maxCoeff();
+}
 
-    // Finding min and max end points
-    cv::minMaxLoc(imgDims.row(0), min_x, max_x, NULL, NULL);
-    cv::minMaxLoc(imgDims.row(1), min_y, max_y, NULL, NULL);
-    // printf("findDimensions: max y: %f, min_y: %f, max_x: %f, min_x: %f \n", *min_x, *min_y, *max_x, *max_y );
+void warpPerspective(unsigned char* png_image, int png_width, int png_height, MatrixXd newIm, MatrixXd H){
+    for(int i=0; i< png_height; i++){ 
+        for(int j=0; j<png_width; j++){
+            MatrixXd tmp = MatrixXd::Constant(1,3, 0.0);
+            tmp(0,0) = i;
+            tmp(0,1) = j;
+            tmp(0,2) = 1;
+            // std::cout << "before 1 done" << std::endl;
+            MatrixXd res = H*tmp.transpose();
+            // std::cout << "step 1 done" << res << std::endl;
+            MatrixXd tm = res({2}, Eigen::all).replicate(3,1);
+            // std::cout << "step 2 done" << tm << std::endl;
+            res = res.cwiseQuotient(tm);
+            // std::cout << "step 3 done" << std::endl;
+            if ((int)res(0,0) >= 0 && (int)res(0,0) < newIm.rows() && (int)res(1,0) >= 0 && (int)res(1,0) < newIm.cols()){
+                newIm((int)res(0,0), (int)res(1,0)) = (int)png_image[i*png_width + j];
+            }
+        }
+    }
 }
 
 void placeImage(cv::Mat base, cv::Mat newImage){
     int w = newImage.cols;
     int h = newImage.rows;
-    // printf("w: %d, h: %d", w, h);
+    printf("Base image dimensions width %d height %d\n", base.cols, base.rows);
+    printf("w: %d, h: %d\n", w, h);
     cv::Mat dstImg(base(cv::Rect(0, 0, w, h)));
     // cv::bitwise_or(dstImg, newImage, base(cv::Rect(0, 0, w, h))); 
-    for (int i = 0; i < h; i++){
+    for (int i = 0; i < h; i++){ 
         for (int j = 0; j < w; j++){
             if (dstImg.at<uint8_t>(i, j) == 0){
                 dstImg.at<uint8_t>(i, j) = newImage.at<uint8_t>(i, j);
@@ -250,6 +232,24 @@ void placeImage(cv::Mat base, cv::Mat newImage){
             }
         }
     }
+}
+
+void write_pgm(const char *filename, unsigned char *data, int w, int h)
+{
+    FILE *out_file;
+    assert(w > 0);
+    assert(h > 0);
+
+    out_file = fopen(filename, "wb");
+    if (!out_file) {
+        fprintf(stderr, "Fail to open file: %s\n", filename);
+        return;
+    }
+
+    fprintf(out_file, "P5\n");
+    fprintf(out_file, "%d %d\n255\n", w, h);
+    fwrite(data, sizeof(unsigned char), w * h, out_file);
+    fclose(out_file);
 }
 
 
@@ -276,6 +276,9 @@ int main(int argc, char *argv[])
 
     
     std::vector<ezsift::Image<unsigned char> > images;
+    std::vector<int> widths;
+    std::vector<int> heights;
+    std::vector<unsigned char*> png_images;
     std::vector<char * > files; //Should probably switch away from this when switching to video
     if(!VIDEO_MODE){
         // All image files
@@ -287,10 +290,23 @@ int main(int argc, char *argv[])
             ezsift::Image<unsigned char> image;
 
             //Finally can convert pngs
-            cv::Mat pngImage = cv::imread(file, cv::IMREAD_UNCHANGED);
-            cv::imwrite("tmp.pgm", pngImage);  
+            
+            std::vector<unsigned char> img;
+            unsigned width, height;
+            unsigned error = lodepng::decode(img, width, height, file);
+            if(error) std::cout << "decoder error " << error << ": " << lodepng_error_text(error) << std::endl;
+            
+            unsigned char* data = img.data();
+            unsigned char* new_data = new unsigned char[width * height];
+            for(int i=0; i< width*height; i++){
+                new_data[i] = data[4*i]/3 + data[4*i+1]/3 + data[4*i+2]/3;
+            }
+            write_pgm("tmp.pgm", new_data, width, height);
+            png_images.push_back(new_data);
+            widths.push_back(width);
+            heights.push_back(height);
 
-            if (image.read_pgm("tmp.pgm") != 0) {
+            if (image.read_pgm("tmp.pgm", data, width, height) != 0) {
                 std::cerr << "Failed to open input image!" << std::endl;
                 return -1;
             }
@@ -300,17 +316,7 @@ int main(int argc, char *argv[])
         char* file;
         memcpy(file, argv[1], sizeof(char) * strlen(argv[1]));
         file[strlen(argv[1])] = 0;
-        // cv::VideoCapture cap(file);
-        // if ( !cap.isOpened() ){  // isOpened() returns true if capturing has been initialized.
-        //     std::cout << "Cannot open the video file. \n";
-        //     return -1;
-        // }
-        // pos_frame = cap.get(cv2.cv.CV_CAP_PROP_POS_FRAMES)
-        // while(true){
-
-        // }
     }
-    
     
     std::vector<std::list<ezsift::MatchPair>> matches;
     ezsift::double_original_image(true);
@@ -338,11 +344,10 @@ int main(int argc, char *argv[])
         homographies.push_back(homographies[i-1]*bestH);
     }
 
-    int pano_min_x = 0; //std::numeric_limits<int>::max();
-    int pano_min_y = 0; //std::numeric_limits<int>::max();
-    int pano_max_x = images[0].w; //-std::numeric_limits<int>::max();
-    int pano_max_y = images[0].h;  //-std::numeric_limits<int>::max();
-    // printf("pano_max_x %d\n", pano_max_x);
+    int pano_min_x = 0; 
+    int pano_min_y = 0; 
+    int pano_max_x = images[0].w; 
+    int pano_max_y = images[0].h; 
 
     for(int i=1; i<images.size(); i++){
         double min_x;
@@ -361,6 +366,7 @@ int main(int argc, char *argv[])
     int pan_height  = (int)(pano_max_y - pano_min_y); 
     int pan_width = (int)(pano_max_x - pano_min_x);
 
+    // MatrixXi resImage(pan_height,pan_width, 0);
     cv::Mat resultImage (pan_height, pan_width, CV_8U);
     for (int i = 0; i < pan_height; i++){
         for (int j = 0; j < pan_width; j++){
@@ -392,34 +398,39 @@ int main(int argc, char *argv[])
                 H.at<double>(r, c) = homographies[i](r, c); 
             }
         }
+        // std::cout << "H " << H << std::endl;
+        // std::cout << "Homographies " << homographies[i] << std::endl;
         // printf("after conversion H\n");
+        MatrixXd newIm = MatrixXd::Constant(curr_width, curr_height, 0);
+        warpPerspective(png_images[i], widths[i], heights[i], newIm, homographies[i]);
+        std::cout << "Png image width " << widths[i] << " height " << heights[i] << std::endl;
 
         cv::Mat newImg (curr_width, curr_height, CV_8U); 
         cv::Mat inpImg = cv::imread(files[i], cv::IMREAD_UNCHANGED); 
-        // cv::Mat grayImage;
-        // cv::cvtColor(inpImg, grayImage, cv::COLOR_BGR2GRAY);
-
+        std::cout << "Input image width " << inpImg.cols << " height " << inpImg.rows << std::endl;
         cv::warpPerspective(inpImg, newImg, H, cv::Size(curr_width, curr_height));
-
-        // if (i == 0) cv::imwrite("temp1.png", newImg); 
-        // if(i == 1) cv::imwrite("temp2.png", newImg); 
-        // if(i == 2) cv::imwrite("temp3.png", newImg); 
-        // if(i == 3) cv::imwrite("temp4.png", newImg); 
-        // if(i == 4) cv::imwrite("temp5.png", newImg); 
-        // if(i == 5) cv::imwrite("temp6.png", newImg); 
+        // std::cout << "Finished warp perspective " << std::endl;
+        // cv::Mat newImg (curr_width, curr_height, CV_8U); 
+        // for(int i=0; i <curr_width; i++){
+        //     for(int j=0; j< curr_height; j++){
+        //         newImg.at<double>(i,j) = newIm(i,j);
+        //     }
+        // }
+        std::cout << "Finished converting to " << std::endl;
 
         placeImage(resultImage, newImg);
+        std::cout << "After place image " << std::endl;
     }
 
     // Write out resultImg
     
-    cv::imshow("windowName",resultImage);
-    int k = cv::waitKey(0);
-    if(k == 'q')
-    {   
-        cv::imwrite("result.png", resultImage); 
-        return 0;
-    }
+    // cv::imshow("windowName",resultImage);
+    // int k = cv::waitKey(0);
+    // if(k == 'q')
+    // {   
+    cv::imwrite("result.png", resultImage); 
+    //     return 0;
+    // }
 
     return 0;
 }

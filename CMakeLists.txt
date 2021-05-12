@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
+set(CMAKE_C_COMPILER "/usr/bin/gcc")
+set(CMAKE_CXX_COMPILER "/usr/bin/g++")
 
 set(EZSIFT ezsift)
 project(${EZSIFT})
@@ -24,6 +26,9 @@ file(GLOB_RECURSE HEADERS RELATIVE ${PROJECT_SOURCE_DIR} "${EZSIFT_SRC_DIR}/*.h"
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
 add_library(${EZSIFT} ${SRC})
+
+add_library(lodepng include/lodepng/lodepng.cc)
+target_link_libraries(${EZSIFT} ${JPEG_LIBRARY} lodepng)
 set_property(TARGET ${EZSIFT} PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 include_directories(
