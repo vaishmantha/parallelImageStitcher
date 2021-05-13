@@ -11,6 +11,26 @@ using Eigen::MatrixXd;
 
 #define USE_FIX_FILENAME 0
 
+MatrixXd Matslice(MatrixXd array, int start_row, int start_col, int height, int width){
+    MatrixXd sl = MatrixXd::Constant(height, width, 0);
+    for(int i=0; i<height; i++){
+        for(int j=0; j<width; j++){
+            sl(i, j) = array(start_row+i, start_col+j);
+        }
+    }
+    return sl;
+}
+
+MatrixXd MatVectorslice(MatrixXd array, std::vector<int> row_indices, int start_col, int width){
+    MatrixXd sl = MatrixXd::Constant(row_indices.size(), width, 0);
+    for(int i=0; i<row_indices.size(); i++){
+        for(int j=0; j<width; j++){
+            sl(i, j) = array(row_indices[i], start_col+j);
+        }
+    }
+    return sl;
+}
+
 MatrixXd computeHomography(MatrixXd x1, MatrixXd x2){
     MatrixXd A;
 
@@ -81,7 +101,7 @@ MatrixXd computeNormalizedHomography(MatrixXd x1, MatrixXd x2,
     MatrixXd x1Norm = (T1 * homogeneous_x1.transpose()).transpose();
     MatrixXd x2Norm = (T2 * homogeneous_x2.transpose()).transpose();
 
-    MatrixXd H = computeHomography(x1Norm(Eigen::seqN(0,x1Norm.rows()), {0, 1}), x2Norm(Eigen::seqN(0,x2Norm.rows()), {0, 1}));
+    MatrixXd H = computeHomography(Matslice(x1Norm, 0, 0, x1Norm.rows(), 2), Matslice(x2Norm, 0, 0, x2Norm.rows(), 2));
     return T1.inverse() * (H * T2);  //correct
 }
 
@@ -120,11 +140,11 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
             int r = (int)((size_t)rand() % match_li.size()); 
             rand_inds.push_back(r);
         }
-        MatrixXd x1 = locs1(rand_inds, Eigen::seqN(0,locs1.cols())); 
-        MatrixXd x2 = locs2(rand_inds, Eigen::seqN(0,locs2.cols())); 
+        MatrixXd x1 = MatVectorslice(locs1, rand_inds, 0, locs1.cols()); //locs1(rand_inds, Eigen::seqN(0,locs1.cols())); 
+        MatrixXd x2 = MatVectorslice(locs2, rand_inds, 0, locs2.cols());// locs2(rand_inds, Eigen::seqN(0,locs2.cols())); 
 
-        MatrixXd x1_res_h = homogeneous_loc1(rand_inds,  Eigen::seqN(0,homogeneous_loc1.cols())); 
-        MatrixXd x2_res_h = homogeneous_loc2(rand_inds, Eigen::seqN(0,homogeneous_loc2.cols())); 
+        MatrixXd x1_res_h = MatVectorslice(homogeneous_loc1, rand_inds, 0, homogeneous_loc1.cols()); //homogeneous_loc1(rand_inds,  Eigen::seqN(0,homogeneous_loc1.cols())); 
+        MatrixXd x2_res_h = MatVectorslice(homogeneous_loc2, rand_inds, 0, homogeneous_loc2.cols()); //homogeneous_loc2(rand_inds, Eigen::seqN(0,homogeneous_loc2.cols())); 
 
         MatrixXd H = computeNormalizedHomography(x1, x2, x1_res_h, x2_res_h); 
         int count = 0; 
@@ -137,7 +157,8 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
                 divide_by_zero = true;
                 break;
             }
-            diff = (prod.transpose()(i, {0,1})/prod.transpose()(i, 2) - locs1(i,  Eigen::seqN(0,locs1.cols()))).norm();
+            diff = (Matslice(prod.transpose(), i, 0, 1, 2)/prod.transpose()(i, 2) - Matslice(locs1, i, 0, 1, locs1.cols())).norm(); 
+            // diff = (prod.transpose()(i, {0,1})/prod.transpose()(i, 2) - Matslice(locs1, i, 0, 1, locs1.cols())).norm(); 
             if(diff < threshold){
                 count++;
                 inlier_inds_current.push_back(i);
@@ -148,12 +169,11 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
             inlier_inds = inlier_inds_current;
         }      
     }
-    MatrixXd x1_res = locs1(inlier_inds, Eigen::seqN(0,locs1.cols())); 
-    MatrixXd x2_res = locs2(inlier_inds, Eigen::seqN(0,locs2.cols()));
-    MatrixXd x1_res_h = homogeneous_loc1(inlier_inds, Eigen::seqN(0,homogeneous_loc1.cols())); 
-    MatrixXd x2_res_h = homogeneous_loc2(inlier_inds, Eigen::seqN(0,homogeneous_loc2.cols()));
+    MatrixXd x1_res = MatVectorslice(locs1, inlier_inds, 0, locs1.cols()); //locs1(inlier_inds, Eigen::seqN(0,locs1.cols())); 
+    MatrixXd x2_res = MatVectorslice(locs2, inlier_inds, 0, locs2.cols()); //locs2(inlier_inds, Eigen::seqN(0,locs2.cols()));
+    MatrixXd x1_res_h = MatVectorslice(homogeneous_loc1, inlier_inds, 0, homogeneous_loc1.cols()); //homogeneous_loc1(inlier_inds, Eigen::seqN(0,homogeneous_loc1.cols())); 
+    MatrixXd x2_res_h =  MatVectorslice(homogeneous_loc2, inlier_inds, 0, homogeneous_loc2.cols()); //homogeneous_loc2(inlier_inds, Eigen::seqN(0,homogeneous_loc2.cols()));
     MatrixXd bestNormalizedHomography = computeNormalizedHomography(x1_res, x2_res, x1_res_h, x2_res_h);
-    // std::cout << bestNormalizedHomography << std::endl;
     return bestNormalizedHomography;
 }
 
@@ -173,7 +193,7 @@ void findDimensions(ezsift::Image<unsigned char> image, MatrixXd H,
     imgDimsTmp(3,2) = 1.0;
 
     MatrixXd imgDimss = H*(imgDimsTmp.transpose());
-    MatrixXd lRow = imgDimss({2}, Eigen::seqN(0,imgDimss.cols())); 
+    MatrixXd lRow = Matslice(imgDimss, 2, 0, 1, imgDimss.cols()); 
     MatrixXd tm = lRow.replicate(3,1);
     for(int i=0; i< tm.rows(); i++){
         for(int j=0; j< tm.cols(); j++){
@@ -181,10 +201,10 @@ void findDimensions(ezsift::Image<unsigned char> image, MatrixXd H,
         }
     }
     imgDimss = imgDimss.cwiseProduct(tm);
-    *min_x = imgDimss({0}, Eigen::seqN(0,imgDimss.cols())).minCoeff();
-    *max_x = imgDimss({0}, Eigen::seqN(0,imgDimss.cols())).maxCoeff();
-    *min_y = imgDimss({1}, Eigen::seqN(0,imgDimss.cols())).minCoeff();
-    *max_y = imgDimss({1}, Eigen::seqN(0,imgDimss.cols())).maxCoeff();
+    *min_x = Matslice(imgDimss, 0, 0, 1, imgDimss.cols()).minCoeff(); 
+    *max_x = Matslice(imgDimss, 0, 0, 1, imgDimss.cols()).maxCoeff();
+    *min_y = Matslice(imgDimss, 1, 0, 1, imgDimss.cols()).minCoeff(); 
+    *max_y = Matslice(imgDimss, 1, 0, 1, imgDimss.cols()).maxCoeff(); 
 }
 
 MatrixXd warpPerspective(unsigned char* png_image, int png_width, int png_height, MatrixXd newIm, MatrixXd H){
@@ -195,14 +215,11 @@ MatrixXd warpPerspective(unsigned char* png_image, int png_width, int png_height
             tmp(0,1) = i;
             tmp(0,2) = 1;
             MatrixXd res = H*tmp.transpose();
-            MatrixXd tm = res({2}, Eigen::seqN(0, res.cols())).replicate(3,1);
+            MatrixXd tm =  Matslice(res, 2, 0, 1, res.cols()).replicate(3,1); 
             res = res.cwiseQuotient(tm);
             if ((int)res(0,0) >= 0 && (int)res(0,0) < newIm.cols() && (int)res(1,0) >= 0 && (int)res(1,0) < newIm.rows()){
                 newIm((int)res(1,0), (int)res(0,0)) = (int)png_image[i*png_width + j];
             }
-            // else{
-            //     newIm(i,j) = 255;
-            // }
         }
     }
     return newIm;
@@ -211,29 +228,21 @@ MatrixXd warpPerspective(unsigned char* png_image, int png_width, int png_height
 MatrixXd placeImage(MatrixXd newImage, MatrixXd resImg){
     int w = newImage.cols();
     int h = newImage.rows();
-    printf("w: %d, h: %d", w, h);
-    // printf("base w: %d, h: %d", base.cols, base.rows);
-    MatrixXd slice = resImg(Eigen::seqN(0,h), Eigen::seqN(0,w));
-    // cv::Mat dstImg(base(cv::Rect(0, 0, w, h)));
+    // printf("w: %d, h: %d", w, h);
     for (int i = 0; i < h; i++){ //access as row col
         for (int j = 0; j < w; j++){
-            if (slice(i,j) == 0){
+            if (resImg(i,j) == 0){
                 // if(newImage(i, j) == 0 && i+1 < h && i-1 >=0 && j+1 < w && j-1 >=0 ){
                 //     dstImg.at<uint8_t>(i, j) = 255; //(1/4)*(newImage(i+1,j)+newImage(i-1,j)+newImage(i,j+1)+newImage(i,j-1));
                 // }else{
                 // dstImg.at<uint8_t>(i, j) = newImage(i,j);
-                slice(i,j) = newImage(i,j);
-                // }
-                 //newImage.at<uint8_t>(i, j);
+                resImg(i,j) = newImage(i,j);
             }
-            if (slice(i,j) != 0 && newImage(i, j) != 0){
-                //dstImg.at<uint8_t>(i, j) = fmax(newImage.at<uint8_t>(i, j), dstImg.at<uint8_t>(i, j));
-                // dstImg.at<uint8_t>(i, j) = fmax(newImage(i,j), dstImg.at<uint8_t>(i, j));
-                slice(i,j) = fmax(newImage(i,j), slice(i,j));
+            if (resImg(i,j) != 0 && newImage(i, j) != 0){
+                resImg(i,j) = fmax(newImage(i,j), resImg(i,j));
             }
         }
     }
-    resImg(Eigen::seqN(0,h), Eigen::seqN(0,w)) = slice;
     return resImg;
 }
 
@@ -409,4 +418,3 @@ int main(int argc, char *argv[])
 
     return 0;
 }
-
