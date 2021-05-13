@@ -11,7 +11,7 @@ using Eigen::MatrixXd;
 
 #define USE_FIX_FILENAME 0
 
-double cudaFindPeaks();
+// double cudaFindPeaks();
 
 MatrixXd Matslice(MatrixXd array, int start_row, int start_col, int height, int width){
     MatrixXd sl = MatrixXd::Constant(height, width, 0);
@@ -224,24 +224,53 @@ MatrixXd warpPerspective(unsigned char* png_image, int png_width, int png_height
             }
         }
     }
+    //interpolation
+    // for(int i = 0; i < png_height; i++){
+    //     for(int j = 0; j < png_width; j++){
+    //         if(newIm(i, j) == 0 && i+1 < png_height && i-1 >=0 && j+1 < png_width && j-1 >=0 ){
+    //             newIm(i, j) = 255; //(newIm(i+1,j)+newIm(i-1,j)+newIm(i,j+1)+newIm(i,j-1))/4;
+    //         }
+    //     }
+    // }
     return newIm;
 }
 
-MatrixXd placeImage(MatrixXd newImage, MatrixXd resImg){
+MatrixXd placeImage(MatrixXd newImage, MatrixXd resImg, double min_x, double min_y, double max_x, double max_y){
     int w = newImage.cols();
     int h = newImage.rows();
     // printf("w: %d, h: %d", w, h);
     for (int i = 0; i < h; i++){ //access as row col
         for (int j = 0; j < w; j++){
             if (resImg(i,j) == 0){
-                // if(newImage(i, j) == 0 && i+1 < h && i-1 >=0 && j+1 < w && j-1 >=0 ){
-                //     dstImg.at<uint8_t>(i, j) = 255; //(1/4)*(newImage(i+1,j)+newImage(i-1,j)+newImage(i,j+1)+newImage(i,j-1));
-                // }else{
-                // dstImg.at<uint8_t>(i, j) = newImage(i,j);
                 resImg(i,j) = newImage(i,j);
             }
             if (resImg(i,j) != 0 && newImage(i, j) != 0){
                 resImg(i,j) = fmax(newImage(i,j), resImg(i,j));
+            }
+        }
+    }
+    MatrixXd copyRes = resImg;
+    for(int i = fmax(min_y,0); i < max_y; i++){
+        for(int j = fmax(min_x,0); j < max_x; j++){
+            if(resImg(i, j) == 0){
+                if (i+1 < max_y && copyRes(i+1,j) != 0){ // && i-1 >=fmax(min_y,0) && j+1 < max_x && j-1 >=fmax(min_x,0) ){
+                    resImg(i, j) = copyRes(i+1,j);
+                }else if(i-1 >= fmax(min_y,0) && copyRes(i-1,j) != 0){
+                    resImg(i, j) = copyRes(i-1,j);
+                }else if(j+1 < max_x && copyRes(i,j+1) != 0){
+                    resImg(i, j) = copyRes(i,j+1);
+                }else if(j-1 >=fmax(min_x,0) && copyRes(i,j-1) != 0){
+                    resImg(i,j) = copyRes(i,j-1);
+                }else if(i+1 < max_y && j+1 < max_x && copyRes(i+1,j+1)){
+                    resImg(i,j) = copyRes(i+1,j+1);
+                }else if(i-1 >= fmax(min_y,0) && j+1 < max_x && copyRes(i-1,j+1)){
+                    resImg(i,j) = copyRes(i-1,j+1);
+                }else if(i+1 < max_y && j-1 >=fmax(min_x,0) && copyRes(i+1,j-1)){
+                    resImg(i,j) = copyRes(i+1,j-1);
+                }else if(i-1 >= fmax(min_y,0) && j-1 >=fmax(min_x,0) && copyRes(i-1,j-1)){
+                    resImg(i,j) = copyRes(i-1,j-1);
+                }
+                
             }
         }
     }
@@ -391,20 +420,21 @@ int main(int argc, char *argv[])
         double max_x; 
         double max_y; 
         findDimensions(images[i], homographies[i], &min_x, &min_y, &max_x, &max_y); 
-        max_x = fmax(pano_max_x, max_x); 
-        max_y = fmax(pano_max_y, max_y); 
-        min_x = fmax(fmin(pano_min_x, min_x),0); 
-        min_y = fmax(fmin(pano_min_y, min_y),0);         
+        // max_x = fmax(pano_max_x, max_x); 
+        // max_y = fmax(pano_max_y, max_y); 
+        // min_x = fmax(fmin(pano_min_x, min_x),0); 
+        // min_y = fmax(fmin(pano_min_y, min_y),0);         
 
-        int curr_width = (int)(max_x - min_x);
-        int curr_height  = (int)(max_y - min_y); 
+        int curr_width = (int)(fmax(pano_max_x, max_x) - fmax(fmin(pano_min_x, min_x),0));
+        int curr_height  = (int)(fmax(pano_max_y, max_y) - fmax(fmin(pano_min_y, min_y),0)); 
 
         MatrixXd newIm = MatrixXd::Constant(curr_height, curr_width, 0);
         newIm = warpPerspective(png_images[i], widths[i], heights[i], newIm, homographies[i]);
 
-        resImage = placeImage(newIm, resImage);
-        // std::cout << "After place image " << std::endl;
+        resImage = placeImage(newIm, resImage, min_x, min_y, max_x, max_y);
     }
+    
+
     std::vector<unsigned char> resImg_vect;
     for(int i=0; i<pan_height; i++){
         for(int j=0; j<pan_width; j++){
@@ -414,7 +444,7 @@ int main(int argc, char *argv[])
             resImg_vect.push_back(255);
         }
     }
-    cudaFindPeaks();
+    // cudaFindPeaks();
     unsigned err = lodepng::encode("result.png", resImg_vect, pan_width, pan_height);
     if(err) std::cout << "encoder error " << err << ": "<< lodepng_error_text(err) << std::endl;
 
