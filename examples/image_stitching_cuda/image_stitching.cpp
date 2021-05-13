@@ -109,7 +109,7 @@ MatrixXd computeNormalizedHomography(MatrixXd x1, MatrixXd x2,
 
 
 MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
-    int iterations= 1000; 
+    int iterations= 500; 
     int threshold = 3; //check on this threshold
     int maxCount = 0; 
     
@@ -209,7 +209,8 @@ void findDimensions(ezsift::Image<unsigned char> image, MatrixXd H,
     *max_y = Matslice(imgDimss, 1, 0, 1, imgDimss.cols()).maxCoeff(); 
 }
 
-MatrixXd warpPerspective(unsigned char* png_image, int png_width, int png_height, MatrixXd newIm, MatrixXd H){
+void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* png_b, unsigned char* png_a, 
+        int png_width, int png_height, MatrixXd* newImR,MatrixXd* newImG,MatrixXd* newImB, MatrixXd* newImA, MatrixXd H){
     for(int i=0; i< png_height; i++){ 
         for(int j=0; j<png_width; j++){
             MatrixXd tmp = MatrixXd::Constant(1,3, 0.0);
@@ -219,62 +220,55 @@ MatrixXd warpPerspective(unsigned char* png_image, int png_width, int png_height
             MatrixXd res = H*tmp.transpose();
             MatrixXd tm =  Matslice(res, 2, 0, 1, res.cols()).replicate(3,1); 
             res = res.cwiseQuotient(tm);
-            if ((int)res(0,0) >= 0 && (int)res(0,0) < newIm.cols() && (int)res(1,0) >= 0 && (int)res(1,0) < newIm.rows()){
-                newIm((int)res(1,0), (int)res(0,0)) = (int)png_image[i*png_width + j];
+            if ((int)res(0,0) >= 0 && (int)res(0,0) < (*newImR).cols() && (int)res(1,0) >= 0 && (int)res(1,0) < (*newImR).rows()){
+                (*newImR)((int)res(1,0), (int)res(0,0)) = (int)png_r[i*png_width + j];
+                (*newImG)((int)res(1,0), (int)res(0,0)) = (int)png_g[i*png_width + j];
+                (*newImB)((int)res(1,0), (int)res(0,0)) = (int)png_b[i*png_width + j];
+                (*newImA)((int)res(1,0), (int)res(0,0)) = (int)png_a[i*png_width + j];
             }
         }
     }
-    //interpolation
-    // for(int i = 0; i < png_height; i++){
-    //     for(int j = 0; j < png_width; j++){
-    //         if(newIm(i, j) == 0 && i+1 < png_height && i-1 >=0 && j+1 < png_width && j-1 >=0 ){
-    //             newIm(i, j) = 255; //(newIm(i+1,j)+newIm(i-1,j)+newIm(i,j+1)+newIm(i,j-1))/4;
-    //         }
-    //     }
-    // }
-    return newIm;
 }
 
-MatrixXd placeImage(MatrixXd newImage, MatrixXd resImg, double min_x, double min_y, double max_x, double max_y){
+void placeImage(MatrixXd newImage, MatrixXd* resImg, double min_x, double min_y, double max_x, double max_y){
     int w = newImage.cols();
     int h = newImage.rows();
     // printf("w: %d, h: %d", w, h);
     for (int i = 0; i < h; i++){ //access as row col
         for (int j = 0; j < w; j++){
-            if (resImg(i,j) == 0){
-                resImg(i,j) = newImage(i,j);
+            if ((*resImg)(i,j) == 0){
+                (*resImg)(i,j) = newImage(i,j);
             }
-            if (resImg(i,j) != 0 && newImage(i, j) != 0){
-                resImg(i,j) = fmax(newImage(i,j), resImg(i,j));
+            if ((*resImg)(i,j) != 0 && newImage(i, j) != 0){
+                (*resImg)(i,j) = fmax(newImage(i,j), (*resImg)(i,j));
             }
         }
     }
-    MatrixXd copyRes = resImg;
+    MatrixXd copyRes = (*resImg);
     for(int i = fmax(min_y,0); i < max_y; i++){
         for(int j = fmax(min_x,0); j < max_x; j++){
-            if(resImg(i, j) == 0){
+            if((*resImg)(i, j) == 0){
                 if (i+1 < max_y && copyRes(i+1,j) != 0){ // && i-1 >=fmax(min_y,0) && j+1 < max_x && j-1 >=fmax(min_x,0) ){
-                    resImg(i, j) = copyRes(i+1,j);
+                    (*resImg)(i, j) = copyRes(i+1,j);
                 }else if(i-1 >= fmax(min_y,0) && copyRes(i-1,j) != 0){
-                    resImg(i, j) = copyRes(i-1,j);
+                    (*resImg)(i, j) = copyRes(i-1,j);
                 }else if(j+1 < max_x && copyRes(i,j+1) != 0){
-                    resImg(i, j) = copyRes(i,j+1);
+                    (*resImg)(i, j) = copyRes(i,j+1);
                 }else if(j-1 >=fmax(min_x,0) && copyRes(i,j-1) != 0){
-                    resImg(i,j) = copyRes(i,j-1);
+                    (*resImg)(i,j) = copyRes(i,j-1);
                 }else if(i+1 < max_y && j+1 < max_x && copyRes(i+1,j+1)){
-                    resImg(i,j) = copyRes(i+1,j+1);
+                    (*resImg)(i,j) = copyRes(i+1,j+1);
                 }else if(i-1 >= fmax(min_y,0) && j+1 < max_x && copyRes(i-1,j+1)){
-                    resImg(i,j) = copyRes(i-1,j+1);
+                    (*resImg)(i,j) = copyRes(i-1,j+1);
                 }else if(i+1 < max_y && j-1 >=fmax(min_x,0) && copyRes(i+1,j-1)){
-                    resImg(i,j) = copyRes(i+1,j-1);
+                    (*resImg)(i,j) = copyRes(i+1,j-1);
                 }else if(i-1 >= fmax(min_y,0) && j-1 >=fmax(min_x,0) && copyRes(i-1,j-1)){
-                    resImg(i,j) = copyRes(i-1,j-1);
+                    (*resImg)(i,j) = copyRes(i-1,j-1);
                 }
                 
             }
         }
     }
-    return resImg;
 }
 
 
@@ -317,53 +311,66 @@ int main(int argc, char *argv[])
         printf("usage: image_match img1 img2 ...\n");
         return -1;
     }
-
+    double startTime = CycleTimer::currentSeconds();
     
     std::vector<ezsift::Image<unsigned char> > images;
     std::vector<int> widths;
     std::vector<int> heights;
     std::vector<unsigned char*> png_images;
-    std::vector<unsigned char*> color_png_images;
+    std::vector<unsigned char*> png_alpha;
+    std::vector<unsigned char*> png_r;
+    std::vector<unsigned char*> png_g;
+    std::vector<unsigned char*> png_b;
     std::vector<char * > files; //Should probably switch away from this when switching to video
-    if(!VIDEO_MODE){
-        // All image files
-        for(int i=1; i<argc; i++){
-            char* file = (char *)calloc(sizeof(char), strlen(argv[i]));
-            memcpy(file, argv[i], sizeof(char) * strlen(argv[i]));
-            file[strlen(argv[i])] = 0;
-            files.push_back(file);
-            ezsift::Image<unsigned char> image;
+   
+    // All image files
+    for(int i=1; i<argc; i++){
+        char* file = (char *)calloc(sizeof(char), strlen(argv[i]));
+        memcpy(file, argv[i], sizeof(char) * strlen(argv[i]));
+        file[strlen(argv[i])] = 0;
+        files.push_back(file);
+        ezsift::Image<unsigned char> image;
 
-            //Finally can convert pngs
-            
-            std::vector<unsigned char> img;
-            unsigned width, height;
-            unsigned error = lodepng::decode(img, width, height, file);
-            if(error) std::cout << "decoder error " << error << ": " << lodepng_error_text(error) << std::endl;
-            
-            unsigned char* data = img.data();
-            unsigned char* new_data = new unsigned char[width * height];
-            for(int i=0; i< width*height; i++){
-                new_data[i] = data[4*i]/3 + data[4*i+1]/3 + data[4*i+2]/3;
-            }
-            write_pgm("tmp.pgm", new_data, width, height);
-            png_images.push_back(new_data);
-            widths.push_back(width);
-            heights.push_back(height);
-            color_png_images.push_back(data); //be careful
-
-            if (image.read_pgm("tmp.pgm") != 0) {
-                std::cerr << "Failed to open input image!" << std::endl;
-                return -1;
-            }
-            images.push_back(image);
+        //Finally can convert pngs
+        
+        std::vector<unsigned char> img;
+        unsigned width, height;
+        unsigned error = lodepng::decode(img, width, height, file);
+        if(error) std::cout << "decoder error " << error << ": " << lodepng_error_text(error) << std::endl;
+        
+        unsigned char* data = img.data();
+        unsigned char* new_data = new unsigned char[width * height];
+        unsigned char* r = new unsigned char[width * height];
+        unsigned char* g = new unsigned char[width * height];
+        unsigned char* b = new unsigned char[width * height];
+        unsigned char* a = new unsigned char[width * height];
+        for(int i=0; i< width*height; i++){
+            new_data[i] = data[4*i]/3 + data[4*i+1]/3 + data[4*i+2]/3;
+            r[i] = data[4*i];
+            g[i] = data[4*i+1];
+            b[i] = data[4*i+2];
+            a[i] = data[4*i+3];
         }
-    }else{
-        char* file;
-        memcpy(file, argv[1], sizeof(char) * strlen(argv[1]));
-        file[strlen(argv[1])] = 0;
+        write_pgm("tmp.pgm", new_data, width, height);
+        png_images.push_back(new_data);
+        widths.push_back(width);
+        heights.push_back(height);
+        png_r.push_back(r);
+        png_b.push_back(b);
+        png_g.push_back(g);
+        png_alpha.push_back(a);
+
+        if (image.read_pgm("tmp.pgm") != 0) {
+            std::cerr << "Failed to open input image!" << std::endl;
+            return -1;
+        }
+        images.push_back(image);
     }
+    double readingImagesEnd = CycleTimer::currentSeconds();
+    std::cout << "Reading images time: " << readingImagesEnd-startTime << std::endl;
     
+    double findMatchesStart = CycleTimer::currentSeconds();
+    //Parallel
     std::vector<std::list<ezsift::MatchPair>> matches;
     ezsift::double_original_image(true);
     for(int i=0; i<images.size()-1; i++){
@@ -381,7 +388,10 @@ int main(int argc, char *argv[])
             return -1;
         }
     }
+    double findMatchesEnd = CycleTimer::currentSeconds();
+    std::cout << "Generating matches time: " << findMatchesEnd-findMatchesStart << std::endl;
 
+    double ransacStart = CycleTimer::currentSeconds();
     std::vector<MatrixXd> homographies;
     MatrixXd first = MatrixXd::Identity(3, 3);
     homographies.push_back(first);
@@ -389,7 +399,10 @@ int main(int argc, char *argv[])
         MatrixXd bestH = computeRansac(matches[i-1]);
         homographies.push_back(homographies[i-1]*bestH);
     }
-
+    double ransacEnd = CycleTimer::currentSeconds();
+    std::cout << "Ransac time: " << ransacEnd-ransacStart << std::endl;
+    //Parallel
+    double findingDimsStart = CycleTimer::currentSeconds();
     int pano_min_x = 0; 
     int pano_min_y = 0; 
     int pano_max_x = images[0].w; 
@@ -406,47 +419,62 @@ int main(int argc, char *argv[])
         pano_min_y = (int) fmax((floor(fmin(min_y, pano_min_y))),0); 
         pano_max_x = (int) (ceil(fmax(max_x, pano_max_x))); 
         pano_max_y = (int) (ceil(fmax(max_y, pano_max_y)));
-        // printf("pano_size: max y: %d, min_y: %d, max_x: %d, min_x: %d \n", pano_max_y, pano_min_y, pano_max_x,pano_min_x );
     }
+    double findingDimsEnd = CycleTimer::currentSeconds();
+    std::cout << "Finding dims time: " << findingDimsEnd-findingDimsStart << std::endl;
 
+    double imgCompositionStart = CycleTimer::currentSeconds();
     int pan_height  = (int)(pano_max_y - pano_min_y); 
     int pan_width = (int)(pano_max_x - pano_min_x);
 
-    MatrixXd resImage = MatrixXd::Constant(pan_height, pan_width, 0);
+    MatrixXd resImageR = MatrixXd::Constant(pan_height, pan_width, 0);
+    MatrixXd resImageG = MatrixXd::Constant(pan_height, pan_width, 0);
+    MatrixXd resImageB = MatrixXd::Constant(pan_height, pan_width, 0);
+    MatrixXd resImageA = MatrixXd::Constant(pan_height, pan_width, 0);
     
+    //Parallel
     for (int i = 0; i < images.size(); i++){
         double min_x; 
         double min_y; 
         double max_x; 
         double max_y; 
-        findDimensions(images[i], homographies[i], &min_x, &min_y, &max_x, &max_y); 
-        // max_x = fmax(pano_max_x, max_x); 
-        // max_y = fmax(pano_max_y, max_y); 
-        // min_x = fmax(fmin(pano_min_x, min_x),0); 
-        // min_y = fmax(fmin(pano_min_y, min_y),0);         
+        findDimensions(images[i], homographies[i], &min_x, &min_y, &max_x, &max_y);      
 
         int curr_width = (int)(fmax(pano_max_x, max_x) - fmax(fmin(pano_min_x, min_x),0));
         int curr_height  = (int)(fmax(pano_max_y, max_y) - fmax(fmin(pano_min_y, min_y),0)); 
 
-        MatrixXd newIm = MatrixXd::Constant(curr_height, curr_width, 0);
-        newIm = warpPerspective(png_images[i], widths[i], heights[i], newIm, homographies[i]);
+        MatrixXd newImR = MatrixXd::Constant(curr_height, curr_width, 0);
+        MatrixXd newImG = MatrixXd::Constant(curr_height, curr_width, 0);
+        MatrixXd newImB = MatrixXd::Constant(curr_height, curr_width, 0);
+        MatrixXd newImA = MatrixXd::Constant(curr_height, curr_width, 0);
+        warpPerspective(png_r[i], png_g[i], png_b[i], png_alpha[i], widths[i], heights[i], &newImR, &newImG, &newImB, &newImA, homographies[i]);
 
-        resImage = placeImage(newIm, resImage, min_x, min_y, max_x, max_y);
+        double st = CycleTimer::currentSeconds();
+        placeImage(newImR, &resImageR, min_x, min_y, max_x, max_y); //each take approximately a second
+        placeImage(newImG, &resImageG, min_x, min_y, max_x, max_y);
+        placeImage(newImB, &resImageB, min_x, min_y, max_x, max_y);
+        placeImage(newImA, &resImageA, min_x, min_y, max_x, max_y);
+        double ed = CycleTimer::currentSeconds();
+        std::cout << "Place image time: " << ed-st << std::endl;
+
     }
-    
+    double imgCompositionEnd = CycleTimer::currentSeconds();
+    std::cout << "Img composition time: " << imgCompositionEnd-imgCompositionStart << std::endl;
 
     std::vector<unsigned char> resImg_vect;
     for(int i=0; i<pan_height; i++){
         for(int j=0; j<pan_width; j++){
-            resImg_vect.push_back(resImage(i, j)); //color
-            resImg_vect.push_back(resImage(i, j));
-            resImg_vect.push_back(resImage(i, j));
-            resImg_vect.push_back(255);
+            resImg_vect.push_back(resImageR(i, j)); //color
+            resImg_vect.push_back(resImageG(i, j));
+            resImg_vect.push_back(resImageB(i, j));
+            resImg_vect.push_back(resImageA(i, j));
         }
     }
     // cudaFindPeaks();
     unsigned err = lodepng::encode("result.png", resImg_vect, pan_width, pan_height);
     if(err) std::cout << "encoder error " << err << ": "<< lodepng_error_text(err) << std::endl;
+    double endTime = CycleTimer::currentSeconds();
 
+    std::cout << "Overall time: " << endTime-startTime << std::endl;
     return 0;
 }
