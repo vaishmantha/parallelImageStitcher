@@ -12,6 +12,8 @@
 #include "CycleTimer.h"
 
 double cudaFindPeaks() {
+    int *device_input;
+    cudaMalloc((void **)&device_input, 2 * sizeof(int));
     // int *device_input;
     // int *device_output;
     // int rounded_length = nextPow2(length);
@@ -34,7 +36,7 @@ double cudaFindPeaks() {
 
     // cudaFree(device_input);
     // cudaFree(device_output);
-    std::cout << "Running this" << std::endl;
+    std::cout << "new Running this" << std::endl;
 
     return 0;
 }

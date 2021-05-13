@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 
-option(USE_CUDA "Use CUDA" ON)
+option(USE_CUDA "Use CUDA" OFF)
 file(GLOB gpu_source_files "*.cu")
 
 file(GLOB_RECURSE EXAMPLE_SRC "image_stitching.cpp")
