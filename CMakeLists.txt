@@ -52,6 +52,7 @@ include_directories(
 )
 
 if(CUDA_FOUND)
+message(STATUS "CUDA found to link and loc of files ${EZSIFT_SRC_DIR}" )
   CUDA_ADD_LIBRARY(ezsift_gpu ${gpu_ezsift_files})
   target_link_libraries(${EZSIFT} ezsift_gpu)
 endif()
