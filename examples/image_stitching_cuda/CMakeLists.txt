@@ -10,6 +10,7 @@ target_link_libraries(image_stitching_cuda
 )
 
 if(CUDA_FOUND)
+    message(STATUS "CUDA found to link")
     CUDA_ADD_LIBRARY(image_stitching_cuda_gpu ${gpu_source_files})
     target_link_libraries(image_stitching_cuda image_stitching_cuda_gpu)
 endif()
