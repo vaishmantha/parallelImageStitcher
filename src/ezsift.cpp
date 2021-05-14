@@ -1232,7 +1232,7 @@ int sift_gpu(const std::vector<ezsift::Image<unsigned char> > images,
 {
     for(int i=0; i<images.size(); i++){
         ezsift::Image<unsigned char> image = images[i];
-        std::list<ezsift::SiftKeypoint> kpt_list = kpt_lists[i];
+        std::list<ezsift::SiftKeypoint> &kpt_list = kpt_lists[i];
         // Index of the first octave.
         int firstOctave = (SIFT_IMG_DBL) ? -1 : 0;
         // Number of layers in one octave; same as s in the paper.
