@@ -1251,8 +1251,8 @@ int sift_gpu(const std::vector<ezsift::Image<unsigned char> > images,
         double gaussianPyramidStart = CycleTimer::currentSeconds();
         // Build Gaussian pyramid -- takes a while
         std::vector<Image<float>> gpyr(nOctaves * nGpyrLayers);
-        build_gaussian_pyramid(octaves, gpyr, nOctaves, nGpyrLayers);
-        // build_gaussian_pyramid_gpu(octaves, gpyr, nOctaves, nGpyrLayers);
+        // build_gaussian_pyramid(octaves, gpyr, nOctaves, nGpyrLayers);
+        build_gaussian_pyramid_gpu(octaves, gpyr, nOctaves, nGpyrLayers);
         double gaussianPyramidEnd = CycleTimer::currentSeconds();
         std::cout << "Building gaussian pyramid time: " << gaussianPyramidEnd-gaussianPyramidStart << std::endl;
 
