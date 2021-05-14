@@ -37,6 +37,7 @@ set(EZSIFT_INCLUDE_DIR ${EZSIFT_ROOT}/include)
 set(EZSIFT_SRC_DIR ${EZSIFT_ROOT}/src)
 
 file(GLOB_RECURSE SRC RELATIVE ${PROJECT_SOURCE_DIR} "${EZSIFT_SRC_DIR}/*.cpp")
+file(GLOB gpu_ezsift_files "${EZSIFT_SRC_DIR}/*.cu") #####
 file(GLOB_RECURSE HEADERS RELATIVE ${PROJECT_SOURCE_DIR} "${EZSIFT_SRC_DIR}/*.h" "${EZSIFT_INCLUDE_DIR}/*.h")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
@@ -49,6 +50,23 @@ set_property(TARGET ${EZSIFT} PROPERTY POSITION_INDEPENDENT_CODE ON)
 include_directories(
     ${EZSIFT_INCLUDE_DIR}
 )
+
+if(CUDA_FOUND)
+  CUDA_ADD_LIBRARY(ezsift_gpu ${gpu_ezsift_files})
+  target_link_libraries(${EZSIFT} ezsift_gpu)
+endif()
+
+# file(GLOB gpu_source_files "image_stitching.cu")
+# file(GLOB_RECURSE EXAMPLE_SRC "image_stitching.cpp")
+# add_executable(image_stitching_cuda ${EXAMPLE_SRC})
+
+# if(CUDA_FOUND)
+#     message(STATUS "CUDA found to link")
+#     CUDA_ADD_LIBRARY(image_stitching_cuda_gpu ${gpu_source_files})
+#     target_link_libraries(image_stitching_cuda image_stitching_cuda_gpu)
+# endif()
+
+
 
 target_include_directories(${EZSIFT} PUBLIC ${EZSIFT_SRC_DIR})
 

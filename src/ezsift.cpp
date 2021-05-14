@@ -39,6 +39,9 @@
 
 namespace ezsift {
 
+
+double cudaFindPeaks;
+
 // Init sift parameters
 void init_sift_parameters(bool doubleFirstOctave, float contrast_threshold,
                           float edge_threshold, float match_NDDR_threshold)
@@ -1157,6 +1160,7 @@ int extract_descriptor(std::vector<Image<float>> &grdPyr,
 int sift_cpu(const Image<unsigned char> &image,
              std::list<SiftKeypoint> &kpt_list, bool bExtractDescriptors)
 {
+    cudaFindPeaks();
     // Index of the first octave.
     int firstOctave = (SIFT_IMG_DBL) ? -1 : 0;
     // Number of layers in one octave; same as s in the paper.
