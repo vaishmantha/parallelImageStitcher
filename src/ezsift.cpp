@@ -1224,4 +1224,66 @@ int sift_cpu(const Image<unsigned char> &image,
     return 0;
 }
 
+int sift_gpu(const Image<unsigned char> &image,
+             std::list<SiftKeypoint> &kpt_list, bool bExtractDescriptors) //parallelize over the iterations
+{
+    // Index of the first octave.
+    int firstOctave = (SIFT_IMG_DBL) ? -1 : 0;
+    // Number of layers in one octave; same as s in the paper.
+    int nLayers = SIFT_INTVLS;
+    // Number of Gaussian images in one octave.
+    int nGpyrLayers = nLayers + 3;
+    // Number of DoG images in one octave.
+    int nDogLayers = nLayers + 2;
+    // Number of octaves according to the size of image.
+    int nOctaves = (int)my_log2((float)fmin(image.w, image.h)) - 3 -
+                   firstOctave; // 2 or 3, need further research
+
+    double buildOctavesStart = CycleTimer::currentSeconds();
+    // Build image octaves
+    std::vector<Image<unsigned char>> octaves(nOctaves);
+    build_octaves(image, octaves, firstOctave, nOctaves);
+    double buildOctavesEnd = CycleTimer::currentSeconds();
+    std::cout << "Building octaves time: " << buildOctavesEnd-buildOctavesStart << std::endl;
+
+    double gaussianPyramidStart = CycleTimer::currentSeconds();
+    // Build Gaussian pyramid -- takes a while
+    std::vector<Image<float>> gpyr(nOctaves * nGpyrLayers);
+    build_gaussian_pyramid_gpu(octaves, gpyr, nOctaves, nGpyrLayers);
+    double gaussianPyramidEnd = CycleTimer::currentSeconds();
+    std::cout << "Building gaussian pyramid time: " << gaussianPyramidEnd-gaussianPyramidStart << std::endl;
+
+    double doGPyramidStart = CycleTimer::currentSeconds();
+    // Build DoG pyramid
+    std::vector<Image<float>> dogPyr(nOctaves * nDogLayers);
+    build_dog_pyr(gpyr, dogPyr, nOctaves, nDogLayers);
+    double doGPyramidEnd = CycleTimer::currentSeconds();
+    std::cout << "Building doG pyramid time: " << doGPyramidEnd-doGPyramidStart << std::endl;
+
+    double grdRotPyramidStart = CycleTimer::currentSeconds(); 
+    // Build gradient and rotation pyramids---- takes long
+    std::vector<Image<float>> grdPyr(nOctaves * nGpyrLayers);
+    std::vector<Image<float>> rotPyr(nOctaves * nGpyrLayers);
+    build_grd_rot_pyr(gpyr, grdPyr, rotPyr, nOctaves, nLayers);
+    double grdRotPyramidEnd = CycleTimer::currentSeconds();
+    std::cout << "Build grad/rot pyramids time: " << grdRotPyramidEnd-grdRotPyramidStart << std::endl;
+
+    double keypointsStart = CycleTimer::currentSeconds();
+    // Detect keypoints
+    detect_keypoints(dogPyr, grdPyr, rotPyr, nOctaves, nDogLayers, kpt_list);
+    double keypointsEnd = CycleTimer::currentSeconds();
+    std::cout << "Detect keypoints time: " << keypointsEnd-keypointsStart << std::endl;
+
+    // Extract descriptor
+    if (bExtractDescriptors){
+        double extractDescriptorStart = CycleTimer::currentSeconds();
+        extract_descriptor(grdPyr, rotPyr, nOctaves, nGpyrLayers, kpt_list);
+        double extractDescriptorEnd = CycleTimer::currentSeconds();
+        std::cout << "Extract descriptor time: " << extractDescriptorEnd-extractDescriptorStart << std::endl;
+    }
+        
+
+    return 0;
+}
+
 } // end namespace ezsift

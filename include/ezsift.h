@@ -225,6 +225,9 @@ int extract_descriptor(std::vector<Image<float>> &grdPyr,
 int sift_cpu(const Image<unsigned char> &image,
              std::list<SiftKeypoint> &kpt_list, bool bExtractDescriptors);
 
+int sift_gpu(const Image<unsigned char> &image,
+             std::list<SiftKeypoint> &kpt_list, bool bExtractDescriptors);
+
 // Match keypoints from two keypoint lists.
 int match_keypoints(std::list<SiftKeypoint> &kpt_list1,
                     std::list<SiftKeypoint> &kpt_list2,
