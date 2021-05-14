@@ -713,6 +713,7 @@ int detect_keypoints(std::vector<Image<float>> &dogPyr,
                                 // lazily use the histogram value.
                                 kpt.mag = currHist;
                                 kpt.ori = accu_ii * _2PI / nBins;
+                                std::cout << "Pushing back a key point" << std::endl;
                                 (*kpt_list).push_back(kpt);
                             }
 #endif
