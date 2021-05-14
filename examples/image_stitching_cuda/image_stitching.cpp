@@ -382,8 +382,8 @@ int main(int argc, char *argv[])
     for(int i=0; i<images.size()-1; i++){
         int j = i+1;
         // std::list<ezsift::SiftKeypoint> kpt_list1, kpt_list2;
-        ezsift::sift_gpu(images[i], kpt_lists[i], true); //will write gpu version of this function
-        ezsift::sift_gpu(images[j], kpt_lists[j], true);
+        ezsift::sift_cpu(images[i], kpt_lists[i], true); //will write gpu version of this function
+        ezsift::sift_cpu(images[j], kpt_lists[j], true);
     }
 
     for(int i=0; i<images.size()-1; i++){
