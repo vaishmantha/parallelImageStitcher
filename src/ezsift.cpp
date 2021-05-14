@@ -37,10 +37,11 @@
 #include <limits>
 #include <list>
 
-double build_gaussian_pyramid_gpu();
-
 namespace ezsift {
 
+int build_gaussian_pyramid_gpu(std::vector<Image<unsigned char>> &octaves,
+                           std::vector<Image<float>> &gpyr, int nOctaves,
+                           int nGpyrLayers);
 
 // Init sift parameters
 void init_sift_parameters(bool doubleFirstOctave, float contrast_threshold,
