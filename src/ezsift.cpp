@@ -1290,7 +1290,8 @@ int sift_gpu(const std::vector<ezsift::Image<unsigned char> > images,
     }
         
 
-    return 0;
+        return 0;
+    }
 }
 
 } // end namespace ezsift
