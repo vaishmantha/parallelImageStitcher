@@ -11,7 +11,7 @@
 
 #include "CycleTimer.h"
 
-double cudaFindPeaks() {
+double cudaFindPeak() {
     int *device_input;
     cudaMalloc((void **)&device_input, 2 * sizeof(int));
     std::cout << "Running this from ezsift" << std::endl;
