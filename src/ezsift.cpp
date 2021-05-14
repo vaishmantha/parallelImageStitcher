@@ -1226,12 +1226,13 @@ int sift_cpu(const Image<unsigned char> &image,
 }
 
 int sift_gpu(const std::vector<ezsift::Image<unsigned char> > images,
-             std::vector<std::list<ezsift::SiftKeypoint>> &kpt_list, bool bExtractDescriptors){
+             std::vector<std::list<ezsift::SiftKeypoint>> &kpt_lists, bool bExtractDescriptors){
 // int sift_gpu(const Image<unsigned char> &image,
 //              std::list<SiftKeypoint> &kpt_list, bool bExtractDescriptors) //parallelize over the iterations
 {
     for(int i=0; i<images.size(); i++){
         ezsift::Image<unsigned char> image = images[i];
+        std::list<ezsift::SiftKeypoint> kpt_list = kpt_lists[i];
         // Index of the first octave.
         int firstOctave = (SIFT_IMG_DBL) ? -1 : 0;
         // Number of layers in one octave; same as s in the paper.
