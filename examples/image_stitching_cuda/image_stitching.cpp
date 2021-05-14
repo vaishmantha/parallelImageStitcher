@@ -11,7 +11,7 @@ using Eigen::MatrixXd;
 
 #define USE_FIX_FILENAME 0
 
-// double cudaFindPeaks();
+double cudaFindPeaks();
 
 MatrixXd Matslice(MatrixXd array, int start_row, int start_col, int height, int width){
     MatrixXd sl = MatrixXd::Constant(height, width, 0);
@@ -470,7 +470,7 @@ int main(int argc, char *argv[])
             resImg_vect.push_back(resImageA(i, j));
         }
     }
-    // cudaFindPeaks();
+    cudaFindPeaks();
     unsigned err = lodepng::encode("result.png", resImg_vect, pan_width, pan_height);
     if(err) std::cout << "encoder error " << err << ": "<< lodepng_error_text(err) << std::endl;
     double endTime = CycleTimer::currentSeconds();
