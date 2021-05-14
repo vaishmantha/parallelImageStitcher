@@ -26,7 +26,7 @@
 #include "ezsift.h"
 #include "common.h"
 #include "image.h"
-// #include "timer.h"
+
 #include "vvector.h"
 #include "CycleTimer.h"
 
@@ -37,7 +37,7 @@
 #include <limits>
 #include <list>
 
-double cudaFindPeak();
+double build_gaussian_pyramid_gpu();
 
 namespace ezsift {
 
@@ -1158,9 +1158,8 @@ int extract_descriptor(std::vector<Image<float>> &grdPyr,
 }
 
 int sift_cpu(const Image<unsigned char> &image,
-             std::list<SiftKeypoint> &kpt_list, bool bExtractDescriptors)
+             std::list<SiftKeypoint> &kpt_list, bool bExtractDescriptors) //parallelize over the iterations
 {
-    cudaFindPeak();
     // Index of the first octave.
     int firstOctave = (SIFT_IMG_DBL) ? -1 : 0;
     // Number of layers in one octave; same as s in the paper.
@@ -1182,8 +1181,13 @@ int sift_cpu(const Image<unsigned char> &image,
 
     double gaussianPyramidStart = CycleTimer::currentSeconds();
     // Build Gaussian pyramid -- takes a while
-    std::vector<Image<float>> gpyr(nOctaves * nGpyrLayers);
-    build_gaussian_pyramid(octaves, gpyr, nOctaves, nGpyrLayers);
+    if(CUDA_ON){
+        std::vector<Image<float>> gpyr(nOctaves * nGpyrLayers);
+        build_gaussian_pyramid_gpu(octaves, gpyr, nOctaves, nGpyrLayers);
+    }else{
+        std::vector<Image<float>> gpyr(nOctaves * nGpyrLayers);
+        build_gaussian_pyramid(octaves, gpyr, nOctaves, nGpyrLayers);
+    }
     double gaussianPyramidEnd = CycleTimer::currentSeconds();
     std::cout << "Building gaussian pyramid time: " << gaussianPyramidEnd-gaussianPyramidStart << std::endl;
 

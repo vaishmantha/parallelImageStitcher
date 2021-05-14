@@ -9,9 +9,12 @@
 #include <thrust/device_malloc.h>
 #include <thrust/device_free.h>
 
+#include "image.h"
 #include "CycleTimer.h"
 
-double cudaFindPeak() {
+double build_gaussian_pyramid_gpu(std::vector<Image<unsigned char>> &octaves,
+                                std::vector<Image<float>> &gpyr, int nOctaves,
+                                int nGpyrLayers) {
     int *device_input;
     cudaMalloc((void **)&device_input, 2 * sizeof(int));
     std::cout << "Running this from ezsift" << std::endl;

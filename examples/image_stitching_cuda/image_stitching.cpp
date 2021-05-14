@@ -380,7 +380,10 @@ int main(int argc, char *argv[])
         ezsift::sift_cpu(images[j], kpt_list2, true);
 
         std::list<ezsift::MatchPair> match_list;
+        double matchKeyPointsStart = CycleTimer::currentSeconds();
         ezsift::match_keypoints(kpt_list1, kpt_list2, match_list);
+        double matchKeyPointsEnd = CycleTimer::currentSeconds();
+        std::cout << "Actual matching of keypoints time: " << matchKeyPointsEnd-matchKeyPointsStart << std::endl;
   
         matches.push_back(match_list);
         if(match_list.size() == 0){
