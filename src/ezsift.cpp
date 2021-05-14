@@ -1181,13 +1181,13 @@ int sift_cpu(const Image<unsigned char> &image,
 
     double gaussianPyramidStart = CycleTimer::currentSeconds();
     // Build Gaussian pyramid -- takes a while
-    if(CUDA_ON){
-        std::vector<Image<float>> gpyr(nOctaves * nGpyrLayers);
-        build_gaussian_pyramid_gpu(octaves, gpyr, nOctaves, nGpyrLayers);
-    }else{
-        std::vector<Image<float>> gpyr(nOctaves * nGpyrLayers);
-        build_gaussian_pyramid(octaves, gpyr, nOctaves, nGpyrLayers);
-    }
+    // if(CUDA_ON){
+    //     std::vector<Image<float>> gpyr(nOctaves * nGpyrLayers);
+    //     build_gaussian_pyramid_gpu(octaves, gpyr, nOctaves, nGpyrLayers);
+    // }else{
+    std::vector<Image<float>> gpyr(nOctaves * nGpyrLayers);
+    build_gaussian_pyramid(octaves, gpyr, nOctaves, nGpyrLayers);
+    // }
     double gaussianPyramidEnd = CycleTimer::currentSeconds();
     std::cout << "Building gaussian pyramid time: " << gaussianPyramidEnd-gaussianPyramidStart << std::endl;
 
