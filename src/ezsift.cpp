@@ -1232,7 +1232,7 @@ int sift_gpu(const std::vector<ezsift::Image<unsigned char> > images,
 {
     for(int i=0; i<images.size(); i++){
         ezsift::Image<unsigned char> image = images[i];
-        std::list<ezsift::SiftKeypoint> &kpt_list = kpt_lists[i];
+        // std::list<ezsift::SiftKeypoint> kpt_list = kpt_lists[i];
         // Index of the first octave.
         int firstOctave = (SIFT_IMG_DBL) ? -1 : 0;
         // Number of layers in one octave; same as s in the paper.
@@ -1276,14 +1276,14 @@ int sift_gpu(const std::vector<ezsift::Image<unsigned char> > images,
 
         double keypointsStart = CycleTimer::currentSeconds();
         // Detect keypoints
-        detect_keypoints(dogPyr, grdPyr, rotPyr, nOctaves, nDogLayers, kpt_list);
+        detect_keypoints(dogPyr, grdPyr, rotPyr, nOctaves, nDogLayers, kpt_lists[i]);
         double keypointsEnd = CycleTimer::currentSeconds();
         std::cout << "Detect keypoints time: " << keypointsEnd-keypointsStart << std::endl;
 
         // Extract descriptor
         if (bExtractDescriptors){
             double extractDescriptorStart = CycleTimer::currentSeconds();
-            extract_descriptor(grdPyr, rotPyr, nOctaves, nGpyrLayers, kpt_list);
+            extract_descriptor(grdPyr, rotPyr, nOctaves, nGpyrLayers, kpt_lists[i]);
             double extractDescriptorEnd = CycleTimer::currentSeconds();
             std::cout << "Extract descriptor time: " << extractDescriptorEnd-extractDescriptorStart << std::endl;
         }
