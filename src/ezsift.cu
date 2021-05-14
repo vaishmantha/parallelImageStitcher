@@ -25,6 +25,7 @@ double build_gaussian_pyramid_gpu(std::vector<Image<unsigned char>> &octaves,
     int *device_input;
     cudaMalloc((void **)&device_input, 2 * sizeof(int));
     printCudaInfo();
+    std::cout << "Noctaves " << nOctaves << " nGpyrLayers " << nGpyrLayers  << std::endl;
     // std::cout << "Running this from ezsift" << std::endl;
 
     return 0;

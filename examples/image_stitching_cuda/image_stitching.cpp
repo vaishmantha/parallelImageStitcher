@@ -380,11 +380,6 @@ int main(int argc, char *argv[])
     
     ezsift::double_original_image(true);
     ezsift::sift_gpu(images, kpt_lists, true);
-    // for(int i=0; i<images.size()-1; i++){
-    //     int j = i+1;
-    //     ezsift::sift_gpu(images[i], kpt_lists[i], true); //will write gpu version of this function
-    //     ezsift::sift_gpu(images[j], kpt_lists[j], true);
-    // }
 
     for(int i=0; i<images.size()-1; i++){
         std::list<ezsift::MatchPair> match_list;
