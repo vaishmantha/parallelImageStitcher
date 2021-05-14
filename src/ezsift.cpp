@@ -1278,7 +1278,7 @@ int sift_gpu(const std::vector<ezsift::Image<unsigned char> > images,
         double keypointsStart = CycleTimer::currentSeconds();
         // Detect keypoints
         detect_keypoints(dogPyr, grdPyr, rotPyr, nOctaves, nDogLayers, &kpt_lists[i]);
-        std::cout << "list size " << kpt_lists[i].size() << std::endl;
+        // std::cout << "list size " << kpt_lists[i].size() << std::endl;
         double keypointsEnd = CycleTimer::currentSeconds();
         std::cout << "Detect keypoints time: " << keypointsEnd-keypointsStart << std::endl;
 
