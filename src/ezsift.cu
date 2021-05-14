@@ -15,6 +15,8 @@
 #include "image.h"
 #include "CycleTimer.h"
 
+namespace ezsift {
+
 double build_gaussian_pyramid_gpu(std::vector<Image<unsigned char>> &octaves,
                                 std::vector<Image<float>> &gpyr, int nOctaves,
                                 int nGpyrLayers) {
@@ -24,3 +26,5 @@ double build_gaussian_pyramid_gpu(std::vector<Image<unsigned char>> &octaves,
 
     return 0;
 }
+
+} // end namespace ezsift
