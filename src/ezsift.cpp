@@ -37,7 +37,7 @@
 #include <limits>
 #include <list>
 
-double cudaFindPeak;
+double cudaFindPeak();
 
 namespace ezsift {
 
