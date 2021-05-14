@@ -211,7 +211,7 @@ float compute_orientation_hist(const Image<float> &image, SiftKeypoint &kpt,
 int detect_keypoints(std::vector<Image<float>> &dogPyr,
                      std::vector<Image<float>> &grdPyr,
                      std::vector<Image<float>> &rotPyr, int nOctaves,
-                     int nDogLayers, std::list<SiftKeypoint> &kpt_list);
+                     int nDogLayers, std::list<SiftKeypoint> *kpt_list);
 
 // Extract descriptor.
 int extract_descriptor(std::vector<Image<float>> &grdPyr,

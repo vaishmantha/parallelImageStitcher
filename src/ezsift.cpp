@@ -568,7 +568,7 @@ float compute_orientation_hist_with_gradient(const Image<float> &grdImage,
 int detect_keypoints(std::vector<Image<float>> &dogPyr,
                      std::vector<Image<float>> &grdPyr,
                      std::vector<Image<float>> &rotPyr, int nOctaves,
-                     int nDogLayers, std::list<SiftKeypoint> &kpt_list)
+                     int nDogLayers, std::list<SiftKeypoint> *kpt_list)
 {
     float *currData;
     float *lowData;
@@ -713,7 +713,7 @@ int detect_keypoints(std::vector<Image<float>> &dogPyr,
                                 // lazily use the histogram value.
                                 kpt.mag = currHist;
                                 kpt.ori = accu_ii * _2PI / nBins;
-                                kpt_list.push_back(kpt);
+                                (*kpt_list).push_back(kpt);
                             }
 #endif
                         }
@@ -1209,7 +1209,7 @@ int sift_cpu(const Image<unsigned char> &image,
 
     double keypointsStart = CycleTimer::currentSeconds();
     // Detect keypoints
-    detect_keypoints(dogPyr, grdPyr, rotPyr, nOctaves, nDogLayers, kpt_list);
+    detect_keypoints(dogPyr, grdPyr, rotPyr, nOctaves, nDogLayers, &kpt_list);
     double keypointsEnd = CycleTimer::currentSeconds();
     std::cout << "Detect keypoints time: " << keypointsEnd-keypointsStart << std::endl;
 
@@ -1276,7 +1276,7 @@ int sift_gpu(const std::vector<ezsift::Image<unsigned char> > images,
 
         double keypointsStart = CycleTimer::currentSeconds();
         // Detect keypoints
-        detect_keypoints(dogPyr, grdPyr, rotPyr, nOctaves, nDogLayers, kpt_lists[i]);
+        detect_keypoints(dogPyr, grdPyr, rotPyr, nOctaves, nDogLayers, &kpt_lists[i]);
         std::cout << "list size " << kpt_lists[i].size() << std::endl;
         double keypointsEnd = CycleTimer::currentSeconds();
         std::cout << "Detect keypoints time: " << keypointsEnd-keypointsStart << std::endl;
