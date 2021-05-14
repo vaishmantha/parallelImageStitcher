@@ -37,10 +37,10 @@
 #include <limits>
 #include <list>
 
+double cudaFindPeaks;
+
 namespace ezsift {
 
-
-double cudaFindPeaks;
 
 // Init sift parameters
 void init_sift_parameters(bool doubleFirstOctave, float contrast_threshold,
