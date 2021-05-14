@@ -10,6 +10,17 @@ project(${EZSIFT})
 option(USE_CUDA "Use CUDA" ON) #SWITCH TO ON WHEN RUNNING ON GPU
 option(EZSIFT_BUILD_EXAMPLES "Build with examples" ON)
 
+if(USE_CUDA)
+    find_package(CUDA 10.2)
+    if(NOT CUDA_FOUND)
+        message(STATUS "CUDA not found")
+        set(USE_CUDA OFF)
+    endif()
+endif()
+
+if(USE_CUDA)
+    add_definitions(-DUSE_CUDA)
+endif()
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -43,16 +54,4 @@ target_include_directories(${EZSIFT} PUBLIC ${EZSIFT_SRC_DIR})
 
 if(EZSIFT_BUILD_EXAMPLES)
   add_subdirectory(${EZSIFT_ROOT}/examples ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/examples/)
-endif()
-
-if(USE_CUDA)
-    find_package(CUDA 10.2)
-    if(NOT CUDA_FOUND)
-        message(STATUS "CUDA not found")
-        set(USE_CUDA OFF)
-    endif()
-endif()
-
-if(USE_CUDA)
-    add_definitions(-DUSE_CUDA)
 endif()
