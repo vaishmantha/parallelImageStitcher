@@ -17,6 +17,8 @@
 
 namespace ezsift {
 
+void printCudaInfo();
+
 double build_gaussian_pyramid_gpu(std::vector<Image<unsigned char>> &octaves,
                                 std::vector<Image<float>> &gpyr, int nOctaves,
                                 int nGpyrLayers) {
