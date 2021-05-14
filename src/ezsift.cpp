@@ -713,7 +713,6 @@ int detect_keypoints(std::vector<Image<float>> &dogPyr,
                                 // lazily use the histogram value.
                                 kpt.mag = currHist;
                                 kpt.ori = accu_ii * _2PI / nBins;
-                                std::cout << "Pushing back a key point" << std::endl;
                                 kpt_list.push_back(kpt);
                             }
 #endif
@@ -1183,10 +1182,6 @@ int sift_cpu(const Image<unsigned char> &image,
 
     double gaussianPyramidStart = CycleTimer::currentSeconds();
     // Build Gaussian pyramid -- takes a while
-    // if(CUDA_ON){
-    //     std::vector<Image<float>> gpyr(nOctaves * nGpyrLayers);
-    //     build_gaussian_pyramid_gpu(octaves, gpyr, nOctaves, nGpyrLayers);
-    // }else{
     std::vector<Image<float>> gpyr(nOctaves * nGpyrLayers);
     build_gaussian_pyramid(octaves, gpyr, nOctaves, nGpyrLayers);
     // }
