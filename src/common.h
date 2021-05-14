@@ -18,6 +18,9 @@ namespace ezsift {
 // Optimization options
 #define USE_FAST_FUNC 1
 
+// CUDA flag
+#define CUDA 1
+
 // Some debug options
 // Dump functions to get intermediate results
 #define DUMP_OCTAVE_IMAGE 0

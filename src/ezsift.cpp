@@ -26,8 +26,9 @@
 #include "ezsift.h"
 #include "common.h"
 #include "image.h"
-#include "timer.h"
+// #include "timer.h"
 #include "vvector.h"
+#include "CycleTimer.h"
 
 #include <cmath>
 #include <cstdio>
@@ -1168,61 +1169,49 @@ int sift_cpu(const Image<unsigned char> &image,
     int nOctaves = (int)my_log2((float)fmin(image.w, image.h)) - 3 -
                    firstOctave; // 2 or 3, need further research
 
+    double buildOctavesStart = CycleTimer::currentSeconds();
     // Build image octaves
     std::vector<Image<unsigned char>> octaves(nOctaves);
     build_octaves(image, octaves, firstOctave, nOctaves);
+    double buildOctavesEnd = CycleTimer::currentSeconds();
+    std::cout << "Building octaves time: " << buildOctavesEnd-buildOctavesStart << std::endl;
 
-#if (DUMP_OCTAVE_IMAGE == 1)
-    char foctave[256];
-    for (int i = 0; i < nOctaves; i++) {
-        sprintf(foctave, "octave_Octave-%d.pgm", i);
-        write_pgm(foctave, octaves[i].data, octaves[i].w, octaves[i].h);
-    }
-#endif
-
-    // Build Gaussian pyramid
+    double gaussianPyramidStart = CycleTimer::currentSeconds();
+    // Build Gaussian pyramid -- takes a while
     std::vector<Image<float>> gpyr(nOctaves * nGpyrLayers);
     build_gaussian_pyramid(octaves, gpyr, nOctaves, nGpyrLayers);
+    double gaussianPyramidEnd = CycleTimer::currentSeconds();
+    std::cout << "Building gaussian pyramid time: " << gaussianPyramidEnd-gaussianPyramidStart << std::endl;
 
-#if (DUMP_GAUSSIAN_PYRAMID_IMAGE == 1)
-    char fgpyr[256];
-    for (int i = 0; i < nOctaves; i++) {
-        for (int j = 0; j < nGpyrLayers; j++) {
-            sprintf(fgpyr, "gpyr-%d-%d.pgm", i, j);
-            write_float_pgm(fgpyr, gpyr[i * nGpyrLayers + j].data,
-                            gpyr[i * nGpyrLayers + j].w,
-                            gpyr[i * nGpyrLayers + j].h, 1);
-        }
-    }
-#endif
-
+    double doGPyramidStart = CycleTimer::currentSeconds();
     // Build DoG pyramid
     std::vector<Image<float>> dogPyr(nOctaves * nDogLayers);
     build_dog_pyr(gpyr, dogPyr, nOctaves, nDogLayers);
+    double doGPyramidEnd = CycleTimer::currentSeconds();
+    std::cout << "Building doG pyramid time: " << doGPyramidEnd-doGPyramidStart << std::endl;
 
-#if (DUMP_DOG_IMAGE == 1)
-    char fdog[256];
-    Image<unsigned char> img_dog_t;
-    for (int i = 0; i < nOctaves; i++) {
-        for (int j = 0; j < nDogLayers; j++) {
-            sprintf(fdog, "dog_Octave-%d_Layer-%d.pgm", i, j);
-            img_dog_t = dogPyr[i * nDogLayers + j].to_unsigned char();
-            write_pgm(fdog, img_dog_t.data, img_dog_t.w, img_dog_t.h);
-        }
-    }
-#endif
-
-    // Build gradient and rotation pyramids
+    double grdRotPyramidStart = CycleTimer::currentSeconds(); 
+    // Build gradient and rotation pyramids---- takes long
     std::vector<Image<float>> grdPyr(nOctaves * nGpyrLayers);
     std::vector<Image<float>> rotPyr(nOctaves * nGpyrLayers);
     build_grd_rot_pyr(gpyr, grdPyr, rotPyr, nOctaves, nLayers);
+    double grdRotPyramidEnd = CycleTimer::currentSeconds();
+    std::cout << "Build grad/rot pyramids time: " << grdRotPyramidEnd-grdRotPyramidStart << std::endl;
 
+    double keypointsStart = CycleTimer::currentSeconds();
     // Detect keypoints
     detect_keypoints(dogPyr, grdPyr, rotPyr, nOctaves, nDogLayers, kpt_list);
+    double keypointsEnd = CycleTimer::currentSeconds();
+    std::cout << "Detect keypoints time: " << keypointsEnd-keypointsStart << std::endl;
 
     // Extract descriptor
-    if (bExtractDescriptors)
+    if (bExtractDescriptors){
+        double extractDescriptorStart = CycleTimer::currentSeconds();
         extract_descriptor(grdPyr, rotPyr, nOctaves, nGpyrLayers, kpt_list);
+        double extractDescriptorEnd = CycleTimer::currentSeconds();
+        std::cout << "Extract descriptor time: " << extractDescriptorEnd-extractDescriptorStart << std::endl;
+    }
+        
 
     return 0;
 }

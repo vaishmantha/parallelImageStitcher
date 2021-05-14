@@ -7,6 +7,7 @@ set(CMAKE_CXX_COMPILER "/usr/bin/g++")
 set(EZSIFT ezsift)
 project(${EZSIFT})
 
+option(USE_CUDA "Use CUDA" OFF) #SWITCH TO ON WHEN RUNNING ON GPU
 option(EZSIFT_BUILD_EXAMPLES "Build with examples" ON)
 
 
@@ -44,3 +45,14 @@ if(EZSIFT_BUILD_EXAMPLES)
   add_subdirectory(${EZSIFT_ROOT}/examples ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/examples/)
 endif()
 
+if(USE_CUDA)
+    find_package(CUDA 10.2)
+    if(NOT CUDA_FOUND)
+        message(STATUS "CUDA not found")
+        set(USE_CUDA OFF)
+    endif()
+endif()
+
+if(USE_CUDA)
+    add_definitions(-DUSE_CUDA)
+endif()
