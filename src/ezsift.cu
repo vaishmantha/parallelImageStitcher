@@ -9,6 +9,9 @@
 #include <thrust/device_malloc.h>
 #include <thrust/device_free.h>
 
+#include "ezsift.h"
+#include "common.h"
+#include "vvector.h"
 #include "image.h"
 #include "CycleTimer.h"
 
