@@ -373,6 +373,11 @@ int main(int argc, char *argv[])
     //Parallel
     std::vector<std::list<ezsift::MatchPair>> matches;
     std::vector<std::list<ezsift::SiftKeypoint>> kpt_lists;
+    for(int i=0; i<images.size(); i++){
+        std::list<ezsift::SiftKeypoint> kpt_list;
+        kpt_lists.push_back(kpt_list);
+    }
+    
     ezsift::double_original_image(true);
     for(int i=0; i<images.size()-1; i++){
         int j = i+1;
@@ -380,7 +385,7 @@ int main(int argc, char *argv[])
         ezsift::sift_gpu(images[i], kpt_lists[i], true); //will write gpu version of this function
         ezsift::sift_gpu(images[j], kpt_lists[j], true);
     }
-    
+
     for(int i=0; i<images.size()-1; i++){
         std::list<ezsift::MatchPair> match_list;
         // double matchKeyPointsStart = CycleTimer::currentSeconds();
