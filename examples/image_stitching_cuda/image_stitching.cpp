@@ -414,6 +414,7 @@ int main(int argc, char *argv[])
     int pano_max_x = images[0].w; 
     int pano_max_y = images[0].h; 
 
+    #pragma omp parallel for schedule(dynamic)
     for(int i=1; i<images.size(); i++){
         double min_x;
         double min_y;
@@ -438,7 +439,7 @@ int main(int argc, char *argv[])
     MatrixXd resImageB = MatrixXd::Constant(pan_height, pan_width, 0);
     MatrixXd resImageA = MatrixXd::Constant(pan_height, pan_width, 0);
     
-    //Parallel
+    // #pragma omp parallel for schedule(dynamic)
     for (int i = 0; i < images.size(); i++){
         double min_x; 
         double min_y; 
@@ -455,13 +456,13 @@ int main(int argc, char *argv[])
         MatrixXd newImA = MatrixXd::Constant(curr_height, curr_width, 0);
         warpPerspective(png_r[i], png_g[i], png_b[i], png_alpha[i], widths[i], heights[i], &newImR, &newImG, &newImB, &newImA, homographies[i]);
 
-        double st = CycleTimer::currentSeconds();
+        // double st = CycleTimer::currentSeconds();
         placeImage(newImR, &resImageR, min_x, min_y, max_x, max_y); //each take approximately a second
         placeImage(newImG, &resImageG, min_x, min_y, max_x, max_y);
         placeImage(newImB, &resImageB, min_x, min_y, max_x, max_y);
         placeImage(newImA, &resImageA, min_x, min_y, max_x, max_y);
-        double ed = CycleTimer::currentSeconds();
-        std::cout << "Place image time: " << ed-st << std::endl;
+        // double ed = CycleTimer::currentSeconds();
+        // std::cout << "Place image time: " << ed-st << std::endl;
 
     }
     double imgCompositionEnd = CycleTimer::currentSeconds();
