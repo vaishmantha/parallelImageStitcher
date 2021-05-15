@@ -368,10 +368,10 @@ int main(int argc, char *argv[])
         png_g[i] = g;
         png_alpha[i] = a;
 
-        if (image.read_pgm("tmp.pgm") != 0) {
-            std::cerr << "Failed to open input image!" << std::endl;
-            return -1;
-        }
+        // if (image.read_pgm("tmp.pgm") != 0) {
+        //     std::cerr << "Failed to open input image!" << std::endl;
+        //     return -1;
+        // }
         images.push_back(image);
     }
     double readingImagesEnd = CycleTimer::currentSeconds();
