@@ -418,30 +418,30 @@ int main(int argc, char *argv[])
     int pano_max_x = images[0].w; 
     int pano_max_y = images[0].h; 
 
-    // // #pragma omp parallel for schedule(dynamic)
-    // for(int i=1; i<images.size(); i++){
-    //     double min_x;
-    //     double min_y;
-    //     double max_x;
-    //     double max_y;
-    //     findDimensions(images[i], homographies[i], &min_x, &min_y, &max_x, &max_y);
+    // #pragma omp parallel for schedule(dynamic)
+    for(int i=1; i<images.size(); i++){
+        double min_x;
+        double min_y;
+        double max_x;
+        double max_y;
+        findDimensions(images[i], homographies[i], &min_x, &min_y, &max_x, &max_y);
 
-    //     pano_min_x = (int) fmax((floor(fmin(min_x, pano_min_x))),0); 
-    //     pano_min_y = (int) fmax((floor(fmin(min_y, pano_min_y))),0); 
-    //     pano_max_x = (int) (ceil(fmax(max_x, pano_max_x))); 
-    //     pano_max_y = (int) (ceil(fmax(max_y, pano_max_y)));
-    // }
-    // double findingDimsEnd = CycleTimer::currentSeconds();
-    // std::cout << "Finding dims time: " << findingDimsEnd-findingDimsStart << std::endl;
+        pano_min_x = (int) fmax((floor(fmin(min_x, pano_min_x))),0); 
+        pano_min_y = (int) fmax((floor(fmin(min_y, pano_min_y))),0); 
+        pano_max_x = (int) (ceil(fmax(max_x, pano_max_x))); 
+        pano_max_y = (int) (ceil(fmax(max_y, pano_max_y)));
+    }
+    double findingDimsEnd = CycleTimer::currentSeconds();
+    std::cout << "Finding dims time: " << findingDimsEnd-findingDimsStart << std::endl;
 
-    // double imgCompositionStart = CycleTimer::currentSeconds();
-    // int pan_height  = (int)(pano_max_y - pano_min_y); 
-    // int pan_width = (int)(pano_max_x - pano_min_x);
+    double imgCompositionStart = CycleTimer::currentSeconds();
+    int pan_height  = (int)(pano_max_y - pano_min_y); 
+    int pan_width = (int)(pano_max_x - pano_min_x);
 
-    // MatrixXd resImageR = MatrixXd::Constant(pan_height, pan_width, 0);
-    // MatrixXd resImageG = MatrixXd::Constant(pan_height, pan_width, 0);
-    // MatrixXd resImageB = MatrixXd::Constant(pan_height, pan_width, 0);
-    // MatrixXd resImageA = MatrixXd::Constant(pan_height, pan_width, 0);
+    MatrixXd resImageR = MatrixXd::Constant(pan_height, pan_width, 0);
+    MatrixXd resImageG = MatrixXd::Constant(pan_height, pan_width, 0);
+    MatrixXd resImageB = MatrixXd::Constant(pan_height, pan_width, 0);
+    MatrixXd resImageA = MatrixXd::Constant(pan_height, pan_width, 0);
     
     // // #pragma omp parallel for schedule(dynamic)
     // for (int i = 0; i < images.size(); i++){
