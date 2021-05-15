@@ -27,8 +27,6 @@ void pyramids_gpu(std::vector<std::vector<Image<unsigned char>>> all_octaves,
     
     // std::cout << "Noctaves " << nOctaves << " nGpyrLayers " << nGpyrLayers  << std::endl;
     // std::cout << "Running this from ezsift" << std::endl;
-
-    return 0;
 }
 
 void printCudaInfo()
