@@ -375,7 +375,7 @@ int main(int argc, char *argv[])
     std::vector<std::list<ezsift::SiftKeypoint>> kpt_lists;
     for(int i=0; i<images.size(); i++){
         std::list<ezsift::SiftKeypoint> kpt_list;
-        kpt_lists.push_back(kpt_list);
+        kpt_lists.push_back(kpt_list); //empty kpt_lists
     }
     
     ezsift::double_original_image(true);

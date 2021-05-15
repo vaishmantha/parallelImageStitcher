@@ -57,18 +57,6 @@ if(CUDA_FOUND)
   target_link_libraries(${EZSIFT} ezsift_gpu)
 endif()
 
-# file(GLOB gpu_source_files "image_stitching.cu")
-# file(GLOB_RECURSE EXAMPLE_SRC "image_stitching.cpp")
-# add_executable(image_stitching_cuda ${EXAMPLE_SRC})
-
-# if(CUDA_FOUND)
-#     message(STATUS "CUDA found to link")
-#     CUDA_ADD_LIBRARY(image_stitching_cuda_gpu ${gpu_source_files})
-#     target_link_libraries(image_stitching_cuda image_stitching_cuda_gpu)
-# endif()
-
-
-
 target_include_directories(${EZSIFT} PUBLIC ${EZSIFT_SRC_DIR})
 
 if(EZSIFT_BUILD_EXAMPLES)
