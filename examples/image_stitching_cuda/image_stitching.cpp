@@ -396,7 +396,7 @@ int main(int argc, char *argv[])
         unsigned char* b = new unsigned char[width * height];
         unsigned char* a = new unsigned char[width * height];
         int j; 
-        // #pragma omp parallel
+
         for( j=0; j< width*height; j++){
             new_data[j] = data[4*j]/3 + data[4*j+1]/3 + data[4*j+2]/3;
             r[j] = data[4*j];
