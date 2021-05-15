@@ -255,8 +255,8 @@ void placeImage(MatrixXd newImage, MatrixXd* resImg, double min_x, double min_y,
     int start_j = (int)fmax(min_x,0);
     MatrixXd copyRes = (*resImg);
     #pragma omp parallel for schedule(dynamic)
-    for(int i = start_i; i < max_y; i++){
-        for(int j = start_j; j < max_x; j++){
+    for(int i = start_i; i < (int)max_y; i++){
+        for(int j = start_j; j < (int)max_x; j++){
             if((*resImg)(i, j) == 0){
                 if (i+1 < max_y && copyRes(i+1,j) != 0){ // && i-1 >=fmax(min_y,0) && j+1 < max_x && j-1 >=fmax(min_x,0) ){
                     (*resImg)(i, j) = copyRes(i+1,j);
