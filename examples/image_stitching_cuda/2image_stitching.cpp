@@ -23,9 +23,9 @@ MatrixXd Matslice(MatrixXd array, int start_row, int start_col, int height, int 
     return sl;
 }
 
-MatrixXd MatVectorslice(MatrixXd array, std::vector<int> row_indices, int start_col, int width){
-    MatrixXd sl = MatrixXd::Constant(row_indices.size(), width, 0);
-    for(int i=0; i<row_indices.size(); i++){
+MatrixXd MatVectorslice(MatrixXd array, int* row_indices, int num_row_indices, int start_col, int width){
+    MatrixXd sl = MatrixXd::Constant(num_row_indices, width, 0);
+    for(int i=0; i<num_row_indices; i++){
         for(int j=0; j<width; j++){
             sl(i, j) = array(row_indices[i], start_col+j);
         }
@@ -149,11 +149,11 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
     int it; 
     #pragma omp parallel for schedule(dynamic)
     for(it = 0; it < iterations; it++){
-        MatrixXd x1 = MatVectorslice(locs1, rand_inds, 0, locs1.cols()); //locs1(rand_inds, Eigen::seqN(0,locs1.cols())); 
-        MatrixXd x2 = MatVectorslice(locs2, rand_inds, 0, locs2.cols());// locs2(rand_inds, Eigen::seqN(0,locs2.cols())); 
+        MatrixXd x1 = MatVectorslice(locs1, &rand_inds[4 * it], 4, 0, locs1.cols()); //locs1(rand_inds, Eigen::seqN(0,locs1.cols())); 
+        MatrixXd x2 = MatVectorslice(locs2, &rand_inds[4 * it], 4, 0, locs2.cols());// locs2(rand_inds, Eigen::seqN(0,locs2.cols())); 
 
-        MatrixXd x1_res_h = MatVectorslice(homogeneous_loc1, rand_inds, 0, homogeneous_loc1.cols()); //homogeneous_loc1(rand_inds,  Eigen::seqN(0,homogeneous_loc1.cols())); 
-        MatrixXd x2_res_h = MatVectorslice(homogeneous_loc2, rand_inds, 0, homogeneous_loc2.cols()); //homogeneous_loc2(rand_inds, Eigen::seqN(0,homogeneous_loc2.cols())); 
+        MatrixXd x1_res_h = MatVectorslice(homogeneous_loc1, &rand_inds[4 * it], 4, 0, homogeneous_loc1.cols()); //homogeneous_loc1(rand_inds,  Eigen::seqN(0,homogeneous_loc1.cols())); 
+        MatrixXd x2_res_h = MatVectorslice(homogeneous_loc2, &rand_inds[4 * it], 4, 0, homogeneous_loc2.cols()); //homogeneous_loc2(rand_inds, Eigen::seqN(0,homogeneous_loc2.cols())); 
 
         MatrixXd H = computeNormalizedHomography(x1, x2, x1_res_h, x2_res_h); 
         int count = 0; 

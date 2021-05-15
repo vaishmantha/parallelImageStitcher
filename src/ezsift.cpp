@@ -123,7 +123,6 @@ int row_filter_transpose(float *src, float *dst, int w, int h, float *coef1d,
 
     // double rowFilterStart = CycleTimer::currentSeconds();
     float firstData, lastData;
-    // #pragma omp parallel for schedule(dynamic)
     for (int r = 0; r < h; r++) {
         row_start = srcData + r * w;
         memcpy(row_buf + gR, row_start, elemSize * w);
