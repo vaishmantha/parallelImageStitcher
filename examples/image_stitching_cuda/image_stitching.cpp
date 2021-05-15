@@ -520,7 +520,7 @@ int main(int argc, char *argv[])
         warpPerspective(png_r[i], png_g[i], png_b[i], png_alpha[i], widths[i], heights[i], &newImR, &newImG, &newImB, &newImA, homographies[i]);
 
 
-        // #pragma omp parallel for schedule(dynamic)
+        #pragma omp parallel for schedule(dynamic)
         for(int j= 0; j<4; j++){
             if(j==0){
                 placeImage(newImR, &resImageR, min_x, min_y, max_x, max_y);
