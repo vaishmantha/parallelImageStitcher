@@ -8,7 +8,7 @@ set(EZSIFT ezsift)
 project(${EZSIFT})
 
 option(USE_CUDA "Use CUDA" ON) #SWITCH TO ON WHEN RUNNING ON GPU
-option(EZSIFT_BUILD_EXAMPLES "Build with examples" ON)
+option(EZSIFT_BUILD_EXAMPLES "Build with examples" OFF)
 
 if(USE_CUDA)
     find_package(CUDA 10.2)
