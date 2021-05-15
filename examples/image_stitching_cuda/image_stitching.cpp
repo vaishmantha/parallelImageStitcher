@@ -318,17 +318,18 @@ int main(int argc, char *argv[])
     }
     double startTime = CycleTimer::currentSeconds();
     
-    std::vector<ezsift::Image<unsigned char> > images;
-    std::vector<int> widths;
-    std::vector<int> heights;
-    std::vector<unsigned char*> png_images;
-    std::vector<unsigned char*> png_alpha;
-    std::vector<unsigned char*> png_r;
-    std::vector<unsigned char*> png_g;
-    std::vector<unsigned char*> png_b;
-    std::vector<char * > files; //Should probably switch away from this when switching to video
+    std::vector<ezsift::Image<unsigned char> > images(argc-1);
+    std::vector<int> widths(argc-1);
+    std::vector<int> heights(argc-1);
+    std::vector<unsigned char*> png_images(argc-1);
+    std::vector<unsigned char*> png_alpha(argc-1);
+    std::vector<unsigned char*> png_r(argc-1);
+    std::vector<unsigned char*> png_g(argc-1);
+    std::vector<unsigned char*> png_b(argc-1);
+    std::vector<char * > files(argc-1); //Should probably switch away from this when switching to video
    
     // All image files
+    #pragma omp parallel
     for(int i=1; i<argc; i++){
         char* file = (char *)calloc(sizeof(char), strlen(argv[i]));
         memcpy(file, argv[i], sizeof(char) * strlen(argv[i]));
@@ -349,6 +350,8 @@ int main(int argc, char *argv[])
         unsigned char* g = new unsigned char[width * height];
         unsigned char* b = new unsigned char[width * height];
         unsigned char* a = new unsigned char[width * height];
+
+        #pragma omp parallel
         for(int i=0; i< width*height; i++){
             new_data[i] = data[4*i]/3 + data[4*i+1]/3 + data[4*i+2]/3;
             r[i] = data[4*i];
@@ -357,13 +360,13 @@ int main(int argc, char *argv[])
             a[i] = data[4*i+3];
         }
         write_pgm("tmp.pgm", new_data, width, height);
-        png_images.push_back(new_data);
-        widths.push_back(width);
-        heights.push_back(height);
-        png_r.push_back(r);
-        png_b.push_back(b);
-        png_g.push_back(g);
-        png_alpha.push_back(a);
+        png_images[i] = new_data;
+        widths[i] = width;
+        heights[i] = height;
+        png_r[i] = r;
+        png_b[i] = b;
+        png_g[i] = g;
+        png_alpha[i] = a;
 
         if (image.read_pgm("tmp.pgm") != 0) {
             std::cerr << "Failed to open input image!" << std::endl;
