@@ -133,7 +133,6 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
         i++;
     }
 
-    int max_count = 0;
     int *count_list = (int*)calloc(iterations, sizeof(int));
 
     std::vector<int> inlier_inds; 
@@ -174,6 +173,19 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
             count_list[it] = count;
         }      
     }
+
+    int max_count = -1;
+    int i; 
+    int best_i; 
+    #pragma omp parallel for reduction(max: max_count)
+    for(i = 0; i < iterations; i++){
+        if(max_count < count_list[i]){
+            max_count = count_list[i];
+            best_i = i; 
+        }
+    }
+
+    
     MatrixXd x1_res = MatVectorslice(locs1, inlier_inds, 0, locs1.cols()); //locs1(inlier_inds, Eigen::seqN(0,locs1.cols())); 
     MatrixXd x2_res = MatVectorslice(locs2, inlier_inds, 0, locs2.cols()); //locs2(inlier_inds, Eigen::seqN(0,locs2.cols()));
     MatrixXd x1_res_h = MatVectorslice(homogeneous_loc1, inlier_inds, 0, homogeneous_loc1.cols()); //homogeneous_loc1(inlier_inds, Eigen::seqN(0,homogeneous_loc1.cols())); 
