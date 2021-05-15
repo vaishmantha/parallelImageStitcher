@@ -121,7 +121,7 @@ int row_filter_transpose(float *src, float *dst, int w, int h, float *coef1d,
     float *coef = coef1d;
     float *prow;
 
-    double rowFilterStart = CycleTimer::currentSeconds();
+    // double rowFilterStart = CycleTimer::currentSeconds();
     float firstData, lastData;
     for (int r = 0; r < h; r++) {
         row_start = srcData + r * w;
@@ -148,8 +148,8 @@ int row_filter_transpose(float *src, float *dst, int w, int h, float *coef1d,
             dstData += h;
         }
     }
-    double rowFilterEnd = CycleTimer::currentSeconds();
-    std::cout << "Row filter time " << rowFilterEnd-rowFilterStart<< std::endl;
+    // double rowFilterEnd = CycleTimer::currentSeconds();
+    // std::cout << "Row filter time " << rowFilterEnd-rowFilterStart<< std::endl;
     delete[] row_buf;
     row_buf = nullptr;
 
@@ -1235,7 +1235,7 @@ int sift_cpu(const Image<unsigned char> &image,
 int sift_gpu(const std::vector<ezsift::Image<unsigned char> > images,
               std::vector<std::list<ezsift::SiftKeypoint>> &kpt_lists, bool bExtractDescriptors) //parallelize over the iterations
 {
-    #pragma omp parallel for schedule(static)
+    #pragma omp parallel for schedule(dynamic)
     for(int i=0; i<images.size(); i++){
         // Index of the first octave.
         int firstOctave = (SIFT_IMG_DBL) ? -1 : 0;
