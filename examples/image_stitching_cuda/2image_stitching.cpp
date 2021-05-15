@@ -134,7 +134,7 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
     }
 
     int max_count = 0;
-    // int *count_list = (int*)calloc(iterations, sizeof(int));
+    int *count_list = (int*)calloc(iterations, sizeof(int));
 
     std::vector<int> inlier_inds; 
     int it; 
@@ -403,9 +403,9 @@ int main(int argc, char *argv[])
     MatrixXd first = MatrixXd::Identity(3, 3);
     homographies.push_back(first);
     for(int i=1; i<images.size(); i++){
-        // double ransacInnerStart = CycleTimer::currentSeconds();
+        double ransacInnerStart = CycleTimer::currentSeconds();
         MatrixXd bestH = computeRansac(matches[i-1]);
-        // std::cout << "Inner ransac: " << CycleTimer::currentSeconds() - ransacInnerStart << std::endl;
+        std::cout << "Inner ransac: " << CycleTimer::currentSeconds() - ransacInnerStart << std::endl;
         homographies.push_back(homographies[i-1]*bestH);
     }
     double ransacEnd = CycleTimer::currentSeconds();
