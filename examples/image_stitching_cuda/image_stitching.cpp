@@ -444,34 +444,48 @@ int main(int argc, char *argv[])
     MatrixXd resImageB = MatrixXd::Constant(pan_height, pan_width, 0);
     MatrixXd resImageA = MatrixXd::Constant(pan_height, pan_width, 0);
     
-    // #pragma omp parallel for schedule(dynamic)
+    std::vector<int> min_xs(images.size());
+    std::vector<int> min_ys(images.size());
+    std::vector<int> max_xs(images.size());
+    std::vector<int> max_ys(images.size());
+    std::vector<MatrixXd> newImR(images.size());
+    std::vector<MatrixXd> newImG(images.size());
+    std::vector<MatrixXd> newImB(images.size());
+    std::vector<MatrixXd> newImA(images.size());
+    #pragma omp parallel for schedule(dynamic)
     for (int i = 0; i < images.size(); i++){
         double min_x; 
         double min_y; 
         double max_x; 
         double max_y; 
         findDimensions(images[i], homographies[i], &min_x, &min_y, &max_x, &max_y);      
+        min_xs[i] = min_x;
+        min_ys[i] = min_y;
+        max_xs[i] = max_x;
+        max_ys[i] = max_y;
 
         int curr_width = (int)(fmax(pano_max_x, max_x) - fmax(fmin(pano_min_x, min_x),0));
         int curr_height  = (int)(fmax(pano_max_y, max_y) - fmax(fmin(pano_min_y, min_y),0)); 
 
-        MatrixXd newImR = MatrixXd::Constant(curr_height, curr_width, 0);
-        MatrixXd newImG = MatrixXd::Constant(curr_height, curr_width, 0);
-        MatrixXd newImB = MatrixXd::Constant(curr_height, curr_width, 0);
-        MatrixXd newImA = MatrixXd::Constant(curr_height, curr_width, 0);
+        newImR[i] = MatrixXd::Constant(curr_height, curr_width, 0);
+        newImG[i] = MatrixXd::Constant(curr_height, curr_width, 0);
+        newImB[i] = MatrixXd::Constant(curr_height, curr_width, 0);
+        newImA[i] = MatrixXd::Constant(curr_height, curr_width, 0);
         warpPerspective(png_r[i], png_g[i], png_b[i], png_alpha[i], widths[i], heights[i], &newImR, &newImG, &newImB, &newImA, homographies[i]);
+    }
 
-
+    for (int i = 0; i < images.size(); i++){
+        
         #pragma omp parallel for schedule(dynamic)
         for(int j= 0; j<4; j++){
             if(j==0){
-                placeImage(newImR, &resImageR, min_x, min_y, max_x, max_y);
+                placeImage(newImR[i], &resImageR, min_xs[i], min_ys[i], max_xs[i], max_ys[i]);
             }else if(j==1){
-                placeImage(newImG, &resImageG, min_x, min_y, max_x, max_y);
+                placeImage(newImG[i], &resImageG, min_xs[i], min_ys[i], max_xs[i], max_ys[i]);
             }else if(j==2){
-                placeImage(newImB, &resImageB, min_x, min_y, max_x, max_y);
+                placeImage(newImB[i], &resImageB, min_xs[i], min_ys[i], max_xs[i], max_ys[i]);
             }else{
-                placeImage(newImA, &resImageA, min_x, min_y, max_x, max_y);
+                placeImage(newImA[i], &resImageA, min_xs[i], min_ys[i], max_xs[i], max_ys[i]);
             }
         }
         
