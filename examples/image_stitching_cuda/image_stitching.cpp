@@ -443,56 +443,56 @@ int main(int argc, char *argv[])
     MatrixXd resImageB = MatrixXd::Constant(pan_height, pan_width, 0);
     MatrixXd resImageA = MatrixXd::Constant(pan_height, pan_width, 0);
     
-    // // #pragma omp parallel for schedule(dynamic)
-    // for (int i = 0; i < images.size(); i++){
-    //     double min_x; 
-    //     double min_y; 
-    //     double max_x; 
-    //     double max_y; 
-    //     findDimensions(images[i], homographies[i], &min_x, &min_y, &max_x, &max_y);      
+    // #pragma omp parallel for schedule(dynamic)
+    for (int i = 0; i < images.size(); i++){
+        double min_x; 
+        double min_y; 
+        double max_x; 
+        double max_y; 
+        findDimensions(images[i], homographies[i], &min_x, &min_y, &max_x, &max_y);      
 
-    //     int curr_width = (int)(fmax(pano_max_x, max_x) - fmax(fmin(pano_min_x, min_x),0));
-    //     int curr_height  = (int)(fmax(pano_max_y, max_y) - fmax(fmin(pano_min_y, min_y),0)); 
+        int curr_width = (int)(fmax(pano_max_x, max_x) - fmax(fmin(pano_min_x, min_x),0));
+        int curr_height  = (int)(fmax(pano_max_y, max_y) - fmax(fmin(pano_min_y, min_y),0)); 
 
-    //     MatrixXd newImR = MatrixXd::Constant(curr_height, curr_width, 0);
-    //     MatrixXd newImG = MatrixXd::Constant(curr_height, curr_width, 0);
-    //     MatrixXd newImB = MatrixXd::Constant(curr_height, curr_width, 0);
-    //     MatrixXd newImA = MatrixXd::Constant(curr_height, curr_width, 0);
-    //     warpPerspective(png_r[i], png_g[i], png_b[i], png_alpha[i], widths[i], heights[i], &newImR, &newImG, &newImB, &newImA, homographies[i]);
+        MatrixXd newImR = MatrixXd::Constant(curr_height, curr_width, 0);
+        MatrixXd newImG = MatrixXd::Constant(curr_height, curr_width, 0);
+        MatrixXd newImB = MatrixXd::Constant(curr_height, curr_width, 0);
+        MatrixXd newImA = MatrixXd::Constant(curr_height, curr_width, 0);
+        warpPerspective(png_r[i], png_g[i], png_b[i], png_alpha[i], widths[i], heights[i], &newImR, &newImG, &newImB, &newImA, homographies[i]);
 
 
-    //     #pragma omp parallel for schedule(dynamic)
-    //     for(int j= 0; j<4; j++){
-    //         if(j==0){
-    //             placeImage(newImR, &resImageR, min_x, min_y, max_x, max_y);
-    //         }else if(j==1){
-    //             placeImage(newImG, &resImageG, min_x, min_y, max_x, max_y);
-    //         }else if(j==2){
-    //             placeImage(newImB, &resImageB, min_x, min_y, max_x, max_y);
-    //         }else{
-    //             placeImage(newImA, &resImageA, min_x, min_y, max_x, max_y);
-    //         }
-    //     }
+        #pragma omp parallel for schedule(dynamic)
+        for(int j= 0; j<4; j++){
+            if(j==0){
+                placeImage(newImR, &resImageR, min_x, min_y, max_x, max_y);
+            }else if(j==1){
+                placeImage(newImG, &resImageG, min_x, min_y, max_x, max_y);
+            }else if(j==2){
+                placeImage(newImB, &resImageB, min_x, min_y, max_x, max_y);
+            }else{
+                placeImage(newImA, &resImageA, min_x, min_y, max_x, max_y);
+            }
+        }
         
 
-    // }
-    // double imgCompositionEnd = CycleTimer::currentSeconds();
-    // std::cout << "Img composition time: " << imgCompositionEnd-imgCompositionStart << std::endl;
+    }
+    double imgCompositionEnd = CycleTimer::currentSeconds();
+    std::cout << "Img composition time: " << imgCompositionEnd-imgCompositionStart << std::endl;
 
-    // std::vector<unsigned char> resImg_vect;
-    // for(int i=0; i<pan_height; i++){
-    //     for(int j=0; j<pan_width; j++){
-    //         resImg_vect.push_back(resImageR(i, j)); //color
-    //         resImg_vect.push_back(resImageG(i, j));
-    //         resImg_vect.push_back(resImageB(i, j));
-    //         resImg_vect.push_back(resImageA(i, j));
-    //     }
-    // }
-    // // cudaFindPeaks();
-    // unsigned err = lodepng::encode("result.png", resImg_vect, pan_width, pan_height);
-    // if(err) std::cout << "encoder error " << err << ": "<< lodepng_error_text(err) << std::endl;
-    // double endTime = CycleTimer::currentSeconds();
+    std::vector<unsigned char> resImg_vect;
+    for(int i=0; i<pan_height; i++){
+        for(int j=0; j<pan_width; j++){
+            resImg_vect.push_back(resImageR(i, j)); //color
+            resImg_vect.push_back(resImageG(i, j));
+            resImg_vect.push_back(resImageB(i, j));
+            resImg_vect.push_back(resImageA(i, j));
+        }
+    }
+    // cudaFindPeaks();
+    unsigned err = lodepng::encode("result.png", resImg_vect, pan_width, pan_height);
+    if(err) std::cout << "encoder error " << err << ": "<< lodepng_error_text(err) << std::endl;
+    double endTime = CycleTimer::currentSeconds();
 
-    // std::cout << "Overall time: " << endTime-startTime << std::endl;
+    std::cout << "Overall time: " << endTime-startTime << std::endl;
     return 0;
 }
