@@ -394,6 +394,7 @@ int main(int argc, char *argv[])
         //     return -1;
         // }
     }
+    
     double findMatchesEnd = CycleTimer::currentSeconds();
     std::cout << "Generating matches time: " << findMatchesEnd-findMatchesStart << std::endl;
 
