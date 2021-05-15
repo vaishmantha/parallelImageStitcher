@@ -461,16 +461,16 @@ int main(int argc, char *argv[])
         for(int j= 0; j<4; j++){
             if(j==0){
                 #pragma omp atomic
-                placeImage(newImR, &resImageR, min_x, min_y, max_x, max_y);
+                    placeImage(newImR, &resImageR, min_x, min_y, max_x, max_y);
             }else if(j==1){
                 #pragma omp atomic
-                placeImage(newImG, &resImageG, min_x, min_y, max_x, max_y);
+                    placeImage(newImG, &resImageG, min_x, min_y, max_x, max_y);
             }else if(j==2){
                 #pragma omp atomic
-                placeImage(newImB, &resImageB, min_x, min_y, max_x, max_y);
+                    placeImage(newImB, &resImageB, min_x, min_y, max_x, max_y);
             }else{
                 #pragma omp atomic
-                placeImage(newImA, &resImageA, min_x, min_y, max_x, max_y);
+                    placeImage(newImA, &resImageA, min_x, min_y, max_x, max_y);
             }
         }
         
