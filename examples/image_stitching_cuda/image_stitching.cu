@@ -72,6 +72,7 @@ void placeImage(MatrixXd newImage, MatrixXd* resImg, double min_x, double min_y,
     MatrixXd *resImg_device; 
     MatrixXd *newImage_device; 
 
+    std::cout << "Size of matrixxd " << sizeof(MatrixXd) << std::endl;
     cudaMalloc((void **)&resImg_device, sizeof(MatrixXd));
     cudaMalloc((void **)&newImage_device, sizeof(MatrixXd));
     cudaMemcpy(resImg_device, resImg, sizeof(MatrixXd), cudaMemcpyHostToDevice);
