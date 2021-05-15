@@ -19,13 +19,13 @@ namespace ezsift {
 
 void printCudaInfo();
 
-double build_gaussian_pyramid_gpu(std::vector<Image<unsigned char>> &octaves,
-                                std::vector<Image<float>> &gpyr, int nOctaves,
-                                int nGpyrLayers) {
-    int *device_input;
-    cudaMalloc((void **)&device_input, 2 * sizeof(int));
-    printCudaInfo();
-    std::cout << "Noctaves " << nOctaves << " nGpyrLayers " << nGpyrLayers  << std::endl;
+std::vector<std::vector<std::vector<Image<float>>>> pyramids_gpu(std::vector<std::vector<Image<unsigned char>>> all_octaves, 
+                                                    std::vector<int> all_nOctaves, 
+                                                    int nGpyrLayers, int nDogLayers, int nLayers) {
+    
+    cudaDeviceSynchronize();
+    
+    // std::cout << "Noctaves " << nOctaves << " nGpyrLayers " << nGpyrLayers  << std::endl;
     // std::cout << "Running this from ezsift" << std::endl;
 
     return 0;

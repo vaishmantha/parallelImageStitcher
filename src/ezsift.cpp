@@ -39,9 +39,8 @@
 
 namespace ezsift {
 
-int build_gaussian_pyramid_gpu(std::vector<Image<unsigned char>> &octaves,
-                           std::vector<Image<float>> &gpyr, int nOctaves,
-                           int nGpyrLayers);
+std::vector<std::vector<std::vector<Image<float>>>> pyramids_gpu(std::vector<std::vector<Image<unsigned char>>> all_octaves, 
+                std::vector<int> all_nOctaves, int nGpyrLayers, int nDogLayers, int nLayers);
 
 // Init sift parameters
 void init_sift_parameters(bool doubleFirstOctave, float contrast_threshold,
@@ -159,15 +158,19 @@ int build_gaussian_pyramid(std::vector<Image<unsigned char>> &octaves,
                            std::vector<Image<float>> &gpyr, int nOctaves,
                            int nGpyrLayers)
 {
+    double gaussianCoeffsStart = CycleTimer::currentSeconds();
     int nLayers = nGpyrLayers - 3;
     std::vector<std::vector<float>> gaussian_coefs =
         compute_gaussian_coefs(nOctaves, nGpyrLayers);
+    double gaussianCoeffsEnd = CycleTimer::currentSeconds();
+    std::cout << "Gaussian coeffs time" << gaussianCoeffsEnd- gaussianCoeffsStart<< std::endl;
 
+    double otherStart = CycleTimer::currentSeconds();
     int w, h;
-    for (int i = 0; i < nOctaves; i++) {
+    for (int i = 0; i < nOctaves; i++) { 
         w = octaves[i].w;
         h = octaves[i].h;
-        for (int j = 0; j < nGpyrLayers; j++) {
+        for (int j = 0; j < nGpyrLayers; j++) { //~3
             if (i == 0 && j == 0) {
                 gpyr[0].init(w, h);
                 gaussian_blur(octaves[0].to_float(), gpyr[0],
@@ -186,6 +189,9 @@ int build_gaussian_pyramid(std::vector<Image<unsigned char>> &octaves,
     }
     // Release octaves memory.
     octaves.clear();
+    double otherEnd = CycleTimer::currentSeconds();
+    std::cout << "Other gaussian time" << otherEnd- otherStart << std::endl;
+
     return 0;
 }
 
@@ -1221,75 +1227,85 @@ int sift_cpu(const Image<unsigned char> &image,
     return 0;
 }
 
-int sift_gpu(const std::vector<ezsift::Image<unsigned char> > images,
-             std::vector<std::list<ezsift::SiftKeypoint>> &kpt_lists, bool bExtractDescriptors){
-// int sift_gpu(const Image<unsigned char> &image,
-//              std::list<SiftKeypoint> &kpt_list, bool bExtractDescriptors) //parallelize over the iterations
-{
-    for(int i=0; i<images.size(); i++){
-        ezsift::Image<unsigned char> image = images[i];
-        // std::list<ezsift::SiftKeypoint> kpt_list = kpt_lists[i];
-        // Index of the first octave.
-        int firstOctave = (SIFT_IMG_DBL) ? -1 : 0;
-        // Number of layers in one octave; same as s in the paper.
-        int nLayers = SIFT_INTVLS;
-        // Number of Gaussian images in one octave.
-        int nGpyrLayers = nLayers + 3;
-        // Number of DoG images in one octave.
-        int nDogLayers = nLayers + 2;
-        // Number of octaves according to the size of image.
-        int nOctaves = (int)my_log2((float)fmin(image.w, image.h)) - 3 -
-                    firstOctave; // 2 or 3, need further research
+// int sift_gpu(const std::vector<ezsift::Image<unsigned char> > images,
+//              std::vector<std::list<ezsift::SiftKeypoint>> &kpt_lists, bool bExtractDescriptors){
+// {
+//     // Index of the first octave.
+//     int firstOctave = (SIFT_IMG_DBL) ? -1 : 0;
+//     // Number of layers in one octave; same as s in the paper.
+//     int nLayers = SIFT_INTVLS;
+//     // Number of Gaussian images in one octave.
+//     int nGpyrLayers = nLayers + 3;
+//     // Number of DoG images in one octave.
+//     int nDogLayers = nLayers + 2;
 
-        double buildOctavesStart = CycleTimer::currentSeconds();
-        // Build image octaves
-        std::vector<Image<unsigned char>> octaves(nOctaves);
-        build_octaves(image, octaves, firstOctave, nOctaves);
-        double buildOctavesEnd = CycleTimer::currentSeconds();
-        std::cout << "Building octaves time: " << buildOctavesEnd-buildOctavesStart << std::endl;
+//     std::vector<int> all_nOctaves(images.size());
+//     std::vector<std::vector<Image<unsigned char>>> all_octaves(images.size());
+//     for(int i=0; i<images.size(); i++){
+//         ezsift::Image<unsigned char> image = images[i];
+//         // Number of octaves according to the size of image.
+//         int nOctaves = (int)my_log2((float)fmin(image.w, image.h)) - 3 -
+//                     firstOctave; // 2 or 3, need further research
 
-        double gaussianPyramidStart = CycleTimer::currentSeconds();
-        // Build Gaussian pyramid -- takes a while
-        std::vector<Image<float>> gpyr(nOctaves * nGpyrLayers);
-        // build_gaussian_pyramid(octaves, gpyr, nOctaves, nGpyrLayers);
-        build_gaussian_pyramid_gpu(octaves, gpyr, nOctaves, nGpyrLayers);
-        double gaussianPyramidEnd = CycleTimer::currentSeconds();
-        std::cout << "Building gaussian pyramid time: " << gaussianPyramidEnd-gaussianPyramidStart << std::endl;
+//         all_nOctaves.push_back(nOctaves);
+//         double buildOctavesStart = CycleTimer::currentSeconds();
+//         // Build image octaves
+//         std::vector<Image<unsigned char>> octaves(nOctaves);
+//         build_octaves(image, octaves, firstOctave, nOctaves);
+//         all_octaves[i] = octaves;
+//         double buildOctavesEnd = CycleTimer::currentSeconds();
+//         std::cout << "Building octaves time: " << buildOctavesEnd-buildOctavesStart << std::endl;
+//     }
+//     //Need to double think 
+//     std::vector<std::vector<std::vector<Image<float>>>> all_pyramids = pyramids_gpu(all_octaves, all_nOctaves, nGpyrLayers, nDogLayers, nLayers);
+//         // double gaussianPyramidStart = CycleTimer::currentSeconds();
+//         // Build Gaussian pyramid -- takes a while
+//     // std::vector<Image<float>> gpyr(nOctaves * nGpyrLayers);
+//         // build_gaussian_pyramid(octaves, gpyr, nOctaves, nGpyrLayers);
+//     // build_gaussian_pyramid_gpu(octaves, gpyr, nOctaves, nGpyrLayers);
+//         // double gaussianPyramidEnd = CycleTimer::currentSeconds();
+//         // std::cout << "Building gaussian pyramid time: " << gaussianPyramidEnd-gaussianPyramidStart << std::endl;
 
-        double doGPyramidStart = CycleTimer::currentSeconds();
-        // Build DoG pyramid
-        std::vector<Image<float>> dogPyr(nOctaves * nDogLayers);
-        build_dog_pyr(gpyr, dogPyr, nOctaves, nDogLayers);
-        double doGPyramidEnd = CycleTimer::currentSeconds();
-        std::cout << "Building doG pyramid time: " << doGPyramidEnd-doGPyramidStart << std::endl;
+//         // double doGPyramidStart = CycleTimer::currentSeconds();
+//         // Build DoG pyramid
+//     // std::vector<Image<float>> dogPyr(nOctaves * nDogLayers);
+//     // build_dog_pyr(gpyr, dogPyr, nOctaves, nDogLayers);
+//         // double doGPyramidEnd = CycleTimer::currentSeconds();
+//         // std::cout << "Building doG pyramid time: " << doGPyramidEnd-doGPyramidStart << std::endl;
 
-        double grdRotPyramidStart = CycleTimer::currentSeconds(); 
-        // Build gradient and rotation pyramids---- takes long
-        std::vector<Image<float>> grdPyr(nOctaves * nGpyrLayers);
-        std::vector<Image<float>> rotPyr(nOctaves * nGpyrLayers);
-        build_grd_rot_pyr(gpyr, grdPyr, rotPyr, nOctaves, nLayers);
-        double grdRotPyramidEnd = CycleTimer::currentSeconds();
-        std::cout << "Build grad/rot pyramids time: " << grdRotPyramidEnd-grdRotPyramidStart << std::endl;
+//         // double grdRotPyramidStart = CycleTimer::currentSeconds(); 
+//         // Build gradient and rotation pyramids---- takes long
+//     // std::vector<Image<float>> grdPyr(nOctaves * nGpyrLayers);
+//     // std::vector<Image<float>> rotPyr(nOctaves * nGpyrLayers);
+//     // build_grd_rot_pyr(gpyr, grdPyr, rotPyr, nOctaves, nLayers);
+//         // double grdRotPyramidEnd = CycleTimer::currentSeconds();
+//         // std::cout << "Build grad/rot pyramids time: " << grdRotPyramidEnd-grdRotPyramidStart << std::endl;
 
-        double keypointsStart = CycleTimer::currentSeconds();
-        // Detect keypoints
-        detect_keypoints(dogPyr, grdPyr, rotPyr, nOctaves, nDogLayers, kpt_lists[i]);
-        // std::cout << "list size " << kpt_lists[i].size() << std::endl;
-        double keypointsEnd = CycleTimer::currentSeconds();
-        std::cout << "Detect keypoints time: " << keypointsEnd-keypointsStart << std::endl;
+//     for(int i=0; i<images.size(); i++){
+//         // std::vector<Image<float>> gpyr = all_pyramids[i][0];
+//         std::vector<Image<float>> dogPyr = all_pyramids[i][0];
+//         std::vector<Image<float>> grdPyr = all_pyramids[i][1];
+//         std::vector<Image<float>> rotPyr = all_pyramids[i][2];
 
-        // Extract descriptor
-        if (bExtractDescriptors){
-            double extractDescriptorStart = CycleTimer::currentSeconds();
-            extract_descriptor(grdPyr, rotPyr, nOctaves, nGpyrLayers, kpt_lists[i]);
-            double extractDescriptorEnd = CycleTimer::currentSeconds();
-            std::cout << "Extract descriptor time: " << extractDescriptorEnd-extractDescriptorStart << std::endl;
-        }
-    }
+//         double keypointsStart = CycleTimer::currentSeconds();
+//         // Detect keypoints
+//         detect_keypoints(dogPyr, grdPyr, rotPyr, all_nOctaves[i], nDogLayers, kpt_lists[i]);
+//         // std::cout << "list size " << kpt_lists[i].size() << std::endl;
+//         double keypointsEnd = CycleTimer::currentSeconds();
+//         std::cout << "Detect keypoints time: " << keypointsEnd-keypointsStart << std::endl;
+
+//         // Extract descriptor
+//         if (bExtractDescriptors){
+//             double extractDescriptorStart = CycleTimer::currentSeconds();
+//             extract_descriptor(grdPyr, rotPyr, all_nOctaves[i], nGpyrLayers, kpt_lists[i]);
+//             double extractDescriptorEnd = CycleTimer::currentSeconds();
+//             std::cout << "Extract descriptor time: " << extractDescriptorEnd-extractDescriptorStart << std::endl;
+//         }
+//     }
         
 
-        return 0;
-    }
+//         return 0;
+//     }
 }
 
 } // end namespace ezsift
