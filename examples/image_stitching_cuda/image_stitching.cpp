@@ -386,10 +386,10 @@ int main(int argc, char *argv[])
         // std::cout << "Actual matching of keypoints time: " << matchKeyPointsEnd-matchKeyPointsStart << std::endl;
   
         matches[i] = match_list;
-        if(match_list.size() == 0){
-            std::cerr << "Failed to find any matches between two adjacent images!" << std::endl;
-            return -1;
-        }
+        // if(match_list.size() == 0){ //fix with a boolean
+        //     std::cerr << "Failed to find any matches between two adjacent images!" << std::endl;
+        //     return -1;
+        // }
     }
     double findMatchesEnd = CycleTimer::currentSeconds();
     std::cout << "Generating matches time: " << findMatchesEnd-findMatchesStart << std::endl;
