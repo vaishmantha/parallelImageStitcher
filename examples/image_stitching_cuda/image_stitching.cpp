@@ -147,7 +147,6 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
     }
 
 
-    std::vector<int> inlier_inds; 
     int* rand_inds = (int*) calloc(sizeof(int), 4 * iterations);
     for(int it = 0; it < iterations; it++){
         int rand_counter = 0; 
@@ -193,13 +192,13 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
     }
 
     int max_count = -1;
-    int i; 
+    int k; 
     int best_i; 
     #pragma omp parallel for reduction(max: max_count)
-    for(i = 0; i < iterations; i++){
-        if(max_count < count_list[i]){
-            max_count = count_list[i];
-            best_i = i; 
+    for(k = 0; k < iterations; k++){
+        if(max_count < count_list[k]){
+            max_count = count_list[k];
+            best_i = k; 
         }
     }
 
@@ -232,9 +231,9 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
 
     MatrixXd x1_res = MatVectorslice(locs1, inlier_inds, 0, locs1.cols()); //locs1(inlier_inds, Eigen::seqN(0,locs1.cols())); 
     MatrixXd x2_res = MatVectorslice(locs2, inlier_inds, 0, locs2.cols()); //locs2(inlier_inds, Eigen::seqN(0,locs2.cols()));
-    MatrixXd x1_res_h = MatVectorslice(homogeneous_loc1, inlier_inds, 0, homogeneous_loc1.cols()); //homogeneous_loc1(inlier_inds, Eigen::seqN(0,homogeneous_loc1.cols())); 
-    MatrixXd x2_res_h =  MatVectorslice(homogeneous_loc2, inlier_inds, 0, homogeneous_loc2.cols()); //homogeneous_loc2(inlier_inds, Eigen::seqN(0,homogeneous_loc2.cols()));
-    MatrixXd bestNormalizedHomography = computeNormalizedHomography(x1_res, x2_res, x1_res_h, x2_res_h);
+    MatrixXd x1_res_h2 = MatVectorslice(homogeneous_loc1, inlier_inds, 0, homogeneous_loc1.cols()); //homogeneous_loc1(inlier_inds, Eigen::seqN(0,homogeneous_loc1.cols())); 
+    MatrixXd x2_res_h2 =  MatVectorslice(homogeneous_loc2, inlier_inds, 0, homogeneous_loc2.cols()); //homogeneous_loc2(inlier_inds, Eigen::seqN(0,homogeneous_loc2.cols()));
+    MatrixXd bestNormalizedHomography = computeNormalizedHomography(x1_res, x2_res, x1_res_h2, x2_res_h2iterations);
     return bestNormalizedHomography;
 }
 
