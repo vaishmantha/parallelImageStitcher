@@ -24,14 +24,14 @@ void pyramids_gpu(std::vector<std::vector<Image<unsigned char>>> all_octaves,
     std::vector<std::vector<std::vector<Image<float>>>> all_pyramids) {
     
     //starting with just pixel level parallelism
-    for(int i=0; i< all_octaves.size(); i++){ //num images size
-        std::vector<std::vector<Image<float>> pyramids_for_image;
-        int nOctaves = all_nOctaves[i];
-        std::vector<Image<float>> gpyr(nOctaves * nGpyrLayers);
-        build_gaussian_pyramid(all_octaves[i], gpyr, nOctaves, nGpyrLayers);
-        // std::vector<Image<float>> dogPyr()
-    }
-    cudaDeviceSynchronize();
+    // for(int i=0; i< all_octaves.size(); i++){ //num images size
+    //     std::vector<std::vector<Image<float>> pyramids_for_image;
+    //     int nOctaves = all_nOctaves[i];
+    //     std::vector<Image<float>> gpyr(nOctaves * nGpyrLayers);
+    //     build_gaussian_pyramid(all_octaves[i], gpyr, nOctaves, nGpyrLayers);
+    //     // std::vector<Image<float>> dogPyr()
+    // }
+    // cudaDeviceSynchronize();
     
     // std::cout << "Noctaves " << nOctaves << " nGpyrLayers " << nGpyrLayers  << std::endl;
     // std::cout << "Running this from ezsift" << std::endl;
