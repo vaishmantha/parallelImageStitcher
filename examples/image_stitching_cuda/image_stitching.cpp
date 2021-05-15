@@ -431,17 +431,17 @@ int main(int argc, char *argv[])
         pano_max_x = (int) (ceil(fmax(max_x, pano_max_x))); 
         pano_max_y = (int) (ceil(fmax(max_y, pano_max_y)));
     }
-    double findingDimsEnd = CycleTimer::currentSeconds();
-    std::cout << "Finding dims time: " << findingDimsEnd-findingDimsStart << std::endl;
+    // double findingDimsEnd = CycleTimer::currentSeconds();
+    // std::cout << "Finding dims time: " << findingDimsEnd-findingDimsStart << std::endl;
 
-    double imgCompositionStart = CycleTimer::currentSeconds();
-    int pan_height  = (int)(pano_max_y - pano_min_y); 
-    int pan_width = (int)(pano_max_x - pano_min_x);
+    // double imgCompositionStart = CycleTimer::currentSeconds();
+    // int pan_height  = (int)(pano_max_y - pano_min_y); 
+    // int pan_width = (int)(pano_max_x - pano_min_x);
 
-    MatrixXd resImageR = MatrixXd::Constant(pan_height, pan_width, 0);
-    MatrixXd resImageG = MatrixXd::Constant(pan_height, pan_width, 0);
-    MatrixXd resImageB = MatrixXd::Constant(pan_height, pan_width, 0);
-    MatrixXd resImageA = MatrixXd::Constant(pan_height, pan_width, 0);
+    // MatrixXd resImageR = MatrixXd::Constant(pan_height, pan_width, 0);
+    // MatrixXd resImageG = MatrixXd::Constant(pan_height, pan_width, 0);
+    // MatrixXd resImageB = MatrixXd::Constant(pan_height, pan_width, 0);
+    // MatrixXd resImageA = MatrixXd::Constant(pan_height, pan_width, 0);
     
     // // #pragma omp parallel for schedule(dynamic)
     // for (int i = 0; i < images.size(); i++){
