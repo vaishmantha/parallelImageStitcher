@@ -364,38 +364,38 @@ int main(int argc, char *argv[])
         }
         images.push_back(image);
     }
-    // double readingImagesEnd = CycleTimer::currentSeconds();
-    // std::cout << "Reading images time: " << readingImagesEnd-startTime << std::endl;
+    double readingImagesEnd = CycleTimer::currentSeconds();
+    std::cout << "Reading images time: " << readingImagesEnd-startTime << std::endl;
     
-    // double findMatchesStart = CycleTimer::currentSeconds();
-    // //Parallel
+    double findMatchesStart = CycleTimer::currentSeconds();
+    //Parallel
     
-    // std::vector<std::list<ezsift::SiftKeypoint>> kpt_lists;
-    // for(int i=0; i<images.size(); i++){
-    //     std::list<ezsift::SiftKeypoint> kpt_list;
-    //     kpt_lists.push_back(kpt_list); //empty kpt_lists
-    // }
+    std::vector<std::list<ezsift::SiftKeypoint>> kpt_lists;
+    for(int i=0; i<images.size(); i++){
+        std::list<ezsift::SiftKeypoint> kpt_list;
+        kpt_lists.push_back(kpt_list); //empty kpt_lists
+    }
     
-    // ezsift::double_original_image(true);
-    // ezsift::sift_gpu(images, kpt_lists, true);
-    // std::vector<std::list<ezsift::MatchPair>> matches(images.size()-1);
+    ezsift::double_original_image(true);
+    ezsift::sift_gpu(images, kpt_lists, true);
+    std::vector<std::list<ezsift::MatchPair>> matches(images.size()-1);
 
-    // #pragma omp parallel for schedule(dynamic)
-    // for(int i=0; i<images.size()-1; i++){
-    //     std::list<ezsift::MatchPair> match_list;
-    //     // double matchKeyPointsStart = CycleTimer::currentSeconds();
-    //     ezsift::match_keypoints(kpt_lists[i], kpt_lists[i+1], match_list); //Doesn't take long
-    //     // double matchKeyPointsEnd = CycleTimer::currentSeconds();
-    //     // std::cout << "Actual matching of keypoints time: " << matchKeyPointsEnd-matchKeyPointsStart << std::endl;
+    #pragma omp parallel for schedule(dynamic)
+    for(int i=0; i<images.size()-1; i++){
+        std::list<ezsift::MatchPair> match_list;
+        // double matchKeyPointsStart = CycleTimer::currentSeconds();
+        ezsift::match_keypoints(kpt_lists[i], kpt_lists[i+1], match_list); //Doesn't take long
+        // double matchKeyPointsEnd = CycleTimer::currentSeconds();
+        // std::cout << "Actual matching of keypoints time: " << matchKeyPointsEnd-matchKeyPointsStart << std::endl;
   
-    //     matches[i] = match_list;
-    //     // if(match_list.size() == 0){ //fix with a boolean
-    //     //     std::cerr << "Failed to find any matches between two adjacent images!" << std::endl;
-    //     //     return -1;
-    //     // }
-    // }
-    // double findMatchesEnd = CycleTimer::currentSeconds();
-    // std::cout << "Generating matches time: " << findMatchesEnd-findMatchesStart << std::endl;
+        matches[i] = match_list;
+        // if(match_list.size() == 0){ //fix with a boolean
+        //     std::cerr << "Failed to find any matches between two adjacent images!" << std::endl;
+        //     return -1;
+        // }
+    }
+    double findMatchesEnd = CycleTimer::currentSeconds();
+    std::cout << "Generating matches time: " << findMatchesEnd-findMatchesStart << std::endl;
 
     // //homographies multiplication must be sequential but ransac does not need to be
     // double ransacStart = CycleTimer::currentSeconds();
