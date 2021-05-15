@@ -12,7 +12,7 @@ using Eigen::MatrixXd;
 #define USE_FIX_FILENAME 0
 
 // double cudaFindPeaks();
-void placeImage(MatrixXd newImage, MatrixXd* resImg, double min_x, double min_y, double max_x, double max_y);
+// void placeImage(MatrixXd newImage, MatrixXd* resImg, double min_x, double min_y, double max_x, double max_y);
 
 MatrixXd Matslice(MatrixXd array, int start_row, int start_col, int height, int width){
     MatrixXd sl = MatrixXd::Constant(height, width, 0);
@@ -291,49 +291,49 @@ void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* 
     }
 }
 
-// void placeImage(MatrixXd newImage, MatrixXd* resImg, double min_x, double min_y, double max_x, double max_y){
-//     int w = newImage.cols();
-//     int h = newImage.rows();
-//     // printf("w: %d, h: %d", w, h);
-//     int start_i = (int)fmax(min_y,0);
-//     int start_j = (int)fmax(min_x,0);
-//     #pragma omp parallel for schedule(dynamic)
-//     for (int i = start_i; i < (int)max_y; i++){ //access as row col
-//         for (int j = start_j; j < (int)max_x; j++){
-//             if ((*resImg)(i,j) == 0){
-//                 (*resImg)(i,j) = newImage(i,j);
-//             }
-//             if ((*resImg)(i,j) != 0 && newImage(i, j) != 0){
-//                 (*resImg)(i,j) = fmax(newImage(i,j), (*resImg)(i,j));
-//             }
-//         }
-//     }
-//     MatrixXd copyRes = (*resImg);
-//     #pragma omp parallel for schedule(dynamic)
-//     for(int i = start_i; i < (int)max_y; i++){
-//         for(int j = start_j; j < (int)max_x; j++){
-//             if((*resImg)(i, j) == 0){
-//                 if (i+1 < max_y && copyRes(i+1,j) != 0){ // && i-1 >=fmax(min_y,0) && j+1 < max_x && j-1 >=fmax(min_x,0) ){
-//                     (*resImg)(i, j) = copyRes(i+1,j);
-//                 }else if(i-1 >= fmax(min_y,0) && copyRes(i-1,j) != 0){
-//                     (*resImg)(i, j) = copyRes(i-1,j);
-//                 }else if(j+1 < max_x && copyRes(i,j+1) != 0){
-//                     (*resImg)(i, j) = copyRes(i,j+1);
-//                 }else if(j-1 >=fmax(min_x,0) && copyRes(i,j-1) != 0){
-//                     (*resImg)(i,j) = copyRes(i,j-1);
-//                 }else if(i+1 < max_y && j+1 < max_x && copyRes(i+1,j+1)){
-//                     (*resImg)(i,j) = copyRes(i+1,j+1);
-//                 }else if(i-1 >= fmax(min_y,0) && j+1 < max_x && copyRes(i-1,j+1)){
-//                     (*resImg)(i,j) = copyRes(i-1,j+1);
-//                 }else if(i+1 < max_y && j-1 >=fmax(min_x,0) && copyRes(i+1,j-1)){
-//                     (*resImg)(i,j) = copyRes(i+1,j-1);
-//                 }else if(i-1 >= fmax(min_y,0) && j-1 >=fmax(min_x,0) && copyRes(i-1,j-1)){
-//                     (*resImg)(i,j) = copyRes(i-1,j-1);
-//                 }
-//             }
-//         }
-//     }
-// }
+void placeImage(MatrixXd newImage, MatrixXd* resImg, double min_x, double min_y, double max_x, double max_y){
+    int w = newImage.cols();
+    int h = newImage.rows();
+    // printf("w: %d, h: %d", w, h);
+    int start_i = (int)fmax(min_y,0);
+    int start_j = (int)fmax(min_x,0);
+    #pragma omp parallel for schedule(dynamic)
+    for (int i = start_i; i < (int)max_y; i++){ //access as row col
+        for (int j = start_j; j < (int)max_x; j++){
+            if ((*resImg)(i,j) == 0){
+                (*resImg)(i,j) = newImage(i,j);
+            }
+            if ((*resImg)(i,j) != 0 && newImage(i, j) != 0){
+                (*resImg)(i,j) = fmax(newImage(i,j), (*resImg)(i,j));
+            }
+        }
+    }
+    MatrixXd copyRes = (*resImg);
+    #pragma omp parallel for schedule(dynamic)
+    for(int i = start_i; i < (int)max_y; i++){
+        for(int j = start_j; j < (int)max_x; j++){
+            if((*resImg)(i, j) == 0){
+                if (i+1 < max_y && copyRes(i+1,j) != 0){ // && i-1 >=fmax(min_y,0) && j+1 < max_x && j-1 >=fmax(min_x,0) ){
+                    (*resImg)(i, j) = copyRes(i+1,j);
+                }else if(i-1 >= fmax(min_y,0) && copyRes(i-1,j) != 0){
+                    (*resImg)(i, j) = copyRes(i-1,j);
+                }else if(j+1 < max_x && copyRes(i,j+1) != 0){
+                    (*resImg)(i, j) = copyRes(i,j+1);
+                }else if(j-1 >=fmax(min_x,0) && copyRes(i,j-1) != 0){
+                    (*resImg)(i,j) = copyRes(i,j-1);
+                }else if(i+1 < max_y && j+1 < max_x && copyRes(i+1,j+1)){
+                    (*resImg)(i,j) = copyRes(i+1,j+1);
+                }else if(i-1 >= fmax(min_y,0) && j+1 < max_x && copyRes(i-1,j+1)){
+                    (*resImg)(i,j) = copyRes(i-1,j+1);
+                }else if(i+1 < max_y && j-1 >=fmax(min_x,0) && copyRes(i+1,j-1)){
+                    (*resImg)(i,j) = copyRes(i+1,j-1);
+                }else if(i-1 >= fmax(min_y,0) && j-1 >=fmax(min_x,0) && copyRes(i-1,j-1)){
+                    (*resImg)(i,j) = copyRes(i-1,j-1);
+                }
+            }
+        }
+    }
+}
 
 
 void write_pgm(const char *filename, unsigned char *data, int w, int h)
