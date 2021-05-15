@@ -23,7 +23,7 @@ MatrixXd Matslice(MatrixXd array, int start_row, int start_col, int height, int 
     return sl;
 }
 
-MatrixXd MatVectorslice(MatrixXd array, int* row_indices, int num_row_indices, int start_col, int width){
+MatrixXd MatVectorslice2(MatrixXd array, int* row_indices, int num_row_indices, int start_col, int width){
     MatrixXd sl = MatrixXd::Constant(num_row_indices, width, 0);
     for(int i=0; i<num_row_indices; i++){
         for(int j=0; j<width; j++){
@@ -33,7 +33,7 @@ MatrixXd MatVectorslice(MatrixXd array, int* row_indices, int num_row_indices, i
     return sl;
 }
 
-MatrixXd MatVectorslice2(MatrixXd array, std::vector<int> row_indices, int start_col, int width){
+MatrixXd MatVectorslice(MatrixXd array, std::vector<int> row_indices, int start_col, int width){
     MatrixXd sl = MatrixXd::Constant(row_indices.size(), width, 0);
     for(int i=0; i<row_indices.size(); i++){
         for(int j=0; j<width; j++){
