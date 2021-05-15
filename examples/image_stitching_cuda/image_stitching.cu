@@ -101,15 +101,15 @@ void placeImage(MatrixXd newImage, MatrixXd* resImg, double min_x, double min_y,
     MatrixXd *newImage_device; 
 
     std::cout << "Size of matrixxd " << sizeof(MatrixXd) << std::endl;
-    cudaMalloc((void **)&resImg_device, sizeof(double)*sizeof(MatrixXd.rows()*MatrixXd.cols()));
-    cudaMalloc((void **)&newImage_device, sizeof(double)*sizeof(MatrixXd.rows()*MatrixXd.cols()));
-    cudaMemcpy(resImg_device, resImg, sizeof(double)*sizeof(MatrixXd.rows()*MatrixXd.cols()), cudaMemcpyHostToDevice);
-    cudaMemcpy(newImage_device, &newImage, sizeof(double)*sizeof(MatrixXd.rows()*MatrixXd.cols()), cudaMemcpyHostToDevice);
+    cudaMalloc((void **)&resImg_device, sizeof(double)*sizeof(resImg.rows()*resImg.cols()));
+    cudaMalloc((void **)&newImage_device, sizeof(double)*sizeof(newImage.rows()*newImage.cols()));
+    cudaMemcpy(resImg_device, resImg, sizeof(double)*sizeof(resImg.rows()*resImg.cols()), cudaMemcpyHostToDevice);
+    cudaMemcpy(newImage_device, &newImage, sizeof(double)*sizeof(newImage.rows()*newImage.cols()), cudaMemcpyHostToDevice);
     
     dim3 blockDim(16, 16, 1);
     dim3 gridDim((((int)max_y) - start_i + blockDim.x - 1) / blockDim.x, (((int)max_x) - start_j + blockDim.y - 1) / blockDim.y);
     kernelCompose<<<gridDim, blockDim>>>(resImg_device, newImage_device, start_i, start_j, max_x, max_y); 
-    cudaMemcpy(resImg, resImg_device, sizeof(double)*sizeof(MatrixXd.rows()*MatrixXd.cols()), cudaMemcpyDeviceToHost);
+    cudaMemcpy(resImg, resImg_device, sizeof(double)*sizeof(resImg.rows()*resImg.cols()), cudaMemcpyDeviceToHost);
     // std::cout << *resImg << std::endl;
     // #pragma omp parallel for schedule(dynamic)
     // for (int i = start_i; i < (int)max_y; i++){ //access as row col
