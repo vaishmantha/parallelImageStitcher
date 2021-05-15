@@ -238,14 +238,11 @@ void placeImage(MatrixXd newImage, MatrixXd* resImg, double min_x, double min_y,
     // printf("w: %d, h: %d", w, h);
     for (int i = 0; i < h; i++){ //access as row col
         for (int j = 0; j < w; j++){
-            #pragma omp critical
-            {
             if ((*resImg)(i,j) == 0){
                 (*resImg)(i,j) = newImage(i,j);
             }
             if ((*resImg)(i,j) != 0 && newImage(i, j) != 0){
                 (*resImg)(i,j) = fmax(newImage(i,j), (*resImg)(i,j));
-            }
             }
         }
     }
