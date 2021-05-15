@@ -12,6 +12,7 @@ using Eigen::MatrixXd;
 #define USE_FIX_FILENAME 0
 
 // double cudaFindPeaks();
+void placeImage(MatrixXd newImage, MatrixXd* resImg, double min_x, double min_y, double max_x, double max_y);
 
 MatrixXd Matslice(MatrixXd array, int start_row, int start_col, int height, int width){
     MatrixXd sl = MatrixXd::Constant(height, width, 0);
@@ -290,49 +291,49 @@ void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* 
     }
 }
 
-void placeImage(MatrixXd newImage, MatrixXd* resImg, double min_x, double min_y, double max_x, double max_y){
-    int w = newImage.cols();
-    int h = newImage.rows();
-    // printf("w: %d, h: %d", w, h);
-    int start_i = (int)fmax(min_y,0);
-    int start_j = (int)fmax(min_x,0);
-    #pragma omp parallel for schedule(dynamic)
-    for (int i = start_i; i < (int)max_y; i++){ //access as row col
-        for (int j = start_j; j < (int)max_x; j++){
-            if ((*resImg)(i,j) == 0){
-                (*resImg)(i,j) = newImage(i,j);
-            }
-            if ((*resImg)(i,j) != 0 && newImage(i, j) != 0){
-                (*resImg)(i,j) = fmax(newImage(i,j), (*resImg)(i,j));
-            }
-        }
-    }
-    MatrixXd copyRes = (*resImg);
-    #pragma omp parallel for schedule(dynamic)
-    for(int i = start_i; i < (int)max_y; i++){
-        for(int j = start_j; j < (int)max_x; j++){
-            if((*resImg)(i, j) == 0){
-                if (i+1 < max_y && copyRes(i+1,j) != 0){ // && i-1 >=fmax(min_y,0) && j+1 < max_x && j-1 >=fmax(min_x,0) ){
-                    (*resImg)(i, j) = copyRes(i+1,j);
-                }else if(i-1 >= fmax(min_y,0) && copyRes(i-1,j) != 0){
-                    (*resImg)(i, j) = copyRes(i-1,j);
-                }else if(j+1 < max_x && copyRes(i,j+1) != 0){
-                    (*resImg)(i, j) = copyRes(i,j+1);
-                }else if(j-1 >=fmax(min_x,0) && copyRes(i,j-1) != 0){
-                    (*resImg)(i,j) = copyRes(i,j-1);
-                }else if(i+1 < max_y && j+1 < max_x && copyRes(i+1,j+1)){
-                    (*resImg)(i,j) = copyRes(i+1,j+1);
-                }else if(i-1 >= fmax(min_y,0) && j+1 < max_x && copyRes(i-1,j+1)){
-                    (*resImg)(i,j) = copyRes(i-1,j+1);
-                }else if(i+1 < max_y && j-1 >=fmax(min_x,0) && copyRes(i+1,j-1)){
-                    (*resImg)(i,j) = copyRes(i+1,j-1);
-                }else if(i-1 >= fmax(min_y,0) && j-1 >=fmax(min_x,0) && copyRes(i-1,j-1)){
-                    (*resImg)(i,j) = copyRes(i-1,j-1);
-                }
-            }
-        }
-    }
-}
+// void placeImage(MatrixXd newImage, MatrixXd* resImg, double min_x, double min_y, double max_x, double max_y){
+//     int w = newImage.cols();
+//     int h = newImage.rows();
+//     // printf("w: %d, h: %d", w, h);
+//     int start_i = (int)fmax(min_y,0);
+//     int start_j = (int)fmax(min_x,0);
+//     #pragma omp parallel for schedule(dynamic)
+//     for (int i = start_i; i < (int)max_y; i++){ //access as row col
+//         for (int j = start_j; j < (int)max_x; j++){
+//             if ((*resImg)(i,j) == 0){
+//                 (*resImg)(i,j) = newImage(i,j);
+//             }
+//             if ((*resImg)(i,j) != 0 && newImage(i, j) != 0){
+//                 (*resImg)(i,j) = fmax(newImage(i,j), (*resImg)(i,j));
+//             }
+//         }
+//     }
+//     MatrixXd copyRes = (*resImg);
+//     #pragma omp parallel for schedule(dynamic)
+//     for(int i = start_i; i < (int)max_y; i++){
+//         for(int j = start_j; j < (int)max_x; j++){
+//             if((*resImg)(i, j) == 0){
+//                 if (i+1 < max_y && copyRes(i+1,j) != 0){ // && i-1 >=fmax(min_y,0) && j+1 < max_x && j-1 >=fmax(min_x,0) ){
+//                     (*resImg)(i, j) = copyRes(i+1,j);
+//                 }else if(i-1 >= fmax(min_y,0) && copyRes(i-1,j) != 0){
+//                     (*resImg)(i, j) = copyRes(i-1,j);
+//                 }else if(j+1 < max_x && copyRes(i,j+1) != 0){
+//                     (*resImg)(i, j) = copyRes(i,j+1);
+//                 }else if(j-1 >=fmax(min_x,0) && copyRes(i,j-1) != 0){
+//                     (*resImg)(i,j) = copyRes(i,j-1);
+//                 }else if(i+1 < max_y && j+1 < max_x && copyRes(i+1,j+1)){
+//                     (*resImg)(i,j) = copyRes(i+1,j+1);
+//                 }else if(i-1 >= fmax(min_y,0) && j+1 < max_x && copyRes(i-1,j+1)){
+//                     (*resImg)(i,j) = copyRes(i-1,j+1);
+//                 }else if(i+1 < max_y && j-1 >=fmax(min_x,0) && copyRes(i+1,j-1)){
+//                     (*resImg)(i,j) = copyRes(i+1,j-1);
+//                 }else if(i-1 >= fmax(min_y,0) && j-1 >=fmax(min_x,0) && copyRes(i-1,j-1)){
+//                     (*resImg)(i,j) = copyRes(i-1,j-1);
+//                 }
+//             }
+//         }
+//     }
+// }
 
 
 void write_pgm(const char *filename, unsigned char *data, int w, int h)
@@ -439,6 +440,7 @@ int main(int argc, char *argv[])
 
     double findMatchesStart = CycleTimer::currentSeconds();
 
+    bool matchListSizeZero = false;
     #pragma omp parallel for schedule(dynamic)
     for(int i=0; i<images.size()-1; i++){
         std::list<ezsift::MatchPair> match_list;
@@ -448,10 +450,14 @@ int main(int argc, char *argv[])
         // std::cout << "Actual matching of keypoints time: " << matchKeyPointsEnd-matchKeyPointsStart << std::endl;
   
         matches[i] = match_list;
-        // if(match_list.size() == 0){ //fix with a boolean
-        //     std::cerr << "Failed to find any matches between two adjacent images!" << std::endl;
-        //     return -1;
-        // }
+        if(match_list.size() == 0){
+            matchListSizeZero = true;
+        }
+    }
+
+    if(matchListSizeZero){ 
+        std::cerr << "Failed to find any matches between two adjacent images!" << std::endl;
+        return -1;
     }
 
     double findMatchesEnd = CycleTimer::currentSeconds();
