@@ -297,7 +297,7 @@ void placeImage(MatrixXd newImage, MatrixXd* resImg, double min_x, double min_y,
     // printf("w: %d, h: %d", w, h);
     int start_i = (int)fmax(min_y,0);
     int start_j = (int)fmax(min_x,0);
-    #pragma omp parallel for schedule(dynamic)
+    #pragma omp parallel for //schedule(dynamic)
     for (int i = start_i; i < (int)max_y; i++){ //access as row col
         for (int j = start_j; j < (int)max_x; j++){
             if ((*resImg)(i,j) == 0){
@@ -309,7 +309,7 @@ void placeImage(MatrixXd newImage, MatrixXd* resImg, double min_x, double min_y,
         }
     }
     MatrixXd copyRes = (*resImg);
-    #pragma omp parallel for schedule(dynamic)
+    #pragma omp parallel for //schedule(dynamic)
     for(int i = start_i; i < (int)max_y; i++){
         for(int j = start_j; j < (int)max_x; j++){
             if((*resImg)(i, j) == 0){
@@ -526,7 +526,7 @@ int main(int argc, char *argv[])
         warpPerspective(png_r[i], png_g[i], png_b[i], png_alpha[i], widths[i], heights[i], &newImR, &newImG, &newImB, &newImA, homographies[i]);
 
 
-        // #pragma omp parallel for schedule(dynamic)
+        // #pragma omp parallel for schedule(dynamic) // DO NOT ADD BACK IN
         for(int j= 0; j<4; j++){
             if(j==0){
                 placeImage(newImR, &resImageR, min_x, min_y, max_x, max_y);
