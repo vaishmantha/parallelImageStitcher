@@ -212,7 +212,7 @@ void findDimensions(ezsift::Image<unsigned char> image, MatrixXd H,
 void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* png_b, unsigned char* png_a, 
         int png_width, int png_height, MatrixXd* newImR,MatrixXd* newImG,MatrixXd* newImB, MatrixXd* newImA, MatrixXd H){
     
-    #pragma omp parallel for collapse(2)
+    // #pragma omp parallel for collapse(2)
     for(int i=0; i< png_height; i++){ 
         for(int j=0; j<png_width; j++){
             MatrixXd tmp = MatrixXd::Constant(1,3, 0.0);
