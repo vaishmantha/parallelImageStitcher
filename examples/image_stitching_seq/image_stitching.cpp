@@ -298,6 +298,7 @@ void write_pgm(const char *filename, unsigned char *data, int w, int h)
 
 int main(int argc, char *argv[])
 {
+    double imageStitchingStart = CycleTimer::currentSeconds();
     bool VIDEO_MODE;
     char* suffix = strrchr(argv[1], '.');
     if (argc < 2) {
@@ -418,11 +419,7 @@ int main(int argc, char *argv[])
         double min_y; 
         double max_x; 
         double max_y; 
-        findDimensions(images[i], homographies[i], &min_x, &min_y, &max_x, &max_y); 
-        // max_x = fmax(pano_max_x, max_x); 
-        // max_y = fmax(pano_max_y, max_y); 
-        // min_x = fmax(fmin(pano_min_x, min_x),0); 
-        // min_y = fmax(fmin(pano_min_y, min_y),0);         
+        findDimensions(images[i], homographies[i], &min_x, &min_y, &max_x, &max_y);       
 
         int curr_width = (int)(fmax(pano_max_x, max_x) - fmax(fmin(pano_min_x, min_x),0));
         int curr_height  = (int)(fmax(pano_max_y, max_y) - fmax(fmin(pano_min_y, min_y),0)); 
@@ -443,9 +440,9 @@ int main(int argc, char *argv[])
             resImg_vect.push_back(255);
         }
     }
-    // cudaFindPeaks();
     unsigned err = lodepng::encode("result.png", resImg_vect, pan_width, pan_height);
     if(err) std::cout << "encoder error " << err << ": "<< lodepng_error_text(err) << std::endl;
-
+    double imageStitchingEnd = CycleTimer::currentSeconds();
+    std::cout << "Sequential time " << imageStitchingEnd-imageStitchingStart << std::endl;
     return 0;
 }
