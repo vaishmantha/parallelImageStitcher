@@ -297,8 +297,8 @@ void placeImage(MatrixXd newImage, MatrixXd* resImg, double min_x, double min_y,
     int start_i = (int)fmax(min_y,0);
     int start_j = (int)fmax(min_x,0);
     #pragma omp parallel for schedule(dynamic)
-    for (int start_i = 0; (int)max_y < h; i++){ //access as row col
-        for (int start_j = 0; j < (int)max_x; j++){
+    for (int i = start_i; (int)max_y < h; i++){ //access as row col
+        for (int j = start_j; j < (int)max_x; j++){
             if ((*resImg)(i,j) == 0){
                 (*resImg)(i,j) = newImage(i,j);
             }
