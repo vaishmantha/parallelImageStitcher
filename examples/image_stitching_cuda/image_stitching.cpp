@@ -211,6 +211,8 @@ void findDimensions(ezsift::Image<unsigned char> image, MatrixXd H,
 
 void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* png_b, unsigned char* png_a, 
         int png_width, int png_height, MatrixXd* newImR,MatrixXd* newImG,MatrixXd* newImB, MatrixXd* newImA, MatrixXd H){
+    
+    #pragma omp parallel for collapse(2)
     for(int i=0; i< png_height; i++){ 
         for(int j=0; j<png_width; j++){
             MatrixXd tmp = MatrixXd::Constant(1,3, 0.0);
@@ -445,7 +447,7 @@ int main(int argc, char *argv[])
     MatrixXd resImageB = MatrixXd::Constant(pan_height, pan_width, 0);
     MatrixXd resImageA = MatrixXd::Constant(pan_height, pan_width, 0);
     
-    #pragma omp parallel for schedule(dynamic)
+    // #pragma omp parallel for schedule(dynamic)
     for (int i = 0; i < images.size(); i++){
         double min_x; 
         double min_y; 
