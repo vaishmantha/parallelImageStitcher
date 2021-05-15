@@ -134,8 +134,11 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
     }
 
     int max_count = 0;
+    // int *count_list = (int*)calloc(iterations, sizeof(int));
+
     std::vector<int> inlier_inds; 
     int it; 
+    #pragma omp parallel for schedule(dynamic)
     for(it = 0; it < iterations; it++){
         std::vector<int> rand_inds; 
         while(rand_inds.size() != 4){
@@ -394,12 +397,15 @@ int main(int argc, char *argv[])
     double findMatchesEnd = CycleTimer::currentSeconds();
     std::cout << "Generating matches time: " << findMatchesEnd-findMatchesStart << std::endl;
 
+    //homographies multiplication must be sequential but ransac does not need to be
     double ransacStart = CycleTimer::currentSeconds();
     std::vector<MatrixXd> homographies;
     MatrixXd first = MatrixXd::Identity(3, 3);
     homographies.push_back(first);
     for(int i=1; i<images.size(); i++){
+        double ransacInnerStart = CycleTimer::currentSeconds();
         MatrixXd bestH = computeRansac(matches[i-1]);
+        std::cout << "Inner ransac: " << CycleTimer::currentSeconds() - ransacInnerStart << std::endl;
         homographies.push_back(homographies[i-1]*bestH);
     }
     double ransacEnd = CycleTimer::currentSeconds();
