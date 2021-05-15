@@ -240,6 +240,7 @@ void placeImage(MatrixXd newImage, MatrixXd* resImg, double min_x, double min_y,
     int w = newImage.cols();
     int h = newImage.rows();
     // printf("w: %d, h: %d", w, h);
+    #pragma omp parallel for schedule(dynamic)
     for (int i = 0; i < h; i++){ //access as row col
         for (int j = 0; j < w; j++){
             if ((*resImg)(i,j) == 0){
@@ -251,6 +252,7 @@ void placeImage(MatrixXd newImage, MatrixXd* resImg, double min_x, double min_y,
         }
     }
     MatrixXd copyRes = (*resImg);
+    #pragma omp parallel for schedule(dynamic)
     for(int i = fmax(min_y,0); i < max_y; i++){
         for(int j = fmax(min_x,0); j < max_x; j++){
             if((*resImg)(i, j) == 0){

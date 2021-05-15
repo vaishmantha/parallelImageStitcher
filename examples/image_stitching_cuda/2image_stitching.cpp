@@ -33,6 +33,16 @@ MatrixXd MatVectorslice(MatrixXd array, int* row_indices, int num_row_indices, i
     return sl;
 }
 
+MatrixXd MatVectorslice2(MatrixXd array, std::vector<int> row_indices, int start_col, int width){
+    MatrixXd sl = MatrixXd::Constant(row_indices.size(), width, 0);
+    for(int i=0; i<row_indices.size(); i++){
+        for(int j=0; j<width; j++){
+            sl(i, j) = array(row_indices[i], start_col+j);
+        }
+    }
+    return sl;
+}
+
 MatrixXd computeHomography(MatrixXd x1, MatrixXd x2){
     MatrixXd A;
 
@@ -190,11 +200,36 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
         }
     }
 
-    
-    MatrixXd x1_res = MatVectorslice(locs1, inlier_inds, 0, locs1.cols()); //locs1(inlier_inds, Eigen::seqN(0,locs1.cols())); 
-    MatrixXd x2_res = MatVectorslice(locs2, inlier_inds, 0, locs2.cols()); //locs2(inlier_inds, Eigen::seqN(0,locs2.cols()));
-    MatrixXd x1_res_h = MatVectorslice(homogeneous_loc1, inlier_inds, 0, homogeneous_loc1.cols()); //homogeneous_loc1(inlier_inds, Eigen::seqN(0,homogeneous_loc1.cols())); 
-    MatrixXd x2_res_h =  MatVectorslice(homogeneous_loc2, inlier_inds, 0, homogeneous_loc2.cols()); //homogeneous_loc2(inlier_inds, Eigen::seqN(0,homogeneous_loc2.cols()));
+    // found the best one 
+    MatrixXd x1 = MatVectorslice(locs1, &rand_inds[4 * best_i], 4, 0, locs1.cols()); //locs1(rand_inds, Eigen::seqN(0,locs1.cols())); 
+    MatrixXd x2 = MatVectorslice(locs2, &rand_inds[4 * best_i], 4, 0, locs2.cols());// locs2(rand_inds, Eigen::seqN(0,locs2.cols())); 
+
+    MatrixXd x1_res_h = MatVectorslice(homogeneous_loc1, &rand_inds[4 * best_i], 4, 0, homogeneous_loc1.cols()); //homogeneous_loc1(rand_inds,  Eigen::seqN(0,homogeneous_loc1.cols())); 
+    MatrixXd x2_res_h = MatVectorslice(homogeneous_loc2, &rand_inds[4 * best_i], 4, 0, homogeneous_loc2.cols()); //homogeneous_loc2(rand_inds, Eigen::seqN(0,homogeneous_loc2.cols())); 
+
+    MatrixXd H = computeNormalizedHomography(x1, x2, x1_res_h, x2_res_h); 
+    int count = 0; 
+    MatrixXd prod = H * homogeneous_loc2.transpose();
+    std::vector<int> inlier_inds; 
+    double diff;
+    bool divide_by_zero = false;
+    for(int i = 0; i < prod.cols(); i++){
+        if(prod.transpose()(i, 2) == 0){
+            divide_by_zero = true;
+            break;
+        }
+        diff = (Matslice(prod.transpose(), i, 0, 1, 2)/prod.transpose()(i, 2) - Matslice(locs1, i, 0, 1, locs1.cols())).norm(); 
+        // diff = (prod.transpose()(i, {0,1})/prod.transpose()(i, 2) - Matslice(locs1, i, 0, 1, locs1.cols())).norm(); 
+        if(diff < threshold){
+            count++;
+            inlier_inds.push_back(i);
+        }
+    }
+
+    MatrixXd x1_res = MatVectorslice2(locs1, inlier_inds, 0, locs1.cols()); //locs1(inlier_inds, Eigen::seqN(0,locs1.cols())); 
+    MatrixXd x2_res = MatVectorslice2(locs2, inlier_inds, 0, locs2.cols()); //locs2(inlier_inds, Eigen::seqN(0,locs2.cols()));
+    MatrixXd x1_res_h = MatVectorslice2(homogeneous_loc1, inlier_inds, 0, homogeneous_loc1.cols()); //homogeneous_loc1(inlier_inds, Eigen::seqN(0,homogeneous_loc1.cols())); 
+    MatrixXd x2_res_h =  MatVectorslice2(homogeneous_loc2, inlier_inds, 0, homogeneous_loc2.cols()); //homogeneous_loc2(inlier_inds, Eigen::seqN(0,homogeneous_loc2.cols()));
     MatrixXd bestNormalizedHomography = computeNormalizedHomography(x1_res, x2_res, x1_res_h, x2_res_h);
     return bestNormalizedHomography;
 }
