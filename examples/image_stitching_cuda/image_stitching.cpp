@@ -366,7 +366,7 @@ int main(int argc, char *argv[])
     
     double findMatchesStart = CycleTimer::currentSeconds();
     //Parallel
-    std::vector<std::list<ezsift::MatchPair>> matches;
+    
     std::vector<std::list<ezsift::SiftKeypoint>> kpt_lists;
     for(int i=0; i<images.size(); i++){
         std::list<ezsift::SiftKeypoint> kpt_list;
@@ -375,7 +375,9 @@ int main(int argc, char *argv[])
     
     ezsift::double_original_image(true);
     ezsift::sift_gpu(images, kpt_lists, true);
+    std::vector<std::list<ezsift::MatchPair>> matches(images.size()-1);
 
+    #pragma omp parallel for schedule(dynamic)
     for(int i=0; i<images.size()-1; i++){
         std::list<ezsift::MatchPair> match_list;
         // double matchKeyPointsStart = CycleTimer::currentSeconds();
@@ -383,7 +385,7 @@ int main(int argc, char *argv[])
         // double matchKeyPointsEnd = CycleTimer::currentSeconds();
         // std::cout << "Actual matching of keypoints time: " << matchKeyPointsEnd-matchKeyPointsStart << std::endl;
   
-        matches.push_back(match_list);
+        matches[i] = match_list;
         if(match_list.size() == 0){
             std::cerr << "Failed to find any matches between two adjacent images!" << std::endl;
             return -1;
