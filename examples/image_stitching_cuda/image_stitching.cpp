@@ -550,7 +550,7 @@ int main(int argc, char *argv[])
             resImg_vect.push_back(0); //resImageR(i, j)); //color
             resImg_vect.push_back(0); //resImageG(i, j));
             resImg_vect.push_back(0); //resImageB(i, j));
-            resImg_vect.push_back(0); //resImageA(i, j));
+            resImg_vect.push_back(255); //resImageA(i, j));
         }
     }
     // cudaFindPeaks();
