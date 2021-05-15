@@ -392,11 +392,14 @@ int match_keypoints(std::list<SiftKeypoint> &kpt_list1,
                     std::list<SiftKeypoint> &kpt_list2,
                     std::list<MatchPair> &match_list)
 {
-    std::list<SiftKeypoint>::iterator kpt1;
+    std::list<SiftKeypoint>::iterator kpt1 = kpt_list1.begin();
     std::list<SiftKeypoint>::iterator kpt2;
 
+    int i;
     #pragma omp parallel for schedule(dynamic)
-    for (kpt1 = kpt_list1.begin(); kpt1 != kpt_list1.end(); kpt1++) {
+    // for (kpt1 = kpt_list1.begin(); kpt1 != kpt_list1.end(); kpt1++) {
+    for (i = 0; i < kpt_list1.size(); i++) {
+
         // Position of the matched feature.
         int r1 = (int)kpt1->r;
         int c1 = (int)kpt1->c;
@@ -441,6 +444,7 @@ int match_keypoints(std::list<SiftKeypoint> &kpt_list1,
 
             match_list.push_back(mp);
         }
+        kpt1++;
     }
 
     match_list.unique(same_match_pair);
