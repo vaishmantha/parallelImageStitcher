@@ -250,9 +250,9 @@ void placeImage(MatrixXd newImage, MatrixXd* resImg, double min_x, double min_y,
     MatrixXd copyRes = (*resImg);
     for(int i = fmax(min_y,0); i < max_y; i++){
         for(int j = fmax(min_x,0); j < max_x; j++){
-            #pragma omp critical
-            {
-                if((*resImg)(i, j) == 0){
+            if((*resImg)(i, j) == 0){
+                #pragma omp critical
+                {
                     if (i+1 < max_y && copyRes(i+1,j) != 0){ // && i-1 >=fmax(min_y,0) && j+1 < max_x && j-1 >=fmax(min_x,0) ){
                         (*resImg)(i, j) = copyRes(i+1,j);
                     }else if(i-1 >= fmax(min_y,0) && copyRes(i-1,j) != 0){
@@ -445,7 +445,7 @@ int main(int argc, char *argv[])
     MatrixXd resImageB = MatrixXd::Constant(pan_height, pan_width, 0);
     MatrixXd resImageA = MatrixXd::Constant(pan_height, pan_width, 0);
     
-    // #pragma omp parallel for schedule(dynamic)
+    #pragma omp parallel for schedule(dynamic)
     for (int i = 0; i < images.size(); i++){
         double min_x; 
         double min_y; 
