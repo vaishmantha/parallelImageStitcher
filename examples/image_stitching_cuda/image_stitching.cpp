@@ -364,134 +364,134 @@ int main(int argc, char *argv[])
         }
         images.push_back(image);
     }
-    double readingImagesEnd = CycleTimer::currentSeconds();
-    std::cout << "Reading images time: " << readingImagesEnd-startTime << std::endl;
+    // double readingImagesEnd = CycleTimer::currentSeconds();
+    // std::cout << "Reading images time: " << readingImagesEnd-startTime << std::endl;
     
-    double findMatchesStart = CycleTimer::currentSeconds();
-    //Parallel
+    // double findMatchesStart = CycleTimer::currentSeconds();
+    // //Parallel
     
-    std::vector<std::list<ezsift::SiftKeypoint>> kpt_lists;
-    for(int i=0; i<images.size(); i++){
-        std::list<ezsift::SiftKeypoint> kpt_list;
-        kpt_lists.push_back(kpt_list); //empty kpt_lists
-    }
+    // std::vector<std::list<ezsift::SiftKeypoint>> kpt_lists;
+    // for(int i=0; i<images.size(); i++){
+    //     std::list<ezsift::SiftKeypoint> kpt_list;
+    //     kpt_lists.push_back(kpt_list); //empty kpt_lists
+    // }
     
-    ezsift::double_original_image(true);
-    ezsift::sift_gpu(images, kpt_lists, true);
-    std::vector<std::list<ezsift::MatchPair>> matches(images.size()-1);
+    // ezsift::double_original_image(true);
+    // ezsift::sift_gpu(images, kpt_lists, true);
+    // std::vector<std::list<ezsift::MatchPair>> matches(images.size()-1);
 
-    #pragma omp parallel for schedule(dynamic)
-    for(int i=0; i<images.size()-1; i++){
-        std::list<ezsift::MatchPair> match_list;
-        // double matchKeyPointsStart = CycleTimer::currentSeconds();
-        ezsift::match_keypoints(kpt_lists[i], kpt_lists[i+1], match_list); //Doesn't take long
-        // double matchKeyPointsEnd = CycleTimer::currentSeconds();
-        // std::cout << "Actual matching of keypoints time: " << matchKeyPointsEnd-matchKeyPointsStart << std::endl;
+    // #pragma omp parallel for schedule(dynamic)
+    // for(int i=0; i<images.size()-1; i++){
+    //     std::list<ezsift::MatchPair> match_list;
+    //     // double matchKeyPointsStart = CycleTimer::currentSeconds();
+    //     ezsift::match_keypoints(kpt_lists[i], kpt_lists[i+1], match_list); //Doesn't take long
+    //     // double matchKeyPointsEnd = CycleTimer::currentSeconds();
+    //     // std::cout << "Actual matching of keypoints time: " << matchKeyPointsEnd-matchKeyPointsStart << std::endl;
   
-        matches[i] = match_list;
-        // if(match_list.size() == 0){ //fix with a boolean
-        //     std::cerr << "Failed to find any matches between two adjacent images!" << std::endl;
-        //     return -1;
-        // }
-    }
-    double findMatchesEnd = CycleTimer::currentSeconds();
-    std::cout << "Generating matches time: " << findMatchesEnd-findMatchesStart << std::endl;
+    //     matches[i] = match_list;
+    //     // if(match_list.size() == 0){ //fix with a boolean
+    //     //     std::cerr << "Failed to find any matches between two adjacent images!" << std::endl;
+    //     //     return -1;
+    //     // }
+    // }
+    // double findMatchesEnd = CycleTimer::currentSeconds();
+    // std::cout << "Generating matches time: " << findMatchesEnd-findMatchesStart << std::endl;
 
-    //homographies multiplication must be sequential but ransac does not need to be
-    double ransacStart = CycleTimer::currentSeconds();
-    std::vector<MatrixXd> homographies;
-    MatrixXd first = MatrixXd::Identity(3, 3);
-    homographies.push_back(first);
-    for(int i=1; i<images.size(); i++){
-        // double ransacInnerStart = CycleTimer::currentSeconds();
-        MatrixXd bestH = computeRansac(matches[i-1]);
-        // std::cout << "Inner ransac: " << CycleTimer::currentSeconds() - ransacInnerStart << std::endl;
-        homographies.push_back(homographies[i-1]*bestH);
-    }
-    double ransacEnd = CycleTimer::currentSeconds();
-    std::cout << "Ransac time: " << ransacEnd-ransacStart << std::endl;
-    //Parallel
-    double findingDimsStart = CycleTimer::currentSeconds();
-    int pano_min_x = 0; 
-    int pano_min_y = 0; 
-    int pano_max_x = images[0].w; 
-    int pano_max_y = images[0].h; 
+    // //homographies multiplication must be sequential but ransac does not need to be
+    // double ransacStart = CycleTimer::currentSeconds();
+    // std::vector<MatrixXd> homographies;
+    // MatrixXd first = MatrixXd::Identity(3, 3);
+    // homographies.push_back(first);
+    // for(int i=1; i<images.size(); i++){
+    //     // double ransacInnerStart = CycleTimer::currentSeconds();
+    //     MatrixXd bestH = computeRansac(matches[i-1]);
+    //     // std::cout << "Inner ransac: " << CycleTimer::currentSeconds() - ransacInnerStart << std::endl;
+    //     homographies.push_back(homographies[i-1]*bestH);
+    // }
+    // double ransacEnd = CycleTimer::currentSeconds();
+    // std::cout << "Ransac time: " << ransacEnd-ransacStart << std::endl;
+    // //Parallel
+    // double findingDimsStart = CycleTimer::currentSeconds();
+    // int pano_min_x = 0; 
+    // int pano_min_y = 0; 
+    // int pano_max_x = images[0].w; 
+    // int pano_max_y = images[0].h; 
 
-    // #pragma omp parallel for schedule(dynamic)
-    for(int i=1; i<images.size(); i++){
-        double min_x;
-        double min_y;
-        double max_x;
-        double max_y;
-        findDimensions(images[i], homographies[i], &min_x, &min_y, &max_x, &max_y);
+    // // #pragma omp parallel for schedule(dynamic)
+    // for(int i=1; i<images.size(); i++){
+    //     double min_x;
+    //     double min_y;
+    //     double max_x;
+    //     double max_y;
+    //     findDimensions(images[i], homographies[i], &min_x, &min_y, &max_x, &max_y);
 
-        pano_min_x = (int) fmax((floor(fmin(min_x, pano_min_x))),0); 
-        pano_min_y = (int) fmax((floor(fmin(min_y, pano_min_y))),0); 
-        pano_max_x = (int) (ceil(fmax(max_x, pano_max_x))); 
-        pano_max_y = (int) (ceil(fmax(max_y, pano_max_y)));
-    }
-    double findingDimsEnd = CycleTimer::currentSeconds();
-    std::cout << "Finding dims time: " << findingDimsEnd-findingDimsStart << std::endl;
+    //     pano_min_x = (int) fmax((floor(fmin(min_x, pano_min_x))),0); 
+    //     pano_min_y = (int) fmax((floor(fmin(min_y, pano_min_y))),0); 
+    //     pano_max_x = (int) (ceil(fmax(max_x, pano_max_x))); 
+    //     pano_max_y = (int) (ceil(fmax(max_y, pano_max_y)));
+    // }
+    // double findingDimsEnd = CycleTimer::currentSeconds();
+    // std::cout << "Finding dims time: " << findingDimsEnd-findingDimsStart << std::endl;
 
-    double imgCompositionStart = CycleTimer::currentSeconds();
-    int pan_height  = (int)(pano_max_y - pano_min_y); 
-    int pan_width = (int)(pano_max_x - pano_min_x);
+    // double imgCompositionStart = CycleTimer::currentSeconds();
+    // int pan_height  = (int)(pano_max_y - pano_min_y); 
+    // int pan_width = (int)(pano_max_x - pano_min_x);
 
-    MatrixXd resImageR = MatrixXd::Constant(pan_height, pan_width, 0);
-    MatrixXd resImageG = MatrixXd::Constant(pan_height, pan_width, 0);
-    MatrixXd resImageB = MatrixXd::Constant(pan_height, pan_width, 0);
-    MatrixXd resImageA = MatrixXd::Constant(pan_height, pan_width, 0);
+    // MatrixXd resImageR = MatrixXd::Constant(pan_height, pan_width, 0);
+    // MatrixXd resImageG = MatrixXd::Constant(pan_height, pan_width, 0);
+    // MatrixXd resImageB = MatrixXd::Constant(pan_height, pan_width, 0);
+    // MatrixXd resImageA = MatrixXd::Constant(pan_height, pan_width, 0);
     
-    // #pragma omp parallel for schedule(dynamic)
-    for (int i = 0; i < images.size(); i++){
-        double min_x; 
-        double min_y; 
-        double max_x; 
-        double max_y; 
-        findDimensions(images[i], homographies[i], &min_x, &min_y, &max_x, &max_y);      
+    // // #pragma omp parallel for schedule(dynamic)
+    // for (int i = 0; i < images.size(); i++){
+    //     double min_x; 
+    //     double min_y; 
+    //     double max_x; 
+    //     double max_y; 
+    //     findDimensions(images[i], homographies[i], &min_x, &min_y, &max_x, &max_y);      
 
-        int curr_width = (int)(fmax(pano_max_x, max_x) - fmax(fmin(pano_min_x, min_x),0));
-        int curr_height  = (int)(fmax(pano_max_y, max_y) - fmax(fmin(pano_min_y, min_y),0)); 
+    //     int curr_width = (int)(fmax(pano_max_x, max_x) - fmax(fmin(pano_min_x, min_x),0));
+    //     int curr_height  = (int)(fmax(pano_max_y, max_y) - fmax(fmin(pano_min_y, min_y),0)); 
 
-        MatrixXd newImR = MatrixXd::Constant(curr_height, curr_width, 0);
-        MatrixXd newImG = MatrixXd::Constant(curr_height, curr_width, 0);
-        MatrixXd newImB = MatrixXd::Constant(curr_height, curr_width, 0);
-        MatrixXd newImA = MatrixXd::Constant(curr_height, curr_width, 0);
-        warpPerspective(png_r[i], png_g[i], png_b[i], png_alpha[i], widths[i], heights[i], &newImR, &newImG, &newImB, &newImA, homographies[i]);
+    //     MatrixXd newImR = MatrixXd::Constant(curr_height, curr_width, 0);
+    //     MatrixXd newImG = MatrixXd::Constant(curr_height, curr_width, 0);
+    //     MatrixXd newImB = MatrixXd::Constant(curr_height, curr_width, 0);
+    //     MatrixXd newImA = MatrixXd::Constant(curr_height, curr_width, 0);
+    //     warpPerspective(png_r[i], png_g[i], png_b[i], png_alpha[i], widths[i], heights[i], &newImR, &newImG, &newImB, &newImA, homographies[i]);
 
 
-        #pragma omp parallel for schedule(dynamic)
-        for(int j= 0; j<4; j++){
-            if(j==0){
-                placeImage(newImR, &resImageR, min_x, min_y, max_x, max_y);
-            }else if(j==1){
-                placeImage(newImG, &resImageG, min_x, min_y, max_x, max_y);
-            }else if(j==2){
-                placeImage(newImB, &resImageB, min_x, min_y, max_x, max_y);
-            }else{
-                placeImage(newImA, &resImageA, min_x, min_y, max_x, max_y);
-            }
-        }
+    //     #pragma omp parallel for schedule(dynamic)
+    //     for(int j= 0; j<4; j++){
+    //         if(j==0){
+    //             placeImage(newImR, &resImageR, min_x, min_y, max_x, max_y);
+    //         }else if(j==1){
+    //             placeImage(newImG, &resImageG, min_x, min_y, max_x, max_y);
+    //         }else if(j==2){
+    //             placeImage(newImB, &resImageB, min_x, min_y, max_x, max_y);
+    //         }else{
+    //             placeImage(newImA, &resImageA, min_x, min_y, max_x, max_y);
+    //         }
+    //     }
         
 
-    }
-    double imgCompositionEnd = CycleTimer::currentSeconds();
-    std::cout << "Img composition time: " << imgCompositionEnd-imgCompositionStart << std::endl;
+    // }
+    // double imgCompositionEnd = CycleTimer::currentSeconds();
+    // std::cout << "Img composition time: " << imgCompositionEnd-imgCompositionStart << std::endl;
 
-    std::vector<unsigned char> resImg_vect;
-    for(int i=0; i<pan_height; i++){
-        for(int j=0; j<pan_width; j++){
-            resImg_vect.push_back(resImageR(i, j)); //color
-            resImg_vect.push_back(resImageG(i, j));
-            resImg_vect.push_back(resImageB(i, j));
-            resImg_vect.push_back(resImageA(i, j));
-        }
-    }
-    // cudaFindPeaks();
-    unsigned err = lodepng::encode("result.png", resImg_vect, pan_width, pan_height);
-    if(err) std::cout << "encoder error " << err << ": "<< lodepng_error_text(err) << std::endl;
-    double endTime = CycleTimer::currentSeconds();
+    // std::vector<unsigned char> resImg_vect;
+    // for(int i=0; i<pan_height; i++){
+    //     for(int j=0; j<pan_width; j++){
+    //         resImg_vect.push_back(resImageR(i, j)); //color
+    //         resImg_vect.push_back(resImageG(i, j));
+    //         resImg_vect.push_back(resImageB(i, j));
+    //         resImg_vect.push_back(resImageA(i, j));
+    //     }
+    // }
+    // // cudaFindPeaks();
+    // unsigned err = lodepng::encode("result.png", resImg_vect, pan_width, pan_height);
+    // if(err) std::cout << "encoder error " << err << ": "<< lodepng_error_text(err) << std::endl;
+    // double endTime = CycleTimer::currentSeconds();
 
-    std::cout << "Overall time: " << endTime-startTime << std::endl;
+    // std::cout << "Overall time: " << endTime-startTime << std::endl;
     return 0;
 }

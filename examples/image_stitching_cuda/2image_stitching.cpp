@@ -169,9 +169,9 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
                 inlier_inds_current.push_back(i);
             }
         }
-        if (!divide_by_zero && max_count <= count){
-            max_count = count;
-            inlier_inds = inlier_inds_current;
+
+        if (!divide_by_zero){
+            count_list[it] = count;
         }      
     }
     MatrixXd x1_res = MatVectorslice(locs1, inlier_inds, 0, locs1.cols()); //locs1(inlier_inds, Eigen::seqN(0,locs1.cols())); 
