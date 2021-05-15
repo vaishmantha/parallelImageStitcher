@@ -30,6 +30,7 @@
 #include "vvector.h"
 #include "CycleTimer.h"
 
+#include <omp.h>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -1231,9 +1232,10 @@ int sift_cpu(const Image<unsigned char> &image,
     return 0;
 }
 
-int sift_cpu(const std::vector<ezsift::Image<unsigned char> > images,
+int sift_gpu(const std::vector<ezsift::Image<unsigned char> > images,
               std::vector<std::list<ezsift::SiftKeypoint>> &kpt_lists, bool bExtractDescriptors) //parallelize over the iterations
 {
+    #pragma omp parallel for schedule(static)
     for(int i=0; i<images.size(); i++){
         // Index of the first octave.
         int firstOctave = (SIFT_IMG_DBL) ? -1 : 0;
