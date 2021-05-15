@@ -233,7 +233,7 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
     MatrixXd x2_res = MatVectorslice(locs2, inlier_inds, 0, locs2.cols()); //locs2(inlier_inds, Eigen::seqN(0,locs2.cols()));
     MatrixXd x1_res_h2 = MatVectorslice(homogeneous_loc1, inlier_inds, 0, homogeneous_loc1.cols()); //homogeneous_loc1(inlier_inds, Eigen::seqN(0,homogeneous_loc1.cols())); 
     MatrixXd x2_res_h2 =  MatVectorslice(homogeneous_loc2, inlier_inds, 0, homogeneous_loc2.cols()); //homogeneous_loc2(inlier_inds, Eigen::seqN(0,homogeneous_loc2.cols()));
-    MatrixXd bestNormalizedHomography = computeNormalizedHomography(x1_res, x2_res, x1_res_h2, x2_res_h2iterations);
+    MatrixXd bestNormalizedHomography = computeNormalizedHomography(x1_res, x2_res, x1_res_h2, x2_res_h2);
     return bestNormalizedHomography;
 }
 
