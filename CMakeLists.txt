@@ -7,8 +7,8 @@ set(CMAKE_CXX_COMPILER "/usr/bin/g++")
 set(EZSIFT ezsift)
 project(${EZSIFT})
 
-option(USE_CUDA "Use CUDA" ON) #SWITCH TO ON WHEN RUNNING ON GPU
-option(EZSIFT_BUILD_EXAMPLES "Build with examples" OFF)
+option(USE_CUDA "Use CUDA" OFF) #SWITCH TO ON WHEN RUNNING ON GPU
+option(EZSIFT_BUILD_EXAMPLES "Build with examples" ON)
 
 if(USE_CUDA)
     find_package(CUDA 10.2)
@@ -56,6 +56,7 @@ if(CUDA_FOUND)
   CUDA_ADD_LIBRARY(ezsift_gpu ${gpu_ezsift_files})
   target_link_libraries(${EZSIFT} ezsift_gpu)
 endif()
+
 
 target_include_directories(${EZSIFT} PUBLIC ${EZSIFT_SRC_DIR})
 
