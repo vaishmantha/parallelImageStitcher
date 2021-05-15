@@ -422,7 +422,6 @@ int main(int argc, char *argv[])
     double readingImagesEnd = CycleTimer::currentSeconds();
     std::cout << "Reading images time: " << readingImagesEnd-startTime << std::endl;
     
-    double findMatchesStart = CycleTimer::currentSeconds();
     //Parallel
     
     std::vector<std::list<ezsift::SiftKeypoint>> kpt_lists;
@@ -432,8 +431,13 @@ int main(int argc, char *argv[])
     }
     
     ezsift::double_original_image(true);
+    double siftStart = CycleTimer::currentSeconds();
     ezsift::sift_gpu(images, kpt_lists, true);
+    double siftEnd = CycleTimer::currentSeconds();
+    std::cout << "Sift time: " << siftEnd-siftStart << std::endl;
     std::vector<std::list<ezsift::MatchPair>> matches(images.size()-1);
+
+    double findMatchesStart = CycleTimer::currentSeconds();
 
     #pragma omp parallel for schedule(dynamic)
     for(int i=0; i<images.size()-1; i++){
