@@ -329,7 +329,6 @@ int main(int argc, char *argv[])
     std::vector<char * > files(argc-1); //Should probably switch away from this when switching to video
    
     // All image files
-    #pragma omp parallel
     for(int i=1; i<argc; i++){
         char* file = (char *)calloc(sizeof(char), strlen(argv[i]));
         memcpy(file, argv[i], sizeof(char) * strlen(argv[i]));
@@ -368,10 +367,10 @@ int main(int argc, char *argv[])
         png_g[i] = g;
         png_alpha[i] = a;
 
-        // if (image.read_pgm("tmp.pgm") != 0) {
-        //     std::cerr << "Failed to open input image!" << std::endl;
-        //     return -1;
-        // }
+        if (image.read_pgm("tmp.pgm") != 0) {
+            std::cerr << "Failed to open input image!" << std::endl;
+            return -1;
+        }
         images.push_back(image);
     }
     double readingImagesEnd = CycleTimer::currentSeconds();
