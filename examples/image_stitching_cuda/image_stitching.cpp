@@ -547,10 +547,10 @@ int main(int argc, char *argv[])
     std::vector<unsigned char> resImg_vect;
     for(int i=0; i<pan_height; i++){
         for(int j=0; j<pan_width; j++){
-            resImg_vect.push_back(resImageR(i, j)); //color
-            resImg_vect.push_back(resImageG(i, j));
-            resImg_vect.push_back(resImageB(i, j));
-            resImg_vect.push_back(resImageA(i, j));
+            resImg_vect.push_back(0); //resImageR(i, j)); //color
+            resImg_vect.push_back(0); //resImageG(i, j));
+            resImg_vect.push_back(0); //resImageB(i, j));
+            resImg_vect.push_back(0); //resImageA(i, j));
         }
     }
     // cudaFindPeaks();
