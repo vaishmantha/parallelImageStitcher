@@ -82,17 +82,17 @@ void placeImage(MatrixXd newImage, MatrixXd* resImg, double min_x, double min_y,
     kernelCompose<<<gridDim, blockDim>>>(resImg_device, newImage_device, start_i, start_j, max_x, max_y); 
     cudaMemcpy(resImg, resImg_device, sizeof(MatrixXd), cudaMemcpyDeviceToHost);
     // std::cout << *resImg << std::endl;
-    // #pragma omp parallel for schedule(dynamic)
-    // for (int i = start_i; i < (int)max_y; i++){ //access as row col
-    //     for (int j = start_j; j < (int)max_x; j++){
-    //         if ((*resImg)(i,j) == 0){
-    //             (*resImg)(i,j) = newImage(i,j);
-    //         }
-    //         if ((*resImg)(i,j) != 0 && newImage(i, j) != 0){
-    //             (*resImg)(i,j) = fmax(newImage(i,j), (*resImg)(i,j));
-    //         }
-    //     }
-    // }
+    #pragma omp parallel for schedule(dynamic)
+    for (int i = start_i; i < (int)max_y; i++){ //access as row col
+        for (int j = start_j; j < (int)max_x; j++){
+            if ((*resImg)(i,j) == 0){
+                (*resImg)(i,j) = newImage(i,j);
+            }
+            if ((*resImg)(i,j) != 0 && newImage(i, j) != 0){
+                (*resImg)(i,j) = fmax(newImage(i,j), (*resImg)(i,j));
+            }
+        }
+    }
     
     
     MatrixXd copyRes = (*resImg);
@@ -110,28 +110,28 @@ void placeImage(MatrixXd newImage, MatrixXd* resImg, double min_x, double min_y,
 
     // cudaMemcpy(resImg, resImg_device, sizeof(MatrixXd), cudaMemcpyDeviceToHost);
 
-    #pragma omp parallel for schedule(dynamic)
-    for(int i = start_i; i < (int)max_y; i++){
-        for(int j = start_j; j < (int)max_x; j++){
-            if((*resImg)(i, j) == 0){
-                if (i+1 < max_y && copyRes(i+1,j) != 0){ // && i-1 >=fmax(min_y,0) && j+1 < max_x && j-1 >=fmax(min_x,0) ){
-                    (*resImg)(i, j) = copyRes(i+1,j);
-                }else if(i-1 >= fmax(min_y,0) && copyRes(i-1,j) != 0){
-                    (*resImg)(i, j) = copyRes(i-1,j);
-                }else if(j+1 < max_x && copyRes(i,j+1) != 0){
-                    (*resImg)(i, j) = copyRes(i,j+1);
-                }else if(j-1 >=fmax(min_x,0) && copyRes(i,j-1) != 0){
-                    (*resImg)(i,j) = copyRes(i,j-1);
-                }else if(i+1 < max_y && j+1 < max_x && copyRes(i+1,j+1)){
-                    (*resImg)(i,j) = copyRes(i+1,j+1);
-                }else if(i-1 >= fmax(min_y,0) && j+1 < max_x && copyRes(i-1,j+1)){
-                    (*resImg)(i,j) = copyRes(i-1,j+1);
-                }else if(i+1 < max_y && j-1 >=fmax(min_x,0) && copyRes(i+1,j-1)){
-                    (*resImg)(i,j) = copyRes(i+1,j-1);
-                }else if(i-1 >= fmax(min_y,0) && j-1 >=fmax(min_x,0) && copyRes(i-1,j-1)){
-                    (*resImg)(i,j) = copyRes(i-1,j-1);
-                }
-            }
-        }
-    }
+    // #pragma omp parallel for schedule(dynamic)
+    // for(int i = start_i; i < (int)max_y; i++){
+    //     for(int j = start_j; j < (int)max_x; j++){
+    //         if((*resImg)(i, j) == 0){
+    //             if (i+1 < max_y && copyRes(i+1,j) != 0){ // && i-1 >=fmax(min_y,0) && j+1 < max_x && j-1 >=fmax(min_x,0) ){
+    //                 (*resImg)(i, j) = copyRes(i+1,j);
+    //             }else if(i-1 >= fmax(min_y,0) && copyRes(i-1,j) != 0){
+    //                 (*resImg)(i, j) = copyRes(i-1,j);
+    //             }else if(j+1 < max_x && copyRes(i,j+1) != 0){
+    //                 (*resImg)(i, j) = copyRes(i,j+1);
+    //             }else if(j-1 >=fmax(min_x,0) && copyRes(i,j-1) != 0){
+    //                 (*resImg)(i,j) = copyRes(i,j-1);
+    //             }else if(i+1 < max_y && j+1 < max_x && copyRes(i+1,j+1)){
+    //                 (*resImg)(i,j) = copyRes(i+1,j+1);
+    //             }else if(i-1 >= fmax(min_y,0) && j+1 < max_x && copyRes(i-1,j+1)){
+    //                 (*resImg)(i,j) = copyRes(i-1,j+1);
+    //             }else if(i+1 < max_y && j-1 >=fmax(min_x,0) && copyRes(i+1,j-1)){
+    //                 (*resImg)(i,j) = copyRes(i+1,j-1);
+    //             }else if(i-1 >= fmax(min_y,0) && j-1 >=fmax(min_x,0) && copyRes(i-1,j-1)){
+    //                 (*resImg)(i,j) = copyRes(i-1,j-1);
+    //             }
+    //         }
+    //     }
+    // }
 }
