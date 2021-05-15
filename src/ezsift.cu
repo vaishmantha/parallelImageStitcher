@@ -19,9 +19,9 @@ namespace ezsift {
 
 void printCudaInfo();
 
-std::vector<std::vector<std::vector<Image<float>>>> pyramids_gpu(std::vector<std::vector<Image<unsigned char>>> all_octaves, 
-                                                    std::vector<int> all_nOctaves, 
-                                                    int nGpyrLayers, int nDogLayers, int nLayers) {
+void pyramids_gpu(std::vector<std::vector<Image<unsigned char>>> all_octaves, 
+    std::vector<int> all_nOctaves, int nGpyrLayers, int nDogLayers, int nLayers,
+    std::vector<std::vector<std::vector<Image<float>>>> all_pyramids) {
     
     cudaDeviceSynchronize();
     

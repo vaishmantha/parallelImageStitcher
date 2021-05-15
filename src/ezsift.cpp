@@ -39,8 +39,9 @@
 
 namespace ezsift {
 
-std::vector<std::vector<std::vector<Image<float>>>> pyramids_gpu(std::vector<std::vector<Image<unsigned char>>> all_octaves, 
-                std::vector<int> all_nOctaves, int nGpyrLayers, int nDogLayers, int nLayers);
+void pyramids_gpu(std::vector<std::vector<Image<unsigned char>>> all_octaves, 
+                std::vector<int> all_nOctaves, int nGpyrLayers, int nDogLayers, int nLayers,
+                std::vector<std::vector<std::vector<Image<float>>>> all_pyramids);
 
 // Init sift parameters
 void init_sift_parameters(bool doubleFirstOctave, float contrast_threshold,
@@ -1257,7 +1258,8 @@ int sift_gpu(const std::vector<ezsift::Image<unsigned char> > images,
         std::cout << "Building octaves time: " << buildOctavesEnd-buildOctavesStart << std::endl;
     }
     //Need to double think 
-    std::vector<std::vector<std::vector<Image<float>>>> all_pyramids = pyramids_gpu(all_octaves, all_nOctaves, nGpyrLayers, nDogLayers, nLayers);
+    std::vector<std::vector<std::vector<Image<float>>>> all_pyramids;
+    pyramids_gpu(all_octaves, all_nOctaves, nGpyrLayers, nDogLayers, nLayers, all_pyramids);
         // double gaussianPyramidStart = CycleTimer::currentSeconds();
         // Build Gaussian pyramid -- takes a while
     // std::vector<Image<float>> gpyr(nOctaves * nGpyrLayers);
