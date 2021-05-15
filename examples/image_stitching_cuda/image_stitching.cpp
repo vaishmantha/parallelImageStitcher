@@ -394,29 +394,29 @@ int main(int argc, char *argv[])
         //     return -1;
         // }
     }
-    
+
     double findMatchesEnd = CycleTimer::currentSeconds();
     std::cout << "Generating matches time: " << findMatchesEnd-findMatchesStart << std::endl;
 
-    // //homographies multiplication must be sequential but ransac does not need to be
-    // double ransacStart = CycleTimer::currentSeconds();
-    // std::vector<MatrixXd> homographies;
-    // MatrixXd first = MatrixXd::Identity(3, 3);
-    // homographies.push_back(first);
-    // for(int i=1; i<images.size(); i++){
-    //     // double ransacInnerStart = CycleTimer::currentSeconds();
-    //     MatrixXd bestH = computeRansac(matches[i-1]);
-    //     // std::cout << "Inner ransac: " << CycleTimer::currentSeconds() - ransacInnerStart << std::endl;
-    //     homographies.push_back(homographies[i-1]*bestH);
-    // }
-    // double ransacEnd = CycleTimer::currentSeconds();
-    // std::cout << "Ransac time: " << ransacEnd-ransacStart << std::endl;
-    // //Parallel
-    // double findingDimsStart = CycleTimer::currentSeconds();
-    // int pano_min_x = 0; 
-    // int pano_min_y = 0; 
-    // int pano_max_x = images[0].w; 
-    // int pano_max_y = images[0].h; 
+    //homographies multiplication must be sequential but ransac does not need to be
+    double ransacStart = CycleTimer::currentSeconds();
+    std::vector<MatrixXd> homographies;
+    MatrixXd first = MatrixXd::Identity(3, 3);
+    homographies.push_back(first);
+    for(int i=1; i<images.size(); i++){
+        // double ransacInnerStart = CycleTimer::currentSeconds();
+        MatrixXd bestH = computeRansac(matches[i-1]);
+        // std::cout << "Inner ransac: " << CycleTimer::currentSeconds() - ransacInnerStart << std::endl;
+        homographies.push_back(homographies[i-1]*bestH);
+    }
+    double ransacEnd = CycleTimer::currentSeconds();
+    std::cout << "Ransac time: " << ransacEnd-ransacStart << std::endl;
+    //Parallel
+    double findingDimsStart = CycleTimer::currentSeconds();
+    int pano_min_x = 0; 
+    int pano_min_y = 0; 
+    int pano_max_x = images[0].w; 
+    int pano_max_y = images[0].h; 
 
     // // #pragma omp parallel for schedule(dynamic)
     // for(int i=1; i<images.size(); i++){
