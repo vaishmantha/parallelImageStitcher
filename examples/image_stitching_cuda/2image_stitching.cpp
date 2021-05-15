@@ -133,17 +133,22 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
         i++;
     }
 
-    int *count_list = (int*)calloc(iterations, sizeof(int));
 
     std::vector<int> inlier_inds; 
+    int* rand_inds = (int*) calloc(sizeof(int), 4 * iterations);
+    for(int it = 0; it < iterations; it++){
+        int rand_counter = 0; 
+        while(rand_counter != 4){
+            int r = (int)((size_t)rand() % match_li.size()); 
+            rand_inds[4*it + rand_counter] = r;
+            rand_counter++; 
+        }
+    }
+
+    int *count_list = (int*)calloc(iterations, sizeof(int));
     int it; 
     #pragma omp parallel for schedule(dynamic)
     for(it = 0; it < iterations; it++){
-        std::vector<int> rand_inds; 
-        while(rand_inds.size() != 4){
-            int r = (int)((size_t)rand() % match_li.size()); 
-            rand_inds.push_back(r);
-        }
         MatrixXd x1 = MatVectorslice(locs1, rand_inds, 0, locs1.cols()); //locs1(rand_inds, Eigen::seqN(0,locs1.cols())); 
         MatrixXd x2 = MatVectorslice(locs2, rand_inds, 0, locs2.cols());// locs2(rand_inds, Eigen::seqN(0,locs2.cols())); 
 
