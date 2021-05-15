@@ -296,7 +296,7 @@ void placeImage(MatrixXd newImage, MatrixXd* resImg, double min_x, double min_y,
     // printf("w: %d, h: %d", w, h);
     int start_i = (int)fmax(min_y,0);
     int start_j = (int)fmax(min_x,0);
-    // #pragma omp parallel for schedule(dynamic)
+    #pragma omp parallel for schedule(dynamic)
     for (int i = start_i; i < (int)max_y; i++){ //access as row col
         for (int j = start_j; j < (int)max_x; j++){
             if ((*resImg)(i,j) == 0){
@@ -308,7 +308,7 @@ void placeImage(MatrixXd newImage, MatrixXd* resImg, double min_x, double min_y,
         }
     }
     MatrixXd copyRes = (*resImg);
-    // #pragma omp parallel for schedule(dynamic)
+    #pragma omp parallel for schedule(dynamic)
     for(int i = start_i; i < (int)max_y; i++){
         for(int j = start_j; j < (int)max_x; j++){
             if((*resImg)(i, j) == 0){
@@ -396,7 +396,7 @@ int main(int argc, char *argv[])
         unsigned char* b = new unsigned char[width * height];
         unsigned char* a = new unsigned char[width * height];
         int j; 
-        #pragma omp parallel
+        // #pragma omp parallel
         for( j=0; j< width*height; j++){
             new_data[j] = data[4*j]/3 + data[4*j+1]/3 + data[4*j+2]/3;
             r[j] = data[4*j];
