@@ -21,6 +21,7 @@
 #include <cstring>
 #include <ctype.h>
 #include <limits>
+#include <omp.h>
 
 namespace ezsift {
 
