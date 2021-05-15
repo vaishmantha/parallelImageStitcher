@@ -54,6 +54,12 @@ add_library(lodepng include/lodepng/lodepng.cc)
 target_link_libraries(${EZSIFT} ${JPEG_LIBRARY} lodepng)
 set_property(TARGET ${EZSIFT} PROPERTY POSITION_INDEPENDENT_CODE ON)
 
+set(CFLAGS
+    -std=c++11
+    -m64
+    -fopenmp
+)
+add_compile_options(${CFLAGS})
 include_directories(
     ${EZSIFT_INCLUDE_DIR}
 )

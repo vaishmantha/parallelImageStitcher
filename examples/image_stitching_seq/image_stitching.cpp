@@ -11,7 +11,6 @@ using Eigen::MatrixXd;
 
 #define USE_FIX_FILENAME 0
 
-// double cudaFindPeaks();
 
 MatrixXd Matslice(MatrixXd array, int start_row, int start_col, int height, int width){
     MatrixXd sl = MatrixXd::Constant(height, width, 0);
