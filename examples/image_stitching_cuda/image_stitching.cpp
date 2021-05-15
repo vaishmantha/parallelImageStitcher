@@ -132,6 +132,7 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
         homogeneous_loc2(i, 2) = 1.0;
         i++;
     }
+    std::cout << "End of match list" << std::endl;
 
     int max_count = 0;
     // int *count_list = (int*)calloc(iterations, sizeof(int));
@@ -145,6 +146,7 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
             int r = (int)((size_t)rand() % match_li.size()); 
             rand_inds.push_back(r);
         }
+        std::cout << "1" << std::endl;
         MatrixXd x1 = MatVectorslice(locs1, rand_inds, 0, locs1.cols()); //locs1(rand_inds, Eigen::seqN(0,locs1.cols())); 
         MatrixXd x2 = MatVectorslice(locs2, rand_inds, 0, locs2.cols());// locs2(rand_inds, Eigen::seqN(0,locs2.cols())); 
 
@@ -152,15 +154,18 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
         MatrixXd x2_res_h = MatVectorslice(homogeneous_loc2, rand_inds, 0, homogeneous_loc2.cols()); //homogeneous_loc2(rand_inds, Eigen::seqN(0,homogeneous_loc2.cols())); 
 
         MatrixXd H = computeNormalizedHomography(x1, x2, x1_res_h, x2_res_h); 
+        std::cout << "2" << std::endl;
         int count = 0; 
         MatrixXd prod = H * homogeneous_loc2.transpose();
         std::vector<int> inlier_inds_current; 
         double diff;
         bool divide_by_zero = false;
         for(int i = 0; i < prod.cols(); i++){
+            std::cout << "31" << std::endl;
             if(prod.transpose()(i, 2) == 0){
                 divide_by_zero = true;
             }
+            std::cout << "32" << std::endl;
             if(!divide_by_zero){
                 diff = (Matslice(prod.transpose(), i, 0, 1, 2)/prod.transpose()(i, 2) - Matslice(locs1, i, 0, 1, locs1.cols())).norm(); 
                 // diff = (prod.transpose()(i, {0,1})/prod.transpose()(i, 2) - Matslice(locs1, i, 0, 1, locs1.cols())).norm(); 
@@ -169,12 +174,15 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
                     inlier_inds_current.push_back(i);
                 }
             }
+            std::cout << "33" << std::endl;
         }
+        std::cout << "3" << std::endl;
         if (!divide_by_zero && max_count <= count){
             max_count = count;
             inlier_inds = inlier_inds_current;
         }      
     }
+    std::cout << "4" << std::endl;
     MatrixXd x1_res = MatVectorslice(locs1, inlier_inds, 0, locs1.cols()); //locs1(inlier_inds, Eigen::seqN(0,locs1.cols())); 
     MatrixXd x2_res = MatVectorslice(locs2, inlier_inds, 0, locs2.cols()); //locs2(inlier_inds, Eigen::seqN(0,locs2.cols()));
     MatrixXd x1_res_h = MatVectorslice(homogeneous_loc1, inlier_inds, 0, homogeneous_loc1.cols()); //homogeneous_loc1(inlier_inds, Eigen::seqN(0,homogeneous_loc1.cols())); 
@@ -241,6 +249,7 @@ void placeImage(MatrixXd newImage, MatrixXd* resImg, double min_x, double min_y,
     int h = newImage.rows();
     int start_i = (int)fmax(min_y,0);
     int start_j = (int)fmax(min_x,0);
+    
     
     #pragma omp parallel for schedule(dynamic)
     for (int i = start_i; i < (int)max_y; i++){ //access as row col
