@@ -420,7 +420,7 @@ int main(int argc, char *argv[])
     int pano_max_x = images[0].w; 
     int pano_max_y = images[0].h; 
 
-    #pragma omp parallel for schedule(dynamic)
+    // #pragma omp parallel for schedule(dynamic)
     for(int i=1; i<images.size(); i++){
         double min_x;
         double min_y;
