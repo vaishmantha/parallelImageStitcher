@@ -249,7 +249,8 @@ void placeImage(MatrixXd newImage, MatrixXd* resImg, double min_x, double min_y,
         for(int j = fmax(min_x,0); j < max_x; j++){
             if((*resImg)(i, j) == 0){
                 if (i+1 < max_y && copyRes(i+1,j) != 0){ // && i-1 >=fmax(min_y,0) && j+1 < max_x && j-1 >=fmax(min_x,0) ){
-                    (*resImg)(i, j) = copyRes(i+1,j);
+                    #pragma omp atomic update
+                        (*resImg)(i, j) = copyRes(i+1,j);
                 }else if(i-1 >= fmax(min_y,0) && copyRes(i-1,j) != 0){
                     (*resImg)(i, j) = copyRes(i-1,j);
                 }else if(j+1 < max_x && copyRes(i,j+1) != 0){
@@ -460,17 +461,13 @@ int main(int argc, char *argv[])
         #pragma omp parallel for schedule(dynamic)
         for(int j= 0; j<4; j++){
             if(j==0){
-                #pragma omp atomic
-                    placeImage(newImR, &resImageR, min_x, min_y, max_x, max_y);
+                placeImage(newImR, &resImageR, min_x, min_y, max_x, max_y);
             }else if(j==1){
-                #pragma omp atomic
-                    placeImage(newImG, &resImageG, min_x, min_y, max_x, max_y);
+                placeImage(newImG, &resImageG, min_x, min_y, max_x, max_y);
             }else if(j==2){
-                #pragma omp atomic
-                    placeImage(newImB, &resImageB, min_x, min_y, max_x, max_y);
+                placeImage(newImB, &resImageB, min_x, min_y, max_x, max_y);
             }else{
-                #pragma omp atomic
-                    placeImage(newImA, &resImageA, min_x, min_y, max_x, max_y);
+                placeImage(newImA, &resImageA, min_x, min_y, max_x, max_y);
             }
         }
         
