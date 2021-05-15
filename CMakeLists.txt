@@ -7,7 +7,7 @@ set(CMAKE_CXX_COMPILER "/usr/bin/g++")
 set(EZSIFT ezsift)
 project(${EZSIFT})
 
-option(USE_CUDA "Use CUDA" OFF) #SWITCH TO ON WHEN RUNNING ON GPU
+option(USE_CUDA "Use CUDA" ON) #SWITCH TO ON WHEN RUNNING ON GPU
 option(EZSIFT_BUILD_EXAMPLES "Build with examples" ON)
 
 if(USE_CUDA)
