@@ -471,7 +471,7 @@ int main(int argc, char *argv[])
         newImG[i] = MatrixXd::Constant(curr_height, curr_width, 0);
         newImB[i] = MatrixXd::Constant(curr_height, curr_width, 0);
         newImA[i] = MatrixXd::Constant(curr_height, curr_width, 0);
-        warpPerspective(png_r[i], png_g[i], png_b[i], png_alpha[i], widths[i], heights[i], &newImR, &newImG, &newImB, &newImA, homographies[i]);
+        warpPerspective(png_r[i], png_g[i], png_b[i], png_alpha[i], widths[i], heights[i], &newImR[i], &newImG[i], &newImB[i], &newImA[i], homographies[i]);
     }
 
     for (int i = 0; i < images.size(); i++){
