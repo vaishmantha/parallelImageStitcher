@@ -456,25 +456,24 @@ int main(int argc, char *argv[])
         MatrixXd newImA = MatrixXd::Constant(curr_height, curr_width, 0);
         warpPerspective(png_r[i], png_g[i], png_b[i], png_alpha[i], widths[i], heights[i], &newImR, &newImG, &newImB, &newImA, homographies[i]);
 
-        // double st = CycleTimer::currentSeconds();
-        // placeImage(newImR, &resImageR, min_x, min_y, max_x, max_y); //each take approximately a second
-        // placeImage(newImG, &resImageG, min_x, min_y, max_x, max_y);
-        // placeImage(newImB, &resImageB, min_x, min_y, max_x, max_y);
-        // placeImage(newImA, &resImageA, min_x, min_y, max_x, max_y);
+
         #pragma omp parallel for schedule(dynamic)
         for(int j= 0; j<4; j++){
             if(j==0){
+                #pragma omp atomic
                 placeImage(newImR, &resImageR, min_x, min_y, max_x, max_y);
             }else if(j==1){
+                #pragma omp atomic
                 placeImage(newImG, &resImageG, min_x, min_y, max_x, max_y);
             }else if(j==2){
+                #pragma omp atomic
                 placeImage(newImB, &resImageB, min_x, min_y, max_x, max_y);
             }else{
+                #pragma omp atomic
                 placeImage(newImA, &resImageA, min_x, min_y, max_x, max_y);
             }
         }
-        // double ed = CycleTimer::currentSeconds();
-        // std::cout << "Place image time: " << ed-st << std::endl;
+        
 
     }
     double imgCompositionEnd = CycleTimer::currentSeconds();
