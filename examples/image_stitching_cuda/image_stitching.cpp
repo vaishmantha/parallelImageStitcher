@@ -298,35 +298,23 @@ void write_pgm(const char *filename, unsigned char *data, int w, int h)
 
 int main(int argc, char *argv[])
 {
-    bool VIDEO_MODE;
-    char* suffix = strrchr(argv[1], '.');
-    if (argc < 2) {
-        printf("Please input at least two image filenames or one video filename.\n");
-        return -1;
-    }
 
-    if(strncmp(suffix, ".mp4", 4) == 0){
-        VIDEO_MODE = true;  
-    }else{
-        VIDEO_MODE = false;
-    }
-
-    if (argc < 3 && !VIDEO_MODE) {
+    if (argc < 3) {
         printf("Please input at least two image filenames.\n");
         printf("usage: image_match img1 img2 ...\n");
         return -1;
     }
     double startTime = CycleTimer::currentSeconds();
     
-    std::vector<ezsift::Image<unsigned char> > images(argc-1);
-    std::vector<int> widths(argc-1);
-    std::vector<int> heights(argc-1);
-    std::vector<unsigned char*> png_images(argc-1);
-    std::vector<unsigned char*> png_alpha(argc-1);
-    std::vector<unsigned char*> png_r(argc-1);
-    std::vector<unsigned char*> png_g(argc-1);
-    std::vector<unsigned char*> png_b(argc-1);
-    std::vector<char * > files(argc-1); //Should probably switch away from this when switching to video
+    std::vector<ezsift::Image<unsigned char> > images;
+    std::vector<int> widths;
+    std::vector<int> heights;
+    std::vector<unsigned char*> png_images;
+    std::vector<unsigned char*> png_alpha;
+    std::vector<unsigned char*> png_r;
+    std::vector<unsigned char*> png_g;
+    std::vector<unsigned char*> png_b;
+    std::vector<char * > files; //Should probably switch away from this when switching to video
    
     // All image files
     for(int i=1; i<argc; i++){
@@ -359,13 +347,13 @@ int main(int argc, char *argv[])
             a[i] = data[4*i+3];
         }
         write_pgm("tmp.pgm", new_data, width, height);
-        png_images[i] = new_data;
-        widths[i] = width;
-        heights[i] = height;
-        png_r[i] = r;
-        png_b[i] = b;
-        png_g[i] = g;
-        png_alpha[i] = a;
+        png_images.push_back(new_data);
+        widths.push_back(width);
+        heights.push_back(height);
+        png_r.push_back(r);
+        png_b.push_back(b);
+        png_g.push_back(g);
+        png_alpha.push_back(a);
 
         if (image.read_pgm("tmp.pgm") != 0) {
             std::cerr << "Failed to open input image!" << std::endl;
