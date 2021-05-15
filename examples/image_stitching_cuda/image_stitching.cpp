@@ -457,10 +457,22 @@ int main(int argc, char *argv[])
         warpPerspective(png_r[i], png_g[i], png_b[i], png_alpha[i], widths[i], heights[i], &newImR, &newImG, &newImB, &newImA, homographies[i]);
 
         // double st = CycleTimer::currentSeconds();
-        placeImage(newImR, &resImageR, min_x, min_y, max_x, max_y); //each take approximately a second
-        placeImage(newImG, &resImageG, min_x, min_y, max_x, max_y);
-        placeImage(newImB, &resImageB, min_x, min_y, max_x, max_y);
-        placeImage(newImA, &resImageA, min_x, min_y, max_x, max_y);
+        // placeImage(newImR, &resImageR, min_x, min_y, max_x, max_y); //each take approximately a second
+        // placeImage(newImG, &resImageG, min_x, min_y, max_x, max_y);
+        // placeImage(newImB, &resImageB, min_x, min_y, max_x, max_y);
+        // placeImage(newImA, &resImageA, min_x, min_y, max_x, max_y);
+        #pragma omp parallel for schedule(dynamic)
+        for(int j= 0; j<4; j++){
+            if(j==0){
+                placeImage(newImR, &resImageR, min_x, min_y, max_x, max_y);
+            }else if(j==1){
+                placeImage(newImG, &resImageG, min_x, min_y, max_x, max_y);
+            }else if(j==2){
+                placeImage(newImB, &resImageB, min_x, min_y, max_x, max_y);
+            }else{
+                placeImage(newImA, &resImageA, min_x, min_y, max_x, max_y);
+            }
+        }
         // double ed = CycleTimer::currentSeconds();
         // std::cout << "Place image time: " << ed-st << std::endl;
 
