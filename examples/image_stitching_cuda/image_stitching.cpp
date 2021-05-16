@@ -328,16 +328,16 @@ void placeImage(unsigned char* newImage, int newImWidth, MatrixXd* resImg, doubl
     // #pragma omp parallel for collapse(2) 
     #pragma omp parallel for
     //FIX: another for loop that goes over the 4 image channels
-    for (int i = start_i; i < (int)max_y; i++){ //access as row col
-        for (int j = start_j; j < (int)max_x; j++){
-            if ((*resImg)(i,j) == 0){
-                (*resImg)(i,j) = newImage[i*newImWidth + j]; //(i,j);
-            }
-            if ((*resImg)(i,j) != 0 && newImage[i*newImWidth + j] != 0){
-                (*resImg)(i,j) = fmax(newImage[i*newImWidth + j], (*resImg)(i,j));
-            }
-        }
-    }
+    // for (int i = start_i; i < (int)max_y; i++){ //access as row col
+    //     for (int j = start_j; j < (int)max_x; j++){
+    //         if ((*resImg)(i,j) == 0){
+    //             (*resImg)(i,j) = newImage[i*newImWidth + j]; //(i,j);
+    //         }
+    //         if ((*resImg)(i,j) != 0 && newImage[i*newImWidth + j] != 0){
+    //             (*resImg)(i,j) = fmax(newImage[i*newImWidth + j], (*resImg)(i,j));
+    //         }
+    //     }
+    // }
     MatrixXd copyRes = (*resImg);
     #pragma omp parallel for //schedule(dynamic)
     // #pragma omp parallel for collapse(2) schedule(dynamic)
