@@ -467,7 +467,7 @@ int main(int argc, char *argv[])
     double siftStart = CycleTimer::currentSeconds();
 
     #pragma omp parallel for schedule(dynamic) 
-    for(int i=0; i<images.size(); i++){
+    for(int i=0; i<images.size()+1; i++){
         if(i < images.size()){
             sift_cpu(images[i], kpt_lists[i], true);
         }else{
