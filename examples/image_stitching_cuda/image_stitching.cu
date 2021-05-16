@@ -34,8 +34,8 @@ __global__ void kernelWarpPerspective(int png_width, int png_height, int curr_wi
     double prod_10 = homography[1]*j + homography[4]*i + homography[7];
     double prod_20 = homography[2]*j + homography[5]*i + homography[8];
     
-    double res_00 = (prod_00/prod_20) + 1;
-    double res_10 = (prod_10/prod_20) + 1;
+    double res_00 = (prod_00/prod_20) - 1;
+    double res_10 = (prod_10/prod_20) - 1;
     if((int)res_00 >= 0 && (int)res_00 < curr_width && (int)res_10 >= 0 && res_10 < (int)curr_height){
         out_r_device[(int)res_10*curr_width+(int)res_00] = (int)png_r[i*png_width + j]; 
         out_g_device[(int)res_10*curr_width+(int)res_00] = (int)png_g[i*png_width + j]; 
