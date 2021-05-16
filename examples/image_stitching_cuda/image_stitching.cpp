@@ -512,7 +512,7 @@ int main(int argc, char *argv[])
     MatrixXd resImageB = MatrixXd::Constant(pan_height, pan_width, 0);
     MatrixXd resImageA = MatrixXd::Constant(pan_height, pan_width, 0);
     
-    // #pragma omp parallel for schedule(dynamic)
+    // #pragma omp parallel for schedule(dynamic) // DO NOT ADD BACK IN
     for (int i = 0; i < images.size(); i++){
         double min_x; 
         double min_y; 
@@ -548,13 +548,14 @@ int main(int argc, char *argv[])
     double imgCompositionEnd = CycleTimer::currentSeconds();
     std::cout << "Img composition time: " << imgCompositionEnd-imgCompositionStart << std::endl;
 
-    std::vector<unsigned char> resImg_vect;
+    std::vector<unsigned char> resImg_vect(4*pan_height*pan_width);
+    #pragma omp parallel for collapse(2)
     for(int i=0; i<pan_height; i++){
         for(int j=0; j<pan_width; j++){
-            resImg_vect.push_back(resImageR(i, j)); //color
-            resImg_vect.push_back(resImageG(i, j));
-            resImg_vect.push_back(resImageB(i, j));
-            resImg_vect.push_back(255); //resImageA(i, j)); /////This cannot be 0 or the entire program breaks
+            resImg_vect[i] = resImageR(i, j); //color
+            resImg_vect[i+1] = resImageG(i, j);
+            resImg_vect[i+2] = resImageB(i, j);
+            resImg_vect[i+3] = resImageA(i, j); /////This cannot be 0 or the entire program breaks
         }
     }
     // cudaFindPeaks();
