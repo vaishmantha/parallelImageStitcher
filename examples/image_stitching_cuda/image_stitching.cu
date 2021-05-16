@@ -55,9 +55,10 @@ void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* 
     double section1S = CycleTimer::currentSeconds();
     // double* H_device;
     double *H_data = H.data();
-    cudaMemcpyToSymbol(homography, H_data, sizeof(double)*9);
     double section1E = CycleTimer::currentSeconds();
     std::cout << "Section1 time " << section1E-section1S << std::endl;
+    cudaMemcpyToSymbol(homography, H_data, sizeof(double)*9);
+    
     
     double section2S = CycleTimer::currentSeconds();
     unsigned char* png_r_device;
