@@ -471,7 +471,6 @@ int main(int argc, char *argv[])
         }else{
             dummyWarmup();
         }
-        
     }
     // ezsift::sift_gpu(images, kpt_lists, true);
     double siftEnd = CycleTimer::currentSeconds();
