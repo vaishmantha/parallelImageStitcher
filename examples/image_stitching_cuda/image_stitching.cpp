@@ -125,7 +125,6 @@ MatrixXd computeNormalizedHomography(MatrixXd x1, MatrixXd x2,
 MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
     int iterations= 500; 
     int threshold = 3; //check on this threshold
-    int maxCount = 0; 
     
     MatrixXd locs1 = MatrixXd(match_li.size(), 2);
     MatrixXd locs2 = MatrixXd(match_li.size(), 2);
@@ -149,8 +148,7 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
 
 
     int* rand_inds = (int*) calloc(sizeof(int), 4 * iterations);
-    // FIX: adding pragma here 
-    #pragma omp parallel for schedule(dynamic)
+    // #pragma omp parallel for schedule(dynamic) // DO NOT ADD BACK
     for(int it = 0; it < iterations; it++){
         int rand_counter = 0; 
         while(rand_counter != 4){
@@ -179,13 +177,13 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
         for(int i = 0; i < prod.cols(); i++){
             if(prod.transpose()(i, 2) == 0){
                 divide_by_zero = true;
-                break;
             }
-            diff = (Matslice(prod.transpose(), i, 0, 1, 2)/prod.transpose()(i, 2) - Matslice(locs1, i, 0, 1, locs1.cols())).norm(); 
-            // diff = (prod.transpose()(i, {0,1})/prod.transpose()(i, 2) - Matslice(locs1, i, 0, 1, locs1.cols())).norm(); 
-            if(diff < threshold){
-                count++;
-                inlier_inds_current.push_back(i);
+            if(!divide_by_zero){
+                diff = (Matslice(prod.transpose(), i, 0, 1, 2)/prod.transpose()(i, 2) - Matslice(locs1, i, 0, 1, locs1.cols())).norm(); 
+                if(diff < threshold){
+                    count++;
+                    inlier_inds_current.push_back(i);
+                }
             }
         }
 
@@ -213,7 +211,6 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
     MatrixXd x2_res_h = MatVectorslice2(homogeneous_loc2, &rand_inds[4 * best_i], 4, 0, homogeneous_loc2.cols()); //homogeneous_loc2(rand_inds, Eigen::seqN(0,homogeneous_loc2.cols())); 
 
     MatrixXd H = computeNormalizedHomography(x1, x2, x1_res_h, x2_res_h); 
-    int count = 0; 
     MatrixXd prod = H * homogeneous_loc2.transpose();
     std::vector<int> inlier_inds; 
     double diff;
@@ -226,7 +223,6 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
             diff = (Matslice(prod.transpose(), i, 0, 1, 2)/prod.transpose()(i, 2) - Matslice(locs1, i, 0, 1, locs1.cols())).norm(); 
             // diff = (prod.transpose()(i, {0,1})/prod.transpose()(i, 2) - Matslice(locs1, i, 0, 1, locs1.cols())).norm(); 
             if(diff < threshold){
-                count++;
                 inlier_inds.push_back(i);
             }
         }
