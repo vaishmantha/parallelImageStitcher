@@ -174,7 +174,8 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
         std::vector<int> inlier_inds_current; 
         double diff;
         bool divide_by_zero = false;
-        for(int i = 0; i < prod.cols(); i++){
+        std::cout << "Num cols in product " << prod.cols() << std::endl;
+        for(int i = 0; i < prod.cols(); i++){ //FIX: how many cols here, if a lot, cudify
             if(prod.transpose()(i, 2) == 0){
                 divide_by_zero = true;
             }
@@ -268,6 +269,7 @@ void findDimensions(ezsift::Image<unsigned char> image, MatrixXd H,
 
 void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* png_b, unsigned char* png_a, 
         int png_width, int png_height, MatrixXd* newImR,MatrixXd* newImG,MatrixXd* newImB, MatrixXd* newImA, MatrixXd H){
+    //FIX: Need to create matrix of form Nx3 and do the matrix multiply all at once- cuda kernel
     int i; 
     #pragma omp parallel for collapse(2)
     for(i=0; i< png_height; i++){ 
