@@ -178,7 +178,8 @@ __global__ void kernelWarpPerspective(double* H, int png_width, int png_height, 
     if(i < 9)
         sharedH[i] = H[i];
 
-    cudaDeviceSynchronize();
+    __syncthreads();
+    
     int tmp00 = j;
     int tmp10 = i;
     int tmp20 = 1;
