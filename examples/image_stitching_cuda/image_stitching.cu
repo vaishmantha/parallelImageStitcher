@@ -174,7 +174,7 @@ __global__ void kernelWarpPerspective(double* H, int png_width, int png_height, 
     if(i > png_height || j > png_width)
         return;
     
-    __shared__ float4 sharedH[9];
+    __shared__ double sharedH[9];
     if(i < 9)
         sharedH[i] = H[i]
 
