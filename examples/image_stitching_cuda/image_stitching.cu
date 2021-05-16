@@ -50,86 +50,86 @@ void dummyWarmup(){
 }
 
 
-void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* png_b, unsigned char* png_a, 
-    int png_width, int png_height, unsigned char* newImR, unsigned char* newImG, unsigned char* newImB, unsigned char* newImA, 
-    MatrixXd H, int newIm_width, int newIm_height){
-    double overallStartTime = CycleTimer::currentSeconds();
-    dim3 blockDim(32, 32, 1);
-    dim3 gridDim((png_width + blockDim.x - 1) / blockDim.x, ((png_height + blockDim.y - 1) / blockDim.y));
+// void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* png_b, unsigned char* png_a, 
+//     int png_width, int png_height, unsigned char* newImR, unsigned char* newImG, unsigned char* newImB, unsigned char* newImA, 
+//     MatrixXd H, int newIm_width, int newIm_height){
+//     double overallStartTime = CycleTimer::currentSeconds();
+//     dim3 blockDim(32, 32, 1);
+//     dim3 gridDim((png_width + blockDim.x - 1) / blockDim.x, ((png_height + blockDim.y - 1) / blockDim.y));
     
-    //UNAVOIDABLE TIME COST: CUDA WARMUP TIME is 0.67 seconds
-    // double section1S = CycleTimer::currentSeconds();
-    // double* H_device;
-    double *H_data = H.data();
-    // double section1E = CycleTimer::currentSeconds();
-    // std::cout << "Section1 time " << section1E-section1S << std::endl;
-    cudaMemcpyToSymbol(homography, H_data, sizeof(double)*9);
+//     //UNAVOIDABLE TIME COST: CUDA WARMUP TIME is 0.67 seconds
+//     // double section1S = CycleTimer::currentSeconds();
+//     // double* H_device;
+//     double *H_data = H.data();
+//     // double section1E = CycleTimer::currentSeconds();
+//     // std::cout << "Section1 time " << section1E-section1S << std::endl;
+//     cudaMemcpyToSymbol(homography, H_data, sizeof(double)*9);
     
     
-    double section2S = CycleTimer::currentSeconds();
-    unsigned char* png_r_device;
-    unsigned char* png_g_device;
-    unsigned char* png_b_device;
-    unsigned char* png_a_device;
-    cudaMalloc((void **)&png_r_device, png_height*png_width*sizeof(char));
-    cudaMalloc((void **)&png_g_device, png_height*png_width*sizeof(char));
-    cudaMalloc((void **)&png_b_device, png_height*png_width*sizeof(char));
-    cudaMalloc((void **)&png_a_device, png_height*png_width*sizeof(char));
+//     double section2S = CycleTimer::currentSeconds();
+//     unsigned char* png_r_device;
+//     unsigned char* png_g_device;
+//     unsigned char* png_b_device;
+//     unsigned char* png_a_device;
+//     cudaMalloc((void **)&png_r_device, png_height*png_width*sizeof(char));
+//     cudaMalloc((void **)&png_g_device, png_height*png_width*sizeof(char));
+//     cudaMalloc((void **)&png_b_device, png_height*png_width*sizeof(char));
+//     cudaMalloc((void **)&png_a_device, png_height*png_width*sizeof(char));
 
-    cudaMemcpy(png_r_device, png_r, png_height*png_width*sizeof(char), cudaMemcpyHostToDevice);
-    cudaMemcpy(png_g_device, png_g, png_height*png_width*sizeof(char), cudaMemcpyHostToDevice);
-    cudaMemcpy(png_b_device, png_b, png_height*png_width*sizeof(char), cudaMemcpyHostToDevice);
-    cudaMemcpy(png_a_device, png_a, png_height*png_width*sizeof(char), cudaMemcpyHostToDevice);
-    double section2E = CycleTimer::currentSeconds();
-    std::cout << "Section2 time " << section2E-section2S << std::endl;
+//     cudaMemcpy(png_r_device, png_r, png_height*png_width*sizeof(char), cudaMemcpyHostToDevice);
+//     cudaMemcpy(png_g_device, png_g, png_height*png_width*sizeof(char), cudaMemcpyHostToDevice);
+//     cudaMemcpy(png_b_device, png_b, png_height*png_width*sizeof(char), cudaMemcpyHostToDevice);
+//     cudaMemcpy(png_a_device, png_a, png_height*png_width*sizeof(char), cudaMemcpyHostToDevice);
+//     double section2E = CycleTimer::currentSeconds();
+//     std::cout << "Section2 time " << section2E-section2S << std::endl;
     
-    double section3S = CycleTimer::currentSeconds();
-    unsigned char* out_r_device;
-    unsigned char* out_g_device;
-    unsigned char* out_b_device;
-    unsigned char* out_a_device;
-    cudaMalloc((void **)&out_r_device, newIm_width*newIm_height*sizeof(unsigned char)); //try int as well
-    cudaMalloc((void **)&out_g_device, newIm_width*newIm_height*sizeof(unsigned char));
-    cudaMalloc((void **)&out_b_device, newIm_width*newIm_height*sizeof(unsigned char));
-    cudaMalloc((void **)&out_a_device, newIm_width*newIm_height*sizeof(unsigned char));
-    double section3E = CycleTimer::currentSeconds();
-    std::cout << "Section3 time " << section3E-section3S << std::endl;
+//     double section3S = CycleTimer::currentSeconds();
+//     unsigned char* out_r_device;
+//     unsigned char* out_g_device;
+//     unsigned char* out_b_device;
+//     unsigned char* out_a_device;
+//     cudaMalloc((void **)&out_r_device, newIm_width*newIm_height*sizeof(unsigned char)); //try int as well
+//     cudaMalloc((void **)&out_g_device, newIm_width*newIm_height*sizeof(unsigned char));
+//     cudaMalloc((void **)&out_b_device, newIm_width*newIm_height*sizeof(unsigned char));
+//     cudaMalloc((void **)&out_a_device, newIm_width*newIm_height*sizeof(unsigned char));
+//     double section3E = CycleTimer::currentSeconds();
+//     std::cout << "Section3 time " << section3E-section3S << std::endl;
     
-    double startTime = CycleTimer::currentSeconds();
-    kernelWarpPerspective<<<gridDim, blockDim>>>(png_width, png_height, newIm_width, newIm_height,
-                                                out_r_device, out_g_device, out_b_device, out_a_device, png_r_device, png_g_device,
-                                                png_b_device, png_a_device);
-    double endTime = CycleTimer::currentSeconds();
-    std::cout << "Actual kernel time " << endTime-startTime << std::endl;
+//     double startTime = CycleTimer::currentSeconds();
+//     kernelWarpPerspective<<<gridDim, blockDim>>>(png_width, png_height, newIm_width, newIm_height,
+//                                                 out_r_device, out_g_device, out_b_device, out_a_device, png_r_device, png_g_device,
+//                                                 png_b_device, png_a_device);
+//     double endTime = CycleTimer::currentSeconds();
+//     std::cout << "Actual kernel time " << endTime-startTime << std::endl;
     
 
-    double lMemcpyTime = CycleTimer::currentSeconds();
-    cudaMemcpy(newImR, out_r_device, newIm_width*newIm_height*sizeof(unsigned char), cudaMemcpyDeviceToHost); //CHECK ORDER OF ARGS HERE
-    cudaMemcpy(newImG, out_g_device, newIm_width*newIm_height*sizeof(unsigned char), cudaMemcpyDeviceToHost);
-    cudaMemcpy(newImB, out_b_device, newIm_width*newIm_height*sizeof(unsigned char), cudaMemcpyDeviceToHost);
-    cudaMemcpy(newImA, out_a_device, newIm_width*newIm_height*sizeof(unsigned char), cudaMemcpyDeviceToHost);
-    double lEndMemcpyTime = CycleTimer::currentSeconds();
-    std::cout << "Memcpy kernel time " << lEndMemcpyTime-lMemcpyTime << std::endl;
+//     double lMemcpyTime = CycleTimer::currentSeconds();
+//     cudaMemcpy(newImR, out_r_device, newIm_width*newIm_height*sizeof(unsigned char), cudaMemcpyDeviceToHost); //CHECK ORDER OF ARGS HERE
+//     cudaMemcpy(newImG, out_g_device, newIm_width*newIm_height*sizeof(unsigned char), cudaMemcpyDeviceToHost);
+//     cudaMemcpy(newImB, out_b_device, newIm_width*newIm_height*sizeof(unsigned char), cudaMemcpyDeviceToHost);
+//     cudaMemcpy(newImA, out_a_device, newIm_width*newIm_height*sizeof(unsigned char), cudaMemcpyDeviceToHost);
+//     double lEndMemcpyTime = CycleTimer::currentSeconds();
+//     std::cout << "Memcpy kernel time " << lEndMemcpyTime-lMemcpyTime << std::endl;
     
-    double section4S = CycleTimer::currentSeconds();
-    cudaFree(png_r_device);
-    cudaFree(png_g_device);
-    cudaFree(png_b_device);
-    cudaFree(png_a_device);
-    cudaFree(out_r_device);
-    cudaFree(out_g_device);
-    cudaFree(out_b_device);
-    cudaFree(out_a_device);
-    double section4E = CycleTimer::currentSeconds();
-    std::cout << "Section4 time " << section4E-section4S << std::endl;
+//     double section4S = CycleTimer::currentSeconds();
+//     cudaFree(png_r_device);
+//     cudaFree(png_g_device);
+//     cudaFree(png_b_device);
+//     cudaFree(png_a_device);
+//     cudaFree(out_r_device);
+//     cudaFree(out_g_device);
+//     cudaFree(out_b_device);
+//     cudaFree(out_a_device);
+//     double section4E = CycleTimer::currentSeconds();
+//     std::cout << "Section4 time " << section4E-section4S << std::endl;
     
-    double overallEndTime = CycleTimer::currentSeconds();
-    std::cout << "Overall warp persp time " << overallEndTime-overallStartTime << std::endl;
+//     double overallEndTime = CycleTimer::currentSeconds();
+//     std::cout << "Overall warp persp time " << overallEndTime-overallStartTime << std::endl;
 
-    cudaError_t errCode = cudaPeekAtLastError();
-    if (errCode != cudaSuccess) {
-        fprintf(stderr, "WARNING: A CUDA error occured: code=%d, %s\n", errCode, cudaGetErrorString(errCode));
-    }
-}
+//     cudaError_t errCode = cudaPeekAtLastError();
+//     if (errCode != cudaSuccess) {
+//         fprintf(stderr, "WARNING: A CUDA error occured: code=%d, %s\n", errCode, cudaGetErrorString(errCode));
+//     }
+// }
 
 
