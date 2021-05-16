@@ -260,10 +260,10 @@ void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* 
     cudaFree(out_g_device);
     cudaFree(out_b_device);
     cudaFree(out_a_device);
-    free(out_r_host);
-    free(out_g_host);
-    free(out_b_host);
-    free(out_a_host);
+    // free(out_r_host);
+    // free(out_g_host);
+    // free(out_b_host);
+    // free(out_a_host);
 
 
     cudaError_t errCode = cudaPeekAtLastError();
