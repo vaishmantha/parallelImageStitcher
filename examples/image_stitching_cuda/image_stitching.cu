@@ -185,36 +185,13 @@ __global__ void kernelWarpPerspective(double* H, int png_width, int png_height, 
     int res_00 = (int)(prod_00/prod_20);
     int res_10 = (int)(prod_10/prod_20);
     if(res_00 >= 0 && res_00 < curr_width && res_10 >= 0 && res_10 < curr_height){
-        out_r_device[res_10*curr_width+res_00] = (int)png_r[i*png_width + j]; //try flipped too
-        out_g_device[res_10*curr_width+res_00] = (int)png_g[i*png_width + j]; //try flipped too
-        out_b_device[res_10*curr_width+res_00] = (int)png_b[i*png_width + j]; //try flipped too
-        out_a_device[res_10*curr_width+res_00] = (int)png_a[i*png_width + j]; //try flipped too
+        out_r_device[res_10*curr_width+res_00] = png_r[i*png_width + j]; //try flipped too
+        out_g_device[res_10*curr_width+res_00] = png_g[i*png_width + j]; //try flipped too
+        out_b_device[res_10*curr_width+res_00] = png_b[i*png_width + j]; //try flipped too
+        out_a_device[res_10*curr_width+res_00] = png_a[i*png_width + j]; //try flipped too
     }
     
 }
-//void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* png_b, unsigned char* png_a, 
-    //     int png_width, int png_height, unsigned char* newImR, unsigned char* newImG, unsigned char* newImB, unsigned char* newImA, 
-    //     MatrixXd H, int curr_width, int curr_height){
-    // int i; 
-    // for(i=0; i< png_height; i++){ 
-    //     for(int j=0; j<png_width; j++){
-    //         MatrixXd tmp = MatrixXd::Constant(3,1, 0.0);
-    //         tmp(0,0) = j;
-    //         tmp(1,0) = i;
-    //         tmp(2,0) = 1;
-    //         MatrixXd res = H*tmp;
-    //         MatrixXd tm =  Matslice(res, 2, 0, 1, res.cols()).replicate(3,1); //(MatrixXd array, int start_row, int start_col, int height, int width)
-    //         res = res.cwiseQuotient(tm);
-    //         if ((int)res(0,0) >= 0 && (int)res(0,0) < curr_width && (int)res(1,0) >= 0 && (int)res(1,0) < curr_height){
-    //             newImR[((int)res(1,0))*curr_width +  (int)res(0,0)] = (int)png_r[i*png_width + j];
-    //             newImG[((int)res(1,0))*curr_width +  (int)res(0,0)] = (int)png_g[i*png_width + j];
-    //             newImB[((int)res(1,0))*curr_width +  (int)res(0,0)] = (int)png_b[i*png_width + j];
-    //             newImA[((int)res(1,0))*curr_width +  (int)res(0,0)] = (int)png_a[i*png_width + j];
-    //         }
-    //     }
-    // }
-    // }
-
 
 void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* png_b, unsigned char* png_a, 
     int png_width, int png_height, unsigned char* newImR, unsigned char* newImG, unsigned char* newImB, unsigned char* newImA, 
@@ -226,7 +203,7 @@ void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* 
 
     double* H_device;
     double *H_data = H.data();
-    printf("H data %d %d %d %d %d %d %d %d %d", H_data[0], H_data[1], H_data[2], H_data[3], H_data[4], H_data[5], H_data[6], H_data[7], H_data[8]);
+    // printf("H data %d %d %d %d %d %d %d %d %d", H_data[0], H_data[1], H_data[2], H_data[3], H_data[4], H_data[5], H_data[6], H_data[7], H_data[8]);
     cudaMalloc((void **)&H_device, 3*3*sizeof(double)); //homography
     cudaMemcpy(H_device, H_data, 3*3*sizeof(double), cudaMemcpyHostToDevice);
 
