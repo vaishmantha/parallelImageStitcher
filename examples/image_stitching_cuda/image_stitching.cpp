@@ -536,10 +536,10 @@ int main(int argc, char *argv[])
         // MatrixXd newImG = MatrixXd::Constant(curr_height, curr_width, 0);
         // MatrixXd newImB = MatrixXd::Constant(curr_height, curr_width, 0);
         // MatrixXd newImA = MatrixXd::Constant(curr_height, curr_width, 0);
-        //double warpPerspectiveStart = CycleTimer::currentSeconds();
-        //warpPerspective(png_r[i], png_g[i], png_b[i], png_alpha[i], widths[i], heights[i], newImR, newImG, newImB, newImA, homographies[i], curr_width, curr_height);
+        double warpPerspectiveStart = CycleTimer::currentSeconds();
+        warpPerspective(png_r[i], png_g[i], png_b[i], png_alpha[i], widths[i], heights[i], newImR, newImG, newImB, newImA, homographies[i], curr_width, curr_height);
         // warpPerspective(png_r[i], png_g[i], png_b[i], png_alpha[i], widths[i], heights[i], &newImR, &newImG, &newImB, &newImA, homographies[i]);
-        //double warpPerspectiveEnd = CycleTimer::currentSeconds();
+        double warpPerspectiveEnd = CycleTimer::currentSeconds();
         //std::cout << "Warp perspective time: " << warpPerspectiveEnd-warpPerspectiveStart << std::endl;
 
         // #pragma omp parallel for schedule(dynamic) // DO NOT ADD BACK IN
