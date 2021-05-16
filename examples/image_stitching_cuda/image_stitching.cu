@@ -234,36 +234,22 @@ void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* 
     //                                             out_r_device, out_g_device, out_b_device, out_a_device, png_r_device, png_g_device,
     //                                             png_b_device, png_a_device);
 
-    cudaFree(H_device);
-    cudaFree(png_r_device);
-    cudaFree(png_g_device);
-    cudaFree(png_b_device);
-    cudaFree(png_a_device);
+    // cudaFree(H_device);
+    // cudaFree(png_r_device);
+    // cudaFree(png_g_device);
+    // cudaFree(png_b_device);
+    // cudaFree(png_a_device);
 
     //May not have to malloc here
-    // unsigned char* out_r_host = (unsigned char*)malloc(newImR->rows()*newImR->cols()*sizeof(unsigned char));
-    // unsigned char* out_g_host = (unsigned char*)malloc(newImR->rows()*newImR->cols()*sizeof(unsigned char));
-    // unsigned char* out_b_host = (unsigned char*)malloc(newImR->rows()*newImR->cols()*sizeof(unsigned char));
-    // unsigned char* out_a_host = (unsigned char*)malloc(newImR->rows()*newImR->cols()*sizeof(unsigned char));
+    // cudaMemcpy(out_r_device, newImR, png_height*png_width*sizeof(char), cudaMemcpyDeviceToHost); //CHECK ORDER OF ARGS HERE
+    // cudaMemcpy(out_g_device, newImG, png_height*png_width*sizeof(char), cudaMemcpyDeviceToHost);
+    // cudaMemcpy(out_b_device, newImB, png_height*png_width*sizeof(char), cudaMemcpyDeviceToHost);
+    // cudaMemcpy(out_a_device, newImA, png_height*png_width*sizeof(char), cudaMemcpyDeviceToHost);
 
-    cudaMemcpy(out_r_device, newImR, png_height*png_width*sizeof(char), cudaMemcpyDeviceToHost); //CHECK ORDER OF ARGS HERE
-    cudaMemcpy(out_g_device, newImG, png_height*png_width*sizeof(char), cudaMemcpyDeviceToHost);
-    cudaMemcpy(out_b_device, newImB, png_height*png_width*sizeof(char), cudaMemcpyDeviceToHost);
-    cudaMemcpy(out_a_device, newImA, png_height*png_width*sizeof(char), cudaMemcpyDeviceToHost);
-
-    // *newImR = Eigen::Map<MatrixXd>(out_r_device);
-    // *newImG = Eigen::Map<MatrixXd>(out_g_device);
-    // *newImB = Eigen::Map<MatrixXd>(out_b_device);
-    // *newImA = Eigen::Map<MatrixXd>(out_a_device);
-
-    cudaFree(out_r_device);
-    cudaFree(out_g_device);
-    cudaFree(out_b_device);
-    cudaFree(out_a_device);
-    // free(out_r_host);
-    // free(out_g_host);
-    // free(out_b_host);
-    // free(out_a_host);
+    // cudaFree(out_r_device);
+    // cudaFree(out_g_device);
+    // cudaFree(out_b_device);
+    // cudaFree(out_a_device);
 
 
     cudaError_t errCode = cudaPeekAtLastError();
