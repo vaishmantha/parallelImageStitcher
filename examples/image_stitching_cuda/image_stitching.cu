@@ -241,10 +241,10 @@ void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* 
     cudaFree(png_a_device);
 
     //May not have to malloc here
-    // cudaMemcpy(out_r_device, newImR, png_height*png_width*sizeof(char), cudaMemcpyDeviceToHost); //CHECK ORDER OF ARGS HERE
-    // cudaMemcpy(out_g_device, newImG, png_height*png_width*sizeof(char), cudaMemcpyDeviceToHost);
-    // cudaMemcpy(out_b_device, newImB, png_height*png_width*sizeof(char), cudaMemcpyDeviceToHost);
-    // cudaMemcpy(out_a_device, newImA, png_height*png_width*sizeof(char), cudaMemcpyDeviceToHost);
+    cudaMemcpy(out_r_device, newImR, newIm_width*newIm_height*sizeof(unsigned char), cudaMemcpyDeviceToHost); //CHECK ORDER OF ARGS HERE
+    cudaMemcpy(out_g_device, newImG, newIm_width*newIm_height*sizeof(unsigned char), cudaMemcpyDeviceToHost);
+    cudaMemcpy(out_b_device, newImB, newIm_width*newIm_height*sizeof(unsigned char), cudaMemcpyDeviceToHost);
+    cudaMemcpy(out_a_device, newImA, newIm_width*newIm_height*sizeof(unsigned char), cudaMemcpyDeviceToHost);
 
     cudaFree(out_r_device);
     cudaFree(out_g_device);
