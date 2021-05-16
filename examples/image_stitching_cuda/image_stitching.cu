@@ -45,6 +45,10 @@ __global__ void kernelWarpPerspective(int png_width, int png_height, int curr_wi
     
 }
 
+void dummyWarmup(){
+    cudaFree(0);
+}
+
 void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* png_b, unsigned char* png_a, 
     int png_width, int png_height, unsigned char* newImR, unsigned char* newImG, unsigned char* newImB, unsigned char* newImA, 
     MatrixXd H, int newIm_width, int newIm_height){
@@ -52,7 +56,6 @@ void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* 
     dim3 blockDim(32, 32, 1);
     dim3 gridDim((png_width + blockDim.x - 1) / blockDim.x, ((png_height + blockDim.y - 1) / blockDim.y));
     
-    cudaFree(0);
     //UNAVOIDABLE TIME COST: CUDA WARMUP TIME is 0.67 seconds
     // double section1S = CycleTimer::currentSeconds();
     // double* H_device;

@@ -11,7 +11,7 @@ using Eigen::MatrixXd;
 
 #define USE_FIX_FILENAME 0
 
-// double cudaFindPeaks();
+void dummyWarmup();
 // void placeImage(MatrixXd newImage, MatrixXd* resImg, double min_x, double min_y, double max_x, double max_y);
 void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* png_b, unsigned char* png_a, 
         int png_width, int png_height, unsigned char* newImR, unsigned char* newImG, unsigned char* newImB, unsigned char* newImA, 
@@ -474,17 +474,22 @@ int main(int argc, char *argv[])
 
     bool matchListSizeZero = false;
     #pragma omp parallel for schedule(dynamic)
-    for(int i=0; i<images.size()-1; i++){
-        std::list<ezsift::MatchPair> match_list;
-        // double matchKeyPointsStart = CycleTimer::currentSeconds();
-        ezsift::match_keypoints(kpt_lists[i], kpt_lists[i+1], match_list); //Doesn't take long
-        // double matchKeyPointsEnd = CycleTimer::currentSeconds();
-        // std::cout << "Actual matching of keypoints time: " << matchKeyPointsEnd-matchKeyPointsStart << std::endl;
-  
-        matches[i] = match_list;
-        if(match_list.size() == 0){
-            matchListSizeZero = true;
+    for(int i=0; i<images.size(); i++){
+        if(i == images.size() -1 ){
+            dummyWarmup();
+        }else{
+            std::list<ezsift::MatchPair> match_list;
+            // double matchKeyPointsStart = CycleTimer::currentSeconds();
+            ezsift::match_keypoints(kpt_lists[i], kpt_lists[i+1], match_list); //Doesn't take long
+            // double matchKeyPointsEnd = CycleTimer::currentSeconds();
+            // std::cout << "Actual matching of keypoints time: " << matchKeyPointsEnd-matchKeyPointsStart << std::endl;
+    
+            matches[i] = match_list;
+            if(match_list.size() == 0){
+                matchListSizeZero = true;
+            }
         }
+        
     }
 
     if(matchListSizeZero){ 
