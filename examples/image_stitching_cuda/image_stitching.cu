@@ -166,27 +166,25 @@ double cudaFindPeaks() {
 //         }
 //     }
 // }
-__global__ void kernelWarpPerspective(double* H, int png_width, int png_height, int curr_width, int curr_height, unsigned char* out_r_device, 
+
+//declare constant memory
+__constant__ double homography[9];
+
+__global__ void kernelWarpPerspective(int png_width, int png_height, int curr_width, int curr_height, unsigned char* out_r_device, 
                                     unsigned char* out_g_device, unsigned char* out_b_device, unsigned char* out_a_device, unsigned char* png_r, unsigned char* png_g,
                                     unsigned char* png_b, unsigned char* png_a){
     int j = blockIdx.x * blockDim.x + threadIdx.x;
     int i = blockIdx.y * blockDim.y + threadIdx.y;
     if(i > png_height || j > png_width)
         return;
-    
-    __shared__ double sharedH[9];
-    if(i < 9)
-        sharedH[i] = H[i];
 
-    __syncthreads();
-    
     int tmp00 = j;
     int tmp10 = i;
     int tmp20 = 1;
 
-    double prod_00 = sharedH[0]*tmp00 + sharedH[3]*tmp10 + sharedH[6]*tmp20;
-    double prod_10 = sharedH[1]*tmp00 + sharedH[4]*tmp10 + sharedH[7]*tmp20;
-    double prod_20 = sharedH[2]*tmp00 + sharedH[5]*tmp10 + sharedH[8]*tmp20;
+    double prod_00 = H[0]*tmp00 + H[3]*tmp10 + H[6]*tmp20;
+    double prod_10 = H[1]*tmp00 + H[4]*tmp10 + H[7]*tmp20;
+    double prod_20 = H[2]*tmp00 + H[5]*tmp10 + H[8]*tmp20;
     
     int res_00 = (int)(prod_00/prod_20);
     int res_10 = (int)(prod_10/prod_20);
@@ -210,8 +208,9 @@ void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* 
     double* H_device;
     double *H_data = H.data();
     // printf("H data %d %d %d %d %d %d %d %d %d", H_data[0], H_data[1], H_data[2], H_data[3], H_data[4], H_data[5], H_data[6], H_data[7], H_data[8]);
-    cudaMalloc((void **)&H_device, 3*3*sizeof(double)); //homography
-    cudaMemcpy(H_device, H_data, 3*3*sizeof(double), cudaMemcpyHostToDevice);
+    // cudaMalloc((void **)&H_device, 3*3*sizeof(double)); //homography
+    // cudaMemcpy(H_device, H_data, 3*3*sizeof(double), cudaMemcpyHostToDevice);
+    cudaMemcpyToSymbol(homography, H_data, sizeof(double)*9);
 
     unsigned char* png_r_device;
     unsigned char* png_g_device;
@@ -236,11 +235,11 @@ void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* 
     cudaMalloc((void **)&out_b_device, newIm_width*newIm_height*sizeof(unsigned char));
     cudaMalloc((void **)&out_a_device, newIm_width*newIm_height*sizeof(unsigned char));
     
-    kernelWarpPerspective<<<gridDim, blockDim>>>(H_device, png_width, png_height, newIm_width, newIm_height,
+    kernelWarpPerspective<<<gridDim, blockDim>>>(png_width, png_height, newIm_width, newIm_height,
                                                 out_r_device, out_g_device, out_b_device, out_a_device, png_r_device, png_g_device,
                                                 png_b_device, png_a_device);
 
-    cudaFree(H_device);
+    // cudaFree(H_device);
     cudaFree(png_r_device);
     cudaFree(png_g_device);
     cudaFree(png_b_device);
