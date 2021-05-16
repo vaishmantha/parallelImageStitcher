@@ -483,7 +483,7 @@ int main(int argc, char *argv[])
             ezsift::match_keypoints(kpt_lists[i], kpt_lists[i+1], match_list); //Doesn't take long
             // double matchKeyPointsEnd = CycleTimer::currentSeconds();
             // std::cout << "Actual matching of keypoints time: " << matchKeyPointsEnd-matchKeyPointsStart << std::endl;
-    
+
             matches[i] = match_list;
             if(match_list.size() == 0){
                 matchListSizeZero = true;

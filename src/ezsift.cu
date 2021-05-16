@@ -37,6 +37,10 @@ void pyramids_gpu(std::vector<std::vector<Image<unsigned char>>> all_octaves,
     // std::cout << "Running this from ezsift" << std::endl;
 }
 
+void dummyWarmup(){
+    cudaFree(0);
+}
+
 void printCudaInfo()
 {
     // for fun, just print out some stats on the machine
