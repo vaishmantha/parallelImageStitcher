@@ -27,7 +27,7 @@ __global__ void kernelWarpPerspective(int png_width, int png_height, int curr_wi
                                     unsigned char* png_b, unsigned char* png_a){
     int j = blockIdx.x * blockDim.x + threadIdx.x;
     int i = blockIdx.y * blockDim.y + threadIdx.y;
-    if(i > png_height || j > png_width)
+    if(i >= png_height || j >= png_width)
         return;
 
     double prod_00 = homography[0]*j + homography[3]*i + homography[6];
