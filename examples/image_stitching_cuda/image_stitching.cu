@@ -48,6 +48,7 @@ __global__ void kernelWarpPerspective(int png_width, int png_height, int curr_wi
 void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* png_b, unsigned char* png_a, 
     int png_width, int png_height, unsigned char* newImR, unsigned char* newImG, unsigned char* newImB, unsigned char* newImA, 
     MatrixXd H, int newIm_width, int newIm_height){
+    double overallStartTime = CycleTimer::currentSeconds();
     dim3 blockDim(32, 32, 1);
     dim3 gridDim((png_width + blockDim.x - 1) / blockDim.x, ((png_height + blockDim.y - 1) / blockDim.y));
 
@@ -102,7 +103,9 @@ void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* 
     cudaFree(out_g_device);
     cudaFree(out_b_device);
     cudaFree(out_a_device);
-
+    
+    double overallEndTime = CycleTimer::currentSeconds();
+    std::cout << "Overall warp persp time " << overallEndTime-overallStartTime << std::endl;
 
     cudaError_t errCode = cudaPeekAtLastError();
     if (errCode != cudaSuccess) {
