@@ -195,7 +195,7 @@ __global__ void kernelWarpPerspective(double* H, int png_width, int png_height, 
 void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* png_b, unsigned char* png_a, 
 int png_width, int png_height, MatrixXd* newImR,MatrixXd* newImG,MatrixXd* newImB, MatrixXd* newImA, MatrixXd H){
     dim3 blockDim(16, 16, 1);
-    dim3 gridDim(((png_width + blockDim.x - 1) / blockDim.x, ((png_height + blockDim.y - 1) / blockDim.y);
+    dim3 gridDim(((png_width + blockDim.x - 1) / blockDim.x, ((png_height + blockDim.y - 1) / blockDim.y));
 
     double* H_device;
     cudaMalloc((void **)&H_device, 3*3*sizeof(double)); //homography

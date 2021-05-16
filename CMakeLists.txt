@@ -58,6 +58,7 @@ set(CFLAGS
     -std=c++11
     -m64
     -fopenmp
+    --expt-relaxed-constexpr
 )
 add_compile_options(${CFLAGS})
 include_directories(
