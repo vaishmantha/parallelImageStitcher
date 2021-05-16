@@ -465,7 +465,15 @@ int main(int argc, char *argv[])
     
     ezsift::double_original_image(true);
     double siftStart = CycleTimer::currentSeconds();
-    ezsift::sift_gpu(images, kpt_lists, true);
+    for(int i=0; i<images.size()+1; i++){
+        if(i < images.size()){
+            sift_cpu(images[i], kpt_lists[i], true);
+        }else{
+            dummyWarmup()
+        }
+        
+    }
+    // ezsift::sift_gpu(images, kpt_lists, true);
     double siftEnd = CycleTimer::currentSeconds();
     std::cout << "Sift time: " << siftEnd-siftStart << std::endl;
     std::vector<std::list<ezsift::MatchPair>> matches(images.size()-1);
