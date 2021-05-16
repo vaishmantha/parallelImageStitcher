@@ -185,10 +185,10 @@ __global__ void kernelWarpPerspective(double* H, int png_width, int png_height, 
     int res_00 = (int)prod_00/prod_20;
     int res_10 = (int)prod_10/prod_20;
     if(res_00 >= 0 && res_00 < newImCols && res_10 >= 0 && res_10 < newImRows){
-        out_r_device[res_10*newImCols+res_00] = (int)png_r[i*png_width + j]; //try flipped too
-        out_g_device[res_10*newImCols+res_00] = (int)png_g[i*png_width + j]; //try flipped too
-        out_b_device[res_10*newImCols+res_00] = (int)png_b[i*png_width + j]; //try flipped too
-        out_a_device[res_10*newImCols+res_00] = (int)png_a[i*png_width + j]; //try flipped too
+        out_r_device[res_10*newImCols+res_00] = 255; //(int)png_r[i*png_width + j]; //try flipped too
+        out_g_device[res_10*newImCols+res_00] = 255; //(int)png_g[i*png_width + j]; //try flipped too
+        out_b_device[res_10*newImCols+res_00] = 255; //(int)png_b[i*png_width + j]; //try flipped too
+        out_a_device[res_10*newImCols+res_00] = 255; //(int)png_a[i*png_width + j]; //try flipped too
     }
     
 }
