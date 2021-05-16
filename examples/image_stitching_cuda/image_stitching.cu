@@ -230,9 +230,9 @@ void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* 
     cudaMalloc((void **)&out_b_device, newIm_width*newIm_height*sizeof(unsigned char));
     cudaMalloc((void **)&out_a_device, newIm_width*newIm_height*sizeof(unsigned char));
     
-    // kernelWarpPerspective<<<gridDim, blockDim>>>(H_device, png_width, png_height, newIm_height, newIm_width, 
-    //                                             out_r_device, out_g_device, out_b_device, out_a_device, png_r_device, png_g_device,
-    //                                             png_b_device, png_a_device);
+    kernelWarpPerspective<<<gridDim, blockDim>>>(H_device, png_width, png_height, newIm_height, newIm_width, 
+                                                out_r_device, out_g_device, out_b_device, out_a_device, png_r_device, png_g_device,
+                                                png_b_device, png_a_device);
 
     cudaFree(H_device);
     cudaFree(png_r_device);
@@ -241,10 +241,10 @@ void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* 
     cudaFree(png_a_device);
 
     //May not have to malloc here
-    cudaMemcpy(out_r_device, newImR, newIm_width*newIm_height*sizeof(unsigned char), cudaMemcpyDeviceToHost); //CHECK ORDER OF ARGS HERE
-    cudaMemcpy(out_g_device, newImG, newIm_width*newIm_height*sizeof(unsigned char), cudaMemcpyDeviceToHost);
-    cudaMemcpy(out_b_device, newImB, newIm_width*newIm_height*sizeof(unsigned char), cudaMemcpyDeviceToHost);
-    cudaMemcpy(out_a_device, newImA, newIm_width*newIm_height*sizeof(unsigned char), cudaMemcpyDeviceToHost);
+    cudaMemcpy(newImR, out_r_device, newIm_width*newIm_height*sizeof(unsigned char), cudaMemcpyDeviceToHost); //CHECK ORDER OF ARGS HERE
+    cudaMemcpy(newImG, out_g_device, newIm_width*newIm_height*sizeof(unsigned char), cudaMemcpyDeviceToHost);
+    cudaMemcpy(newImB, out_b_device, newIm_width*newIm_height*sizeof(unsigned char), cudaMemcpyDeviceToHost);
+    cudaMemcpy(newImA, out_a_device, newIm_width*newIm_height*sizeof(unsigned char), cudaMemcpyDeviceToHost);
 
     cudaFree(out_r_device);
     cudaFree(out_g_device);
