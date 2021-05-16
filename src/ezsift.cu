@@ -18,6 +18,7 @@
 namespace ezsift {
 
 void printCudaInfo();
+void dummyWarmup();
 
 void pyramids_gpu(std::vector<std::vector<Image<unsigned char>>> all_octaves, 
     std::vector<int> all_nOctaves, int nGpyrLayers, int nDogLayers, int nLayers,
