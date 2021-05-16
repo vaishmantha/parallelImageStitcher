@@ -174,7 +174,7 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
         std::vector<int> inlier_inds_current; 
         double diff;
         bool divide_by_zero = false;
-        // std::cout << "Num cols in product " << prod.cols() << std::endl;
+        std::cout << "Num cols in product " << prod.cols() << std::endl;
         for(int i = 0; i < prod.cols(); i++){ //FIX: 100s of cols here, so cudify
             if(prod.transpose()(i, 2) == 0){
                 divide_by_zero = true;
@@ -274,11 +274,11 @@ void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* 
     #pragma omp parallel for collapse(2)
     for(i=0; i< png_height; i++){ 
         for(int j=0; j<png_width; j++){
-            MatrixXd tmp = MatrixXd::Constant(1,3, 0.0);
+            MatrixXd tmp = MatrixXd::Constant(3,1, 0.0);
             tmp(0,0) = j;
-            tmp(0,1) = i;
-            tmp(0,2) = 1;
-            MatrixXd res = H*tmp.transpose();
+            tmp(1,0) = i;
+            tmp(2,0) = 1;
+            MatrixXd res = H*tmp;
             MatrixXd tm =  Matslice(res, 2, 0, 1, res.cols()).replicate(3,1); 
             res = res.cwiseQuotient(tm);
             if ((int)res(0,0) >= 0 && (int)res(0,0) < (*newImR).cols() && (int)res(1,0) >= 0 && (int)res(1,0) < (*newImR).rows()){
@@ -299,8 +299,9 @@ void placeImage(MatrixXd newImage, MatrixXd* resImg, double min_x, double min_y,
     int start_i = (int)fmax(min_y,0);
     int start_j = (int)fmax(min_x,0);
     #pragma omp parallel for collapse(2)//schedule(dynamic)
-    for (int j = start_j; j < (int)max_x; j++){
-        for (int i = start_i; i < (int)max_y; i++){ //access as row col
+    //FIX: another for loop that goes over the 4 image channels
+    for (int i = start_i; i < (int)max_y; i++){ //access as row col
+        for (int j = start_j; j < (int)max_x; j++){
             if ((*resImg)(i,j) == 0){
                 (*resImg)(i,j) = newImage(i,j);
             }
@@ -312,8 +313,8 @@ void placeImage(MatrixXd newImage, MatrixXd* resImg, double min_x, double min_y,
     MatrixXd copyRes = (*resImg);
     // #pragma omp parallel for //schedule(dynamic)
     #pragma omp parallel for collapse(2)
-    for(int j = start_j; j < (int)max_x; j++){
-        for(int i = start_i; i < (int)max_y; i++){
+    for(int i = start_i; i < (int)max_y; i++){
+        for(int j = start_j; j < (int)max_x; j++){
             if((*resImg)(i, j) == 0){
                 if (i+1 < max_y && copyRes(i+1,j) != 0){ // && i-1 >=fmax(min_y,0) && j+1 < max_x && j-1 >=fmax(min_x,0) ){
                     (*resImg)(i, j) = copyRes(i+1,j);
