@@ -193,8 +193,12 @@ __global__ void kernelWarpPerspective(double* H, int png_width, int png_height, 
     
 }
 
+
 void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* png_b, unsigned char* png_a, 
-int png_width, int png_height, MatrixXd* newImR,MatrixXd* newImG,MatrixXd* newImB, MatrixXd* newImA, MatrixXd H){
+    int png_width, int png_height, unsigned char* newImR, unsigned char* newImG, unsigned char* newImB, unsigned char* newImA, 
+    MatrixXd H, int newIm_width, int newIm_height){
+// void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* png_b, unsigned char* png_a, 
+// int png_width, int png_height, MatrixXd* newImR,MatrixXd* newImG,MatrixXd* newImB, MatrixXd* newImA, MatrixXd H){
     dim3 blockDim(16, 16, 1);
     dim3 gridDim((png_width + blockDim.x - 1) / blockDim.x, ((png_height + blockDim.y - 1) / blockDim.y));
 
@@ -221,12 +225,12 @@ int png_width, int png_height, MatrixXd* newImR,MatrixXd* newImG,MatrixXd* newIm
     unsigned char* out_g_device;
     unsigned char* out_b_device;
     unsigned char* out_a_device;
-    cudaMalloc((void **)&out_r_device, newImR->rows()*newImR->cols()*sizeof(unsigned char)); //try int as well
-    cudaMalloc((void **)&out_g_device, newImG->rows()*newImG->cols()*sizeof(unsigned char));
-    cudaMalloc((void **)&out_b_device, newImB->rows()*newImB->cols()*sizeof(unsigned char));
-    cudaMalloc((void **)&out_a_device, newImA->rows()*newImA->cols()*sizeof(unsigned char));
+    cudaMalloc((void **)&out_r_device, newIm_width*newIm_height*sizeof(unsigned char)); //try int as well
+    cudaMalloc((void **)&out_g_device, newIm_width*newIm_height*sizeof(unsigned char));
+    cudaMalloc((void **)&out_b_device, newIm_width*newIm_height*sizeof(unsigned char));
+    cudaMalloc((void **)&out_a_device, newIm_width*newIm_height*sizeof(unsigned char));
     
-    kernelWarpPerspective<<<gridDim, blockDim>>>(H_device, png_width, png_height, newImR->cols(), newImG->rows(), 
+    kernelWarpPerspective<<<gridDim, blockDim>>>(H_device, png_width, png_height, newIm_height, newIm_width, 
                                                 out_r_device, out_g_device, out_b_device, out_a_device, png_r_device, png_g_device,
                                                 png_b_device, png_a_device);
 
@@ -237,20 +241,20 @@ int png_width, int png_height, MatrixXd* newImR,MatrixXd* newImG,MatrixXd* newIm
     cudaFree(png_a_device);
 
     //May not have to malloc here
-    unsigned char* out_r_host = (unsigned char*)malloc(newImR->rows()*newImR->cols()*sizeof(unsigned char));
-    unsigned char* out_g_host = (unsigned char*)malloc(newImR->rows()*newImR->cols()*sizeof(unsigned char));
-    unsigned char* out_b_host = (unsigned char*)malloc(newImR->rows()*newImR->cols()*sizeof(unsigned char));
-    unsigned char* out_a_host = (unsigned char*)malloc(newImR->rows()*newImR->cols()*sizeof(unsigned char));
+    // unsigned char* out_r_host = (unsigned char*)malloc(newImR->rows()*newImR->cols()*sizeof(unsigned char));
+    // unsigned char* out_g_host = (unsigned char*)malloc(newImR->rows()*newImR->cols()*sizeof(unsigned char));
+    // unsigned char* out_b_host = (unsigned char*)malloc(newImR->rows()*newImR->cols()*sizeof(unsigned char));
+    // unsigned char* out_a_host = (unsigned char*)malloc(newImR->rows()*newImR->cols()*sizeof(unsigned char));
 
-    cudaMemcpy(out_r_device, out_r_host, png_height*png_width*sizeof(char), cudaMemcpyDeviceToHost); //CHECK ORDER OF ARGS HERE
-    cudaMemcpy(out_g_device, out_g_host, png_height*png_width*sizeof(char), cudaMemcpyDeviceToHost);
-    cudaMemcpy(out_b_device, out_b_host, png_height*png_width*sizeof(char), cudaMemcpyDeviceToHost);
-    cudaMemcpy(out_a_device, out_a_host, png_height*png_width*sizeof(char), cudaMemcpyDeviceToHost);
+    cudaMemcpy(out_r_device, newImR, png_height*png_width*sizeof(char), cudaMemcpyDeviceToHost); //CHECK ORDER OF ARGS HERE
+    cudaMemcpy(out_g_device, newImG, png_height*png_width*sizeof(char), cudaMemcpyDeviceToHost);
+    cudaMemcpy(out_b_device, newImB, png_height*png_width*sizeof(char), cudaMemcpyDeviceToHost);
+    cudaMemcpy(out_a_device, newImA, png_height*png_width*sizeof(char), cudaMemcpyDeviceToHost);
 
-    *newImR = Eigen::Map<MatrixXd>(out_r_device);
-    *newImG = Eigen::Map<MatrixXd>(out_g_device);
-    *newImB = Eigen::Map<MatrixXd>(out_b_device);
-    *newImA = Eigen::Map<MatrixXd>(out_a_device);
+    // *newImR = Eigen::Map<MatrixXd>(out_r_device);
+    // *newImG = Eigen::Map<MatrixXd>(out_g_device);
+    // *newImB = Eigen::Map<MatrixXd>(out_b_device);
+    // *newImA = Eigen::Map<MatrixXd>(out_a_device);
 
     cudaFree(out_r_device);
     cudaFree(out_g_device);

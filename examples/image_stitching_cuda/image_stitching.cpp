@@ -14,7 +14,8 @@ using Eigen::MatrixXd;
 // double cudaFindPeaks();
 // void placeImage(MatrixXd newImage, MatrixXd* resImg, double min_x, double min_y, double max_x, double max_y);
 void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* png_b, unsigned char* png_a, 
-        int png_width, int png_height, MatrixXd* newImR,MatrixXd* newImG,MatrixXd* newImB, MatrixXd* newImA, MatrixXd H);
+        int png_width, int png_height, unsigned char* newImR, unsigned char* newImG, unsigned char* newImB, unsigned char* newImA, 
+        MatrixXd H, int curr_width, int curr_height);
 
 
 MatrixXd Matslice(MatrixXd array, int start_row, int start_col, int height, int width){
@@ -294,9 +295,9 @@ void findDimensions(ezsift::Image<unsigned char> image, MatrixXd H,
 //     }
 // }
 
-void placeImage(MatrixXd newImage, MatrixXd* resImg, double min_x, double min_y, double max_x, double max_y){
-    int w = newImage.cols();
-    int h = newImage.rows();
+void placeImage(unsigned char* newImage, int newImWidth, MatrixXd* resImg, double min_x, double min_y, double max_x, double max_y){
+    // int w = newImage.cols();
+    // int h = newImage.rows();
     // printf("w: %d, h: %d", w, h);
     double startTime = CycleTimer::currentSeconds();
     int start_i = (int)fmax(min_y,0);
@@ -306,10 +307,10 @@ void placeImage(MatrixXd newImage, MatrixXd* resImg, double min_x, double min_y,
     for (int i = start_i; i < (int)max_y; i++){ //access as row col
         for (int j = start_j; j < (int)max_x; j++){
             if ((*resImg)(i,j) == 0){
-                (*resImg)(i,j) = newImage(i,j);
+                (*resImg)(i,j) = newImage[i*newImWidth + j]; //(i,j);
             }
-            if ((*resImg)(i,j) != 0 && newImage(i, j) != 0){
-                (*resImg)(i,j) = fmax(newImage(i,j), (*resImg)(i,j));
+            if ((*resImg)(i,j) != 0 && newImage[i*newImWidth + j] != 0){
+                (*resImg)(i,j) = fmax(newImage[i*newImWidth + j], (*resImg)(i,j));
             }
         }
     }
@@ -527,25 +528,30 @@ int main(int argc, char *argv[])
         int curr_width = (int)(fmax(pano_max_x, max_x) - fmax(fmin(pano_min_x, min_x),0));
         int curr_height  = (int)(fmax(pano_max_y, max_y) - fmax(fmin(pano_min_y, min_y),0)); 
 
-        MatrixXd newImR = MatrixXd::Constant(curr_height, curr_width, 0);
-        MatrixXd newImG = MatrixXd::Constant(curr_height, curr_width, 0);
-        MatrixXd newImB = MatrixXd::Constant(curr_height, curr_width, 0);
-        MatrixXd newImA = MatrixXd::Constant(curr_height, curr_width, 0);
+        unsigned char* newImR = new unsigned char[curr_height*curr_width];
+        unsigned char* newImG = new unsigned char[curr_height*curr_width];
+        unsigned char* newImB = new unsigned char[curr_height*curr_width];
+        unsigned char* newImA = new unsigned char[curr_height*curr_width];
+        // MatrixXd newImR = MatrixXd::Constant(curr_height, curr_width, 0);
+        // MatrixXd newImG = MatrixXd::Constant(curr_height, curr_width, 0);
+        // MatrixXd newImB = MatrixXd::Constant(curr_height, curr_width, 0);
+        // MatrixXd newImA = MatrixXd::Constant(curr_height, curr_width, 0);
         double warpPerspectiveStart = CycleTimer::currentSeconds();
-        warpPerspective(png_r[i], png_g[i], png_b[i], png_alpha[i], widths[i], heights[i], &newImR, &newImG, &newImB, &newImA, homographies[i]);
+        warpPerspective(png_r[i], png_g[i], png_b[i], png_alpha[i], widths[i], heights[i], newImR, newImG, newImB, newImA, homographies[i], curr_width, curr_height);
+        // warpPerspective(png_r[i], png_g[i], png_b[i], png_alpha[i], widths[i], heights[i], &newImR, &newImG, &newImB, &newImA, homographies[i]);
         double warpPerspectiveEnd = CycleTimer::currentSeconds();
         std::cout << "Warp perspective time: " << warpPerspectiveEnd-warpPerspectiveStart << std::endl;
 
         // #pragma omp parallel for schedule(dynamic) // DO NOT ADD BACK IN
         for(int j= 0; j<4; j++){
             if(j==0){
-                placeImage(newImR, &resImageR, min_x, min_y, max_x, max_y);
+                placeImage(newImR, curr_width, &resImageR, min_x, min_y, max_x, max_y);
             }else if(j==1){
-                placeImage(newImG, &resImageG, min_x, min_y, max_x, max_y);
+                placeImage(newImG, curr_width, &resImageG, min_x, min_y, max_x, max_y);
             }else if(j==2){
-                placeImage(newImB, &resImageB, min_x, min_y, max_x, max_y);
+                placeImage(newImB, curr_width, &resImageB, min_x, min_y, max_x, max_y);
             }else{
-                placeImage(newImA, &resImageA, min_x, min_y, max_x, max_y);
+                placeImage(newImA, curr_width, &resImageA, min_x, min_y, max_x, max_y);
             }
         }
         
