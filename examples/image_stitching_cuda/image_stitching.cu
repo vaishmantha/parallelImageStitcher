@@ -178,6 +178,7 @@ __global__ void kernelWarpPerspective(double* H, int png_width, int png_height, 
     int tmp10 = i;
     int tmp20 = 1;
 
+    std::cout << "H " << H[0] << H[1] << H[2] << H[3] << H[4] << H[5] << H[6] << H[7] << H[8] << std::endl;
     double prod_00 = H[0]*tmp00 + H[1]*tmp10 + H[2]*tmp20;
     double prod_10 = H[3]*tmp00 + H[4]*tmp10 + H[5]*tmp20;
     double prod_20 = H[6]*tmp00 + H[7]*tmp10 + H[8]*tmp20;
