@@ -205,7 +205,7 @@ void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* 
     dim3 blockDim(32, 32, 1);
     dim3 gridDim((png_width + blockDim.x - 1) / blockDim.x, ((png_height + blockDim.y - 1) / blockDim.y));
 
-    double* H_device;
+    // double* H_device;
     double *H_data = H.data();
     // printf("H data %d %d %d %d %d %d %d %d %d", H_data[0], H_data[1], H_data[2], H_data[3], H_data[4], H_data[5], H_data[6], H_data[7], H_data[8]);
     // cudaMalloc((void **)&H_device, 3*3*sizeof(double)); //homography
