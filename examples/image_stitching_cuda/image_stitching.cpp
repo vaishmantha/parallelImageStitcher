@@ -588,7 +588,7 @@ int main(int argc, char *argv[])
             resImg_vect.push_back(resImageR(i, j)); //color
             resImg_vect.push_back(resImageG(i, j));
             resImg_vect.push_back(resImageB(i, j));
-            resImg_vect.push_back(255); //resImageA(i, j)); /////This cannot be 0 or the entire program breaks
+            resImg_vect.push_back(resImageA(i, j)); /////This cannot be 0 or the entire program breaks
         }
     }
     // cudaFindPeaks();
