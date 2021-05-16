@@ -169,8 +169,8 @@ double cudaFindPeaks() {
 __global__ void kernelWarpPerspective(double* H, int png_width, int png_height, int curr_width, int curr_height, unsigned char* out_r_device, 
                                     unsigned char* out_g_device, unsigned char* out_b_device, unsigned char* out_a_device, unsigned char* png_r, unsigned char* png_g,
                                     unsigned char* png_b, unsigned char* png_a){
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int j = blockIdx.y * blockDim.y + threadIdx.y;
+    int j = blockIdx.x * blockDim.x + threadIdx.x;
+    int i = blockIdx.y * blockDim.y + threadIdx.y;
     if(i > png_height || j > png_width)
         return;
     
@@ -178,9 +178,6 @@ __global__ void kernelWarpPerspective(double* H, int png_width, int png_height, 
     int tmp10 = i;
     int tmp20 = 1;
 
-    // double prod_00 = H[0]*tmp00 + H[1]*tmp10 + H[2]*tmp20;
-    // double prod_10 = H[3]*tmp00 + H[4]*tmp10 + H[5]*tmp20;
-    // double prod_20 = H[6]*tmp00 + H[7]*tmp10 + H[8]*tmp20;
     double prod_00 = H[0]*tmp00 + H[3]*tmp10 + H[6]*tmp20;
     double prod_10 = H[1]*tmp00 + H[4]*tmp10 + H[7]*tmp20;
     double prod_20 = H[2]*tmp00 + H[5]*tmp10 + H[8]*tmp20;
@@ -225,7 +222,7 @@ void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* 
 // void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* png_b, unsigned char* png_a, 
 // int png_width, int png_height, MatrixXd* newImR,MatrixXd* newImG,MatrixXd* newImB, MatrixXd* newImA, MatrixXd H){
     dim3 blockDim(16, 16, 1);
-    dim3 gridDim((png_height + blockDim.x - 1) / blockDim.x, ((png_width + blockDim.y - 1) / blockDim.y));
+    dim3 gridDim((png_width + blockDim.x - 1) / blockDim.x, ((png_height + blockDim.y - 1) / blockDim.y));
 
     double* H_device;
     double *H_data = H.data();
