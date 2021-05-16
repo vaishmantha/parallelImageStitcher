@@ -545,14 +545,14 @@ int main(int argc, char *argv[])
     double imgCompositionEnd = CycleTimer::currentSeconds();
     std::cout << "Img composition time: " << imgCompositionEnd-imgCompositionStart << std::endl;
 
-    std::vector<unsigned char> resImg_vect(4*pan_height*pan_width);
+    std::vector<unsigned char> resImg_vect;
     // #pragma omp parallel for collapse(2)
     for(int i=0; i<pan_height; i++){
         for(int j=0; j<pan_width; j++){
-            resImg_vect[4*i] = resImageR(i, j); //color
-            resImg_vect[4*i+1] = resImageG(i, j);
-            resImg_vect[4*i+2] = resImageB(i, j);
-            resImg_vect[4*i+3] = resImageA(i, j); /////This cannot be 0 or the entire program breaks
+            resImg_vect.push_back(resImageR(i, j)); //color
+            resImg_vect.push_back(resImageG(i, j));
+            resImg_vect.push_back(resImageB(i, j));
+            resImg_vect.push_back(resImageA(i, j)); /////This cannot be 0 or the entire program breaks
         }
     }
     // cudaFindPeaks();
