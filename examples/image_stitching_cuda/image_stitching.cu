@@ -166,7 +166,7 @@ double cudaFindPeaks() {
 //         }
 //     }
 // }
-__global__ void kernelWarpPerspective(double* H, int png_width, int png_height, int newImRows, int newImCols, unsigned char* out_r_device, 
+__global__ void kernelWarpPerspective(double* H, int png_width, int curr_width, int curr_height, int newImCols, unsigned char* out_r_device, 
                                     unsigned char* out_g_device, unsigned char* out_b_device, unsigned char* out_a_device, unsigned char* png_r, unsigned char* png_g,
                                     unsigned char* png_b, unsigned char* png_a){
     int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -182,16 +182,38 @@ __global__ void kernelWarpPerspective(double* H, int png_width, int png_height, 
     double prod_10 = H[3]*tmp00 + H[4]*tmp10 + H[5]*tmp20;
     double prod_20 = H[6]*tmp00 + H[7]*tmp10 + H[8]*tmp20;
     
-    int res_00 = (int)prod_00/prod_20;
-    int res_10 = (int)prod_10/prod_20;
-    if(res_00 >= 0 && res_00 < newImCols && res_10 >= 0 && res_10 < newImRows){
-        out_r_device[res_10*newImCols+res_00] = 255; //(int)png_r[i*png_width + j]; //try flipped too
-        out_g_device[res_10*newImCols+res_00] = 255; //(int)png_g[i*png_width + j]; //try flipped too
-        out_b_device[res_10*newImCols+res_00] = 255; //(int)png_b[i*png_width + j]; //try flipped too
-        out_a_device[res_10*newImCols+res_00] = 255; //(int)png_a[i*png_width + j]; //try flipped too
+    int res_00 = (int)(prod_00/prod_20);
+    int res_10 = (int)(prod_10/prod_20);
+    if(res_00 >= 0 && res_00 < curr_width && res_10 >= 0 && res_10 < curr_height){
+        out_r_device[res_10*curr_width+res_00] = 255; //(int)png_r[i*png_width + j]; //try flipped too
+        out_g_device[res_10*curr_width+res_00] = 255; //(int)png_g[i*png_width + j]; //try flipped too
+        out_b_device[res_10*curr_width+res_00] = 255; //(int)png_b[i*png_width + j]; //try flipped too
+        out_a_device[res_10*curr_width+res_00] = 255; //(int)png_a[i*png_width + j]; //try flipped too
     }
     
 }
+//void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* png_b, unsigned char* png_a, 
+    //     int png_width, int png_height, unsigned char* newImR, unsigned char* newImG, unsigned char* newImB, unsigned char* newImA, 
+    //     MatrixXd H, int curr_width, int curr_height){
+    // int i; 
+    // for(i=0; i< png_height; i++){ 
+    //     for(int j=0; j<png_width; j++){
+    //         MatrixXd tmp = MatrixXd::Constant(3,1, 0.0);
+    //         tmp(0,0) = j;
+    //         tmp(1,0) = i;
+    //         tmp(2,0) = 1;
+    //         MatrixXd res = H*tmp;
+    //         MatrixXd tm =  Matslice(res, 2, 0, 1, res.cols()).replicate(3,1); //(MatrixXd array, int start_row, int start_col, int height, int width)
+    //         res = res.cwiseQuotient(tm);
+    //         if ((int)res(0,0) >= 0 && (int)res(0,0) < curr_width && (int)res(1,0) >= 0 && (int)res(1,0) < curr_height){
+    //             newImR[((int)res(1,0))*curr_width +  (int)res(0,0)] = (int)png_r[i*png_width + j];
+    //             newImG[((int)res(1,0))*curr_width +  (int)res(0,0)] = (int)png_g[i*png_width + j];
+    //             newImB[((int)res(1,0))*curr_width +  (int)res(0,0)] = (int)png_b[i*png_width + j];
+    //             newImA[((int)res(1,0))*curr_width +  (int)res(0,0)] = (int)png_a[i*png_width + j];
+    //         }
+    //     }
+    // }
+    // }
 
 
 void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* png_b, unsigned char* png_a, 
@@ -230,7 +252,7 @@ void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* 
     cudaMalloc((void **)&out_b_device, newIm_width*newIm_height*sizeof(unsigned char));
     cudaMalloc((void **)&out_a_device, newIm_width*newIm_height*sizeof(unsigned char));
     
-    kernelWarpPerspective<<<gridDim, blockDim>>>(H_device, png_width, png_height, newIm_height, newIm_width, 
+    kernelWarpPerspective<<<gridDim, blockDim>>>(H_device, png_width, png_height, newIm_width, newIm_height,
                                                 out_r_device, out_g_device, out_b_device, out_a_device, png_r_device, png_g_device,
                                                 png_b_device, png_a_device);
 
@@ -258,27 +280,4 @@ void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* 
     }
 }
 
-// void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* png_b, unsigned char* png_a, 
-//         int png_width, int png_height, MatrixXd* newImR,MatrixXd* newImG,MatrixXd* newImB, MatrixXd* newImA, MatrixXd H){
-//     //FIX: Need to create matrix of form Nx3 and do the matrix multiply all at once- cuda kernel
-//     int i; 
-//     #pragma omp parallel for collapse(2)
-//     for(i=0; i< png_height; i++){ 
-//         for(int j=0; j<png_width; j++){
-//             MatrixXd tmp = MatrixXd::Constant(3,1, 0.0);
-//             tmp(0,0) = j;
-//             tmp(1,0) = i;
-//             tmp(2,0) = 1;
-//             MatrixXd res = H*tmp;
-//             MatrixXd tm =  Matslice(res, 2, 0, 1, res.cols()).replicate(3,1); //(MatrixXd array, int start_row, int start_col, int height, int width)
-//             res = res.cwiseQuotient(tm);
-//             if ((int)res(0,0) >= 0 && (int)res(0,0) < (*newImR).cols() && (int)res(1,0) >= 0 && (int)res(1,0) < (*newImR).rows()){
-//                 (*newImR)((int)res(1,0), (int)res(0,0)) = (int)png_r[i*png_width + j];
-//                 (*newImG)((int)res(1,0), (int)res(0,0)) = (int)png_g[i*png_width + j];
-//                 (*newImB)((int)res(1,0), (int)res(0,0)) = (int)png_b[i*png_width + j];
-//                 (*newImA)((int)res(1,0), (int)res(0,0)) = (int)png_a[i*png_width + j];
-//             }
-//         }
-//     }
-// }
 
