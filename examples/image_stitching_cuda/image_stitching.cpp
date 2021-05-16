@@ -13,9 +13,9 @@ using Eigen::MatrixXd;
 
 // double cudaFindPeaks();
 // void placeImage(MatrixXd newImage, MatrixXd* resImg, double min_x, double min_y, double max_x, double max_y);
-// void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* png_b, unsigned char* png_a, 
-//         int png_width, int png_height, unsigned char* newImR, unsigned char* newImG, unsigned char* newImB, unsigned char* newImA, 
-//         MatrixXd H, int curr_width, int curr_height);
+void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* png_b, unsigned char* png_a, 
+        int png_width, int png_height, unsigned char* newImR, unsigned char* newImG, unsigned char* newImB, unsigned char* newImA, 
+        MatrixXd H, int curr_width, int curr_height);
 
 
 MatrixXd Matslice(MatrixXd array, int start_row, int start_col, int height, int width){
@@ -270,28 +270,28 @@ void findDimensions(ezsift::Image<unsigned char> image, MatrixXd H,
     *min_y = Matslice(imgDimss, 1, 0, 1, imgDimss.cols()).minCoeff(); 
     *max_y = Matslice(imgDimss, 1, 0, 1, imgDimss.cols()).maxCoeff(); 
 }
-void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* png_b, unsigned char* png_a, 
-        int png_width, int png_height, unsigned char* newImR, unsigned char* newImG, unsigned char* newImB, unsigned char* newImA, 
-        MatrixXd H, int curr_width, int curr_height){
-    int i; 
-    for(i=0; i< png_height; i++){ 
-        for(int j=0; j<png_width; j++){
-            MatrixXd tmp = MatrixXd::Constant(3,1, 0.0);
-            tmp(0,0) = j;
-            tmp(1,0) = i;
-            tmp(2,0) = 1;
-            MatrixXd res = H*tmp;
-            MatrixXd tm =  Matslice(res, 2, 0, 1, res.cols()).replicate(3,1); //(MatrixXd array, int start_row, int start_col, int height, int width)
-            res = res.cwiseQuotient(tm);
-            if ((int)res(0,0) >= 0 && (int)res(0,0) < curr_width && (int)res(1,0) >= 0 && (int)res(1,0) < curr_height){
-                newImR[((int)res(1,0))*curr_width +  (int)res(0,0)] = (int)png_r[i*png_width + j];
-                newImG[((int)res(1,0))*curr_width +  (int)res(0,0)] = (int)png_g[i*png_width + j];
-                newImB[((int)res(1,0))*curr_width +  (int)res(0,0)] = (int)png_b[i*png_width + j];
-                newImA[((int)res(1,0))*curr_width +  (int)res(0,0)] = (int)png_a[i*png_width + j];
-            }
-        }
-    }
-}
+// void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* png_b, unsigned char* png_a, 
+//         int png_width, int png_height, unsigned char* newImR, unsigned char* newImG, unsigned char* newImB, unsigned char* newImA, 
+//         MatrixXd H, int curr_width, int curr_height){
+//     int i; 
+//     for(i=0; i< png_height; i++){ 
+//         for(int j=0; j<png_width; j++){
+//             MatrixXd tmp = MatrixXd::Constant(3,1, 0.0);
+//             tmp(0,0) = j;
+//             tmp(1,0) = i;
+//             tmp(2,0) = 1;
+//             MatrixXd res = H*tmp;
+//             MatrixXd tm =  Matslice(res, 2, 0, 1, res.cols()).replicate(3,1); //(MatrixXd array, int start_row, int start_col, int height, int width)
+//             res = res.cwiseQuotient(tm);
+//             if ((int)res(0,0) >= 0 && (int)res(0,0) < curr_width && (int)res(1,0) >= 0 && (int)res(1,0) < curr_height){
+//                 newImR[((int)res(1,0))*curr_width +  (int)res(0,0)] = (int)png_r[i*png_width + j];
+//                 newImG[((int)res(1,0))*curr_width +  (int)res(0,0)] = (int)png_g[i*png_width + j];
+//                 newImB[((int)res(1,0))*curr_width +  (int)res(0,0)] = (int)png_b[i*png_width + j];
+//                 newImA[((int)res(1,0))*curr_width +  (int)res(0,0)] = (int)png_a[i*png_width + j];
+//             }
+//         }
+//     }
+// }
 
 // void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* png_b, unsigned char* png_a, 
 //         int png_width, int png_height, MatrixXd* newImR,MatrixXd* newImG,MatrixXd* newImB, MatrixXd* newImA, MatrixXd H){
