@@ -338,30 +338,30 @@ void placeImage(unsigned char* newImage, int newImWidth, MatrixXd* resImg, doubl
     }
     MatrixXd copyRes = (*resImg);
     // #pragma omp parallel for //schedule(dynamic)
-    // #pragma omp parallel for collapse(2)
-    // for(int i = start_i; i < (int)max_y; i++){
-    //     for(int j = start_j; j < (int)max_x; j++){
-    //         if((*resImg)(i, j) == 0){
-    //             if (i+1 < max_y && copyRes(i+1,j) != 0){ // && i-1 >=fmax(min_y,0) && j+1 < max_x && j-1 >=fmax(min_x,0) ){
-    //                 (*resImg)(i, j) = copyRes(i+1,j);
-    //             }else if(i-1 >= fmax(min_y,0) && copyRes(i-1,j) != 0){
-    //                 (*resImg)(i, j) = copyRes(i-1,j);
-    //             }else if(j+1 < max_x && copyRes(i,j+1) != 0){
-    //                 (*resImg)(i, j) = copyRes(i,j+1);
-    //             }else if(j-1 >=fmax(min_x,0) && copyRes(i,j-1) != 0){
-    //                 (*resImg)(i,j) = copyRes(i,j-1);
-    //             }else if(i+1 < max_y && j+1 < max_x && copyRes(i+1,j+1)){
-    //                 (*resImg)(i,j) = copyRes(i+1,j+1);
-    //             }else if(i-1 >= fmax(min_y,0) && j+1 < max_x && copyRes(i-1,j+1)){
-    //                 (*resImg)(i,j) = copyRes(i-1,j+1);
-    //             }else if(i+1 < max_y && j-1 >=fmax(min_x,0) && copyRes(i+1,j-1)){
-    //                 (*resImg)(i,j) = copyRes(i+1,j-1);
-    //             }else if(i-1 >= fmax(min_y,0) && j-1 >=fmax(min_x,0) && copyRes(i-1,j-1)){
-    //                 (*resImg)(i,j) = copyRes(i-1,j-1);
-    //             }
-    //         }
-    //     }
-    // }
+    #pragma omp parallel for collapse(2)
+    for(int i = start_i; i < (int)max_y; i++){
+        for(int j = start_j; j < (int)max_x; j++){
+            if((*resImg)(i, j) == 0){
+                if (i+1 < max_y && copyRes(i+1,j) != 0){ // && i-1 >=fmax(min_y,0) && j+1 < max_x && j-1 >=fmax(min_x,0) ){
+                    (*resImg)(i, j) = copyRes(i+1,j);
+                }else if(i-1 >= fmax(min_y,0) && copyRes(i-1,j) != 0){
+                    (*resImg)(i, j) = copyRes(i-1,j);
+                }else if(j+1 < max_x && copyRes(i,j+1) != 0){
+                    (*resImg)(i, j) = copyRes(i,j+1);
+                }else if(j-1 >=fmax(min_x,0) && copyRes(i,j-1) != 0){
+                    (*resImg)(i,j) = copyRes(i,j-1);
+                }else if(i+1 < max_y && j+1 < max_x && copyRes(i+1,j+1)){
+                    (*resImg)(i,j) = copyRes(i+1,j+1);
+                }else if(i-1 >= fmax(min_y,0) && j+1 < max_x && copyRes(i-1,j+1)){
+                    (*resImg)(i,j) = copyRes(i-1,j+1);
+                }else if(i+1 < max_y && j-1 >=fmax(min_x,0) && copyRes(i+1,j-1)){
+                    (*resImg)(i,j) = copyRes(i+1,j-1);
+                }else if(i-1 >= fmax(min_y,0) && j-1 >=fmax(min_x,0) && copyRes(i-1,j-1)){
+                    (*resImg)(i,j) = copyRes(i-1,j-1);
+                }
+            }
+        }
+    }
     double endTime = CycleTimer::currentSeconds();
     std::cout << "Place image time " << endTime-startTime << std::endl;
 }
@@ -550,10 +550,10 @@ int main(int argc, char *argv[])
         int curr_width = (int)(fmax(pano_max_x, max_x) - fmax(fmin(pano_min_x, min_x),0));
         int curr_height  = (int)(fmax(pano_max_y, max_y) - fmax(fmin(pano_min_y, min_y),0)); 
 
-        unsigned char* newImR = new unsigned char[curr_height*curr_width];
-        unsigned char* newImG = new unsigned char[curr_height*curr_width];
-        unsigned char* newImB = new unsigned char[curr_height*curr_width];
-        unsigned char* newImA = new unsigned char[curr_height*curr_width];
+        unsigned char* newImR = new unsigned char[curr_height*curr_width]{};
+        unsigned char* newImG = new unsigned char[curr_height*curr_width]{};
+        unsigned char* newImB = new unsigned char[curr_height*curr_width]{};
+        unsigned char* newImA = new unsigned char[curr_height*curr_width]{};
         // MatrixXd newImR = MatrixXd::Constant(curr_height, curr_width, 0);
         // MatrixXd newImG = MatrixXd::Constant(curr_height, curr_width, 0);
         // MatrixXd newImB = MatrixXd::Constant(curr_height, curr_width, 0);
