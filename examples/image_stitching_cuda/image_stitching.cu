@@ -25,8 +25,8 @@ __constant__ double homography[9];
 __global__ void kernelWarpPerspective(int png_width, int png_height, int curr_width, int curr_height, unsigned char* out_r_device, 
                                     unsigned char* out_g_device, unsigned char* out_b_device, unsigned char* out_a_device, unsigned char* png_r, unsigned char* png_g,
                                     unsigned char* png_b, unsigned char* png_a){
-    int j = blockIdx.x * blockDim.x + threadIdx.x;
-    int i = blockIdx.y * blockDim.y + threadIdx.y;
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    int j = blockIdx.y * blockDim.y + threadIdx.y;
     if(i > png_height || j > png_width)
         return;
 
@@ -34,8 +34,8 @@ __global__ void kernelWarpPerspective(int png_width, int png_height, int curr_wi
     double prod_10 = homography[1]*j + homography[4]*i + homography[7];
     double prod_20 = homography[2]*j + homography[5]*i + homography[8];
     
-    double res_00 = (prod_00/prod_20) - 1;
-    double res_10 = (prod_10/prod_20) - 1;
+    double res_00 = (prod_00/prod_20);
+    double res_10 = (prod_10/prod_20);
     if((int)res_00 >= 0 && (int)res_00 < curr_width && (int)res_10 >= 0 && res_10 < (int)curr_height){
         out_r_device[(int)res_10*curr_width+(int)res_00] = (int)png_r[i*png_width + j]; 
         out_g_device[(int)res_10*curr_width+(int)res_00] = (int)png_g[i*png_width + j]; 
