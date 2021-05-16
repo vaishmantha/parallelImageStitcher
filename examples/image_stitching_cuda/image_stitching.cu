@@ -34,13 +34,13 @@ __global__ void kernelWarpPerspective(int png_width, int png_height, int curr_wi
     double prod_10 = homography[1]*j + homography[4]*i + homography[7];
     double prod_20 = homography[2]*j + homography[5]*i + homography[8];
     
-    int res_00 = (int)(prod_00/prod_20);
-    int res_10 = (int)(prod_10/prod_20);
-    if(res_00 >= 0 && res_00 < curr_width && res_10 >= 0 && res_10 < curr_height){
-        out_r_device[res_10*curr_width+res_00] = (int)png_r[i*png_width + j]; 
-        out_g_device[res_10*curr_width+res_00] = (int)png_g[i*png_width + j]; 
-        out_b_device[res_10*curr_width+res_00] = (int)png_b[i*png_width + j];
-        out_a_device[res_10*curr_width+res_00] = (int)png_a[i*png_width + j]; 
+    double res_00 = (prod_00/prod_20);
+    double res_10 = (prod_10/prod_20);
+    if((int)res_00 >= 0 && (int)res_00 < curr_width && (int)res_10 >= 0 && res_10 < (int)curr_height){
+        out_r_device[(int)res_10*curr_width+(int)res_00] = (int)png_r[i*png_width + j]; 
+        out_g_device[(int)res_10*curr_width+(int)res_00] = (int)png_g[i*png_width + j]; 
+        out_b_device[(int)res_10*curr_width+(int)res_00] = (int)png_b[i*png_width + j];
+        out_a_device[(int)res_10*curr_width+(int)res_00] = (int)png_a[i*png_width + j]; 
     }
     
 }
