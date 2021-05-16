@@ -175,7 +175,7 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
         double diff;
         bool divide_by_zero = false;
         std::cout << "Num cols in product " << prod.cols() << std::endl;
-        for(int i = 0; i < prod.cols(); i++){ //FIX: how many cols here, if a lot, cudify
+        for(int i = 0; i < prod.cols(); i++){ //FIX: 100s of cols here, so cudify
             if(prod.transpose()(i, 2) == 0){
                 divide_by_zero = true;
             }
@@ -299,9 +299,8 @@ void placeImage(MatrixXd newImage, MatrixXd* resImg, double min_x, double min_y,
     int start_i = (int)fmax(min_y,0);
     int start_j = (int)fmax(min_x,0);
     #pragma omp parallel for collapse(2)//schedule(dynamic)
-    //FIX: another for loop that goes over the 4 image channels
-    for (int i = start_i; i < (int)max_y; i++){ //access as row col
-        for (int j = start_j; j < (int)max_x; j++){
+    for (int j = start_j; j < (int)max_x; j++){
+        for (int i = start_i; i < (int)max_y; i++){ //access as row col
             if ((*resImg)(i,j) == 0){
                 (*resImg)(i,j) = newImage(i,j);
             }
@@ -313,8 +312,8 @@ void placeImage(MatrixXd newImage, MatrixXd* resImg, double min_x, double min_y,
     MatrixXd copyRes = (*resImg);
     // #pragma omp parallel for //schedule(dynamic)
     #pragma omp parallel for collapse(2)
-    for(int i = start_i; i < (int)max_y; i++){
-        for(int j = start_j; j < (int)max_x; j++){
+    for(int j = start_j; j < (int)max_x; j++){
+        for(int i = start_i; i < (int)max_y; i++){
             if((*resImg)(i, j) == 0){
                 if (i+1 < max_y && copyRes(i+1,j) != 0){ // && i-1 >=fmax(min_y,0) && j+1 < max_x && j-1 >=fmax(min_x,0) ){
                     (*resImg)(i, j) = copyRes(i+1,j);
