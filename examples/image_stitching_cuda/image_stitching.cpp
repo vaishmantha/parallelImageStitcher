@@ -211,7 +211,6 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
     MatrixXd x2_res_h = MatVectorslice2(homogeneous_loc2, &rand_inds[4 * best_i], 4, 0, homogeneous_loc2.cols()); //homogeneous_loc2(rand_inds, Eigen::seqN(0,homogeneous_loc2.cols())); 
 
     MatrixXd H = computeNormalizedHomography(x1, x2, x1_res_h, x2_res_h); 
-    int count = 0; 
     MatrixXd prod = H * homogeneous_loc2.transpose();
     std::vector<int> inlier_inds; 
     double diff;
@@ -222,9 +221,7 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
         }
         if(!divide_by_zero){
             diff = (Matslice(prod.transpose(), i, 0, 1, 2)/prod.transpose()(i, 2) - Matslice(locs1, i, 0, 1, locs1.cols())).norm(); 
-            // diff = (prod.transpose()(i, {0,1})/prod.transpose()(i, 2) - Matslice(locs1, i, 0, 1, locs1.cols())).norm(); 
             if(diff < threshold){
-                count++;
                 inlier_inds.push_back(i);
             }
         }
@@ -549,7 +546,7 @@ int main(int argc, char *argv[])
     std::cout << "Img composition time: " << imgCompositionEnd-imgCompositionStart << std::endl;
 
     std::vector<unsigned char> resImg_vect(4*pan_height*pan_width);
-    #pragma omp parallel for collapse(2)
+    // #pragma omp parallel for collapse(2)
     for(int i=0; i<pan_height; i++){
         for(int j=0; j<pan_width; j++){
             resImg_vect[4*i] = resImageR(i, j); //color
