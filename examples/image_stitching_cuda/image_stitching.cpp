@@ -469,7 +469,7 @@ int main(int argc, char *argv[])
         if(i < images.size()){
             sift_cpu(images[i], kpt_lists[i], true);
         }else{
-            dummyWarmup()
+            dummyWarmup();
         }
         
     }

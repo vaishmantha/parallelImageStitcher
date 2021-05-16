@@ -45,7 +45,6 @@ __global__ void kernelWarpPerspective(int png_width, int png_height, int curr_wi
     
 }
 
-
 void dummyWarmup(){
     cudaFree(0);
 }
