@@ -455,16 +455,6 @@ int match_keypoints(std::list<SiftKeypoint> &kpt_list1,
     double endTime = CycleTimer::currentSeconds();
     std::cout << "Match keypoints time::: " << endTime - startTime << std::endl;
 
-// #if PRINT_MATCH_KEYPOINTS
-//     std::list<MatchPair>::iterator p;
-//     int match_idx = 0;
-//     for (p = match_list.begin(); p != match_list.end(); p++) {
-//         printf("\tMatch %3d: (%4d, %4d) -> (%4d, %4d)\n", match_idx, p->r1,
-//                p->c1, p->r2, p->c2);
-//         match_idx++;
-//     }
-// #endif
-
     return 0;
 }
 

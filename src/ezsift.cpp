@@ -163,12 +163,10 @@ int build_gaussian_pyramid(std::vector<Image<unsigned char>> &octaves,
                            std::vector<Image<float>> &gpyr, int nOctaves,
                            int nGpyrLayers)
 {
-    double gaussianCoeffsStart = CycleTimer::currentSeconds();
+    //Takes very little time
     int nLayers = nGpyrLayers - 3;
     std::vector<std::vector<float>> gaussian_coefs =
         compute_gaussian_coefs(nOctaves, nGpyrLayers);
-    double gaussianCoeffsEnd = CycleTimer::currentSeconds();
-    std::cout << "Gaussian coeffs time" << gaussianCoeffsEnd- gaussianCoeffsStart<< std::endl;
 
     double otherStart = CycleTimer::currentSeconds();
     int w, h;
