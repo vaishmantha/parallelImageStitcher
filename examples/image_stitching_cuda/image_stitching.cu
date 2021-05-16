@@ -247,10 +247,10 @@ int png_width, int png_height, MatrixXd* newImR,MatrixXd* newImG,MatrixXd* newIm
     cudaMemcpy(out_b_device, out_b_host, png_height*png_width*sizeof(char), cudaMemcpyDeviceToHost);
     cudaMemcpy(out_a_device, out_a_host, png_height*png_width*sizeof(char), cudaMemcpyDeviceToHost);
 
-    *newImR = Map<MatrixXd>(out_r_device);
-    *newImG = Map<MatrixXd>(out_g_device);
-    *newImB = Map<MatrixXd>(out_b_device);
-    *newImA = Map<MatrixXd>(out_a_device);
+    *newImR = Eigen::Map<MatrixXd>(out_r_device);
+    *newImG = Eigen::Map<MatrixXd>(out_g_device);
+    *newImB = Eigen::Map<MatrixXd>(out_b_device);
+    *newImA = Eigen::Map<MatrixXd>(out_a_device);
 
     cudaFree(out_r_device);
     cudaFree(out_g_device);
