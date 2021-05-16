@@ -86,7 +86,7 @@ void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* 
                                                 out_r_device, out_g_device, out_b_device, out_a_device, png_r_device, png_g_device,
                                                 png_b_device, png_a_device);
     double endTime = CycleTimer::currentSeconds();
-    std::cout << "Actual kernel time " << endTime-startTime << std::endl
+    std::cout << "Actual kernel time " << endTime-startTime << std::endl;
     cudaFree(png_r_device);
     cudaFree(png_g_device);
     cudaFree(png_b_device);
