@@ -47,7 +47,7 @@ file(GLOB_RECURSE SRC RELATIVE ${PROJECT_SOURCE_DIR} "${EZSIFT_SRC_DIR}/*.cpp")
 file(GLOB gpu_ezsift_files "${EZSIFT_SRC_DIR}/*.cu") 
 file(GLOB_RECURSE HEADERS RELATIVE ${PROJECT_SOURCE_DIR} "${EZSIFT_SRC_DIR}/*.h" "${EZSIFT_INCLUDE_DIR}/*.h")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-
+SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -O3; --expt-relaxed-constexpr) 
 add_library(${EZSIFT} ${SRC})
 
 add_library(lodepng include/lodepng/lodepng.cc)
@@ -58,7 +58,6 @@ set(CFLAGS
     -std=c++11
     -m64
     -fopenmp
-    -expt-relaxed-constexpr
 )
 add_compile_options(${CFLAGS})
 include_directories(
