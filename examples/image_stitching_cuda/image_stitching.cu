@@ -24,16 +24,15 @@ __constant__ double homography[9];
 
 __global__ void kernelWarpPerspective(int png_width, int png_height, int curr_width, int curr_height, unsigned char* out_r_device, 
                                     unsigned char* out_g_device, unsigned char* out_b_device, unsigned char* out_a_device, unsigned char* png_r, unsigned char* png_g,
-                                    unsigned char* png_b, unsigned char* png_a, double H00, double H01, double H02, double H10, 
-                                    double H11, double H12, double H20, double H21, double H22){
+                                    unsigned char* png_b, unsigned char* png_a){
     int j = blockIdx.x * blockDim.x + threadIdx.x;
     int i = blockIdx.y * blockDim.y + threadIdx.y;
     if(i > png_height || j > png_width)
         return;
 
-    double prod_00 = H00*j + H10*i + H20;
-    double prod_10 = H01*j + H11*i + H21;
-    double prod_20 = H02*j + H12*i + H22;
+    double prod_00 = homography[0]*j + homography[3]*i + homography[6];
+    double prod_10 = homography[1]*j + homography[4]*i + homography[7];
+    double prod_20 = homography[2]*j + homography[5]*i + homography[8];
     
     int res_00 = (int)(prod_00/prod_20);
     int res_10 = (int)(prod_10/prod_20);
@@ -53,12 +52,14 @@ void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* 
     dim3 blockDim(32, 32, 1);
     dim3 gridDim((png_width + blockDim.x - 1) / blockDim.x, ((png_height + blockDim.y - 1) / blockDim.y));
     
-    double section1S = CycleTimer::currentSeconds();
+    cudaFree(0);
+    //UNAVOIDABLE TIME COST: CUDA WARMUP TIME is 0.67 seconds
+    // double section1S = CycleTimer::currentSeconds();
     // double* H_device;
     double *H_data = H.data();
-    double section1E = CycleTimer::currentSeconds();
-    std::cout << "Section1 time " << section1E-section1S << std::endl;
-    // cudaMemcpyToSymbol(homography, H_data, sizeof(double)*9);
+    // double section1E = CycleTimer::currentSeconds();
+    // std::cout << "Section1 time " << section1E-section1S << std::endl;
+    cudaMemcpyToSymbol(homography, H_data, sizeof(double)*9);
     
     
     double section2S = CycleTimer::currentSeconds();
@@ -93,8 +94,7 @@ void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* 
     double startTime = CycleTimer::currentSeconds();
     kernelWarpPerspective<<<gridDim, blockDim>>>(png_width, png_height, newIm_width, newIm_height,
                                                 out_r_device, out_g_device, out_b_device, out_a_device, png_r_device, png_g_device,
-                                                png_b_device, png_a_device, H_data[0], H_data[1], H_data[2],
-                                                H_data[3], H_data[4], H_data[5], H_data[6], H_data[7], H_data[8]);
+                                                png_b_device, png_a_device);
     double endTime = CycleTimer::currentSeconds();
     std::cout << "Actual kernel time " << endTime-startTime << std::endl;
     
