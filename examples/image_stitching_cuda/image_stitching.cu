@@ -174,13 +174,18 @@ __global__ void kernelWarpPerspective(double* H, int png_width, int png_height, 
     if(i > png_height || j > png_width)
         return;
     
+    __shared__ float4 sharedH[9];
+    if(i < 9)
+        sharedH[i] = H[i]
+
+    cudaDeviceSynchronize();
     int tmp00 = j;
     int tmp10 = i;
     int tmp20 = 1;
 
-    double prod_00 = H[0]*tmp00 + H[3]*tmp10 + H[6]*tmp20;
-    double prod_10 = H[1]*tmp00 + H[4]*tmp10 + H[7]*tmp20;
-    double prod_20 = H[2]*tmp00 + H[5]*tmp10 + H[8]*tmp20;
+    double prod_00 = sharedH[0]*tmp00 + sharedH[3]*tmp10 + sharedH[6]*tmp20;
+    double prod_10 = sharedH[1]*tmp00 + sharedH[4]*tmp10 + sharedH[7]*tmp20;
+    double prod_20 = sharedH[2]*tmp00 + sharedH[5]*tmp10 + sharedH[8]*tmp20;
     
     int res_00 = (int)(prod_00/prod_20);
     int res_10 = (int)(prod_10/prod_20);
