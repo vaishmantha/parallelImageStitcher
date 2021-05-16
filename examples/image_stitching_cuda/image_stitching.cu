@@ -5,7 +5,7 @@
 #include <driver_functions.h>
 
 #include <list>
-#include <eigen/Eigen/Core>
+// #include <eigen/Eigen/Core>
 #include <eigen/Eigen/Dense>
 
 #include <thrust/scan.h>
@@ -212,10 +212,10 @@ int png_width, int png_height, MatrixXd* newImR,MatrixXd* newImG,MatrixXd* newIm
     cudaMalloc((void **)&png_b_device, png_height*png_width*sizeof(char));
     cudaMalloc((void **)&png_a_device, png_height*png_width*sizeof(char));
 
-    cudaMemcpy(png_r_device, H, png_height*png_width*sizeof(char), cudaMemcpyHostToDevice);
-    cudaMemcpy(png_g_device, H, png_height*png_width*sizeof(char), cudaMemcpyHostToDevice);
-    cudaMemcpy(png_b_device, H, png_height*png_width*sizeof(char), cudaMemcpyHostToDevice);
-    cudaMemcpy(png_a_device, H, png_height*png_width*sizeof(char), cudaMemcpyHostToDevice);
+    cudaMemcpy(png_r_device, png_r, png_height*png_width*sizeof(char), cudaMemcpyHostToDevice);
+    cudaMemcpy(png_g_device, png_g, png_height*png_width*sizeof(char), cudaMemcpyHostToDevice);
+    cudaMemcpy(png_b_device, png_b, png_height*png_width*sizeof(char), cudaMemcpyHostToDevice);
+    cudaMemcpy(png_a_device, png_a, png_height*png_width*sizeof(char), cudaMemcpyHostToDevice);
 
     unsigned char* out_r_device;
     unsigned char* out_g_device;
@@ -237,10 +237,10 @@ int png_width, int png_height, MatrixXd* newImR,MatrixXd* newImG,MatrixXd* newIm
     cudaFree(png_a_device);
 
     //May not have to malloc here
-    unsigned char* out_r_host = malloc(newImR->rows()*newImR->cols()*sizeof(unsigned char));
-    unsigned char* out_g_host = malloc(newImR->rows()*newImR->cols()*sizeof(unsigned char));
-    unsigned char* out_b_host = malloc(newImR->rows()*newImR->cols()*sizeof(unsigned char));
-    unsigned char* out_a_host = malloc(newImR->rows()*newImR->cols()*sizeof(unsigned char));
+    unsigned char* out_r_host = (unsigned char*)malloc(newImR->rows()*newImR->cols()*sizeof(unsigned char));
+    unsigned char* out_g_host = (unsigned char*)malloc(newImR->rows()*newImR->cols()*sizeof(unsigned char));
+    unsigned char* out_b_host = (unsigned char*)malloc(newImR->rows()*newImR->cols()*sizeof(unsigned char));
+    unsigned char* out_a_host = (unsigned char*)malloc(newImR->rows()*newImR->cols()*sizeof(unsigned char));
 
     cudaMemcpy(out_r_device, out_r_host, png_height*png_width*sizeof(char), cudaMemcpyDeviceToHost); //CHECK ORDER OF ARGS HERE
     cudaMemcpy(out_g_device, out_g_host, png_height*png_width*sizeof(char), cudaMemcpyDeviceToHost);
