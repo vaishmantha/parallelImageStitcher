@@ -38,11 +38,12 @@
 #include <limits>
 #include <list>
 
-
+void printCudaInfo();
+void dummyWarmup();
 
 namespace ezsift {
 
-void dummyWarmup();
+
 
 void pyramids_gpu(std::vector<std::vector<Image<unsigned char>>> all_octaves, 
                 std::vector<int> all_nOctaves, int nGpyrLayers, int nDogLayers, int nLayers,
@@ -1237,6 +1238,7 @@ int sift_cpu(const Image<unsigned char> &image,
 int sift_gpu(const std::vector<ezsift::Image<unsigned char> > images,
               std::vector<std::list<ezsift::SiftKeypoint>> &kpt_lists, bool bExtractDescriptors) //parallelize over the iterations
 {
+    printCudaInfo();
     #pragma omp parallel for schedule(dynamic) //PROBABLY NESTED PRAGMAS
     for(int i=0; i<images.size()+1; i++){
         if(i < images.size()){
