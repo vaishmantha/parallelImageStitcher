@@ -230,9 +230,9 @@ void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* 
     cudaMalloc((void **)&out_b_device, newIm_width*newIm_height*sizeof(unsigned char));
     cudaMalloc((void **)&out_a_device, newIm_width*newIm_height*sizeof(unsigned char));
     
-    kernelWarpPerspective<<<gridDim, blockDim>>>(H_device, png_width, png_height, newIm_height, newIm_width, 
-                                                out_r_device, out_g_device, out_b_device, out_a_device, png_r_device, png_g_device,
-                                                png_b_device, png_a_device);
+    // kernelWarpPerspective<<<gridDim, blockDim>>>(H_device, png_width, png_height, newIm_height, newIm_width, 
+    //                                             out_r_device, out_g_device, out_b_device, out_a_device, png_r_device, png_g_device,
+    //                                             png_b_device, png_a_device);
 
     cudaFree(H_device);
     cudaFree(png_r_device);
