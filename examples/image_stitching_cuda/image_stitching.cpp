@@ -325,7 +325,7 @@ void placeImage(unsigned char* newImage, int newImWidth, MatrixXd* resImg, doubl
     double startTime = CycleTimer::currentSeconds();
     int start_i = (int)fmax(min_y,0);
     int start_j = (int)fmax(min_x,0);
-    #pragma omp parallel for collapse(2) 
+    // #pragma omp parallel for collapse(2) 
     #pragma omp parallel for
     //FIX: another for loop that goes over the 4 image channels
     for (int i = start_i; i < (int)max_y; i++){ //access as row col
