@@ -222,7 +222,7 @@ void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* 
 // void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* png_b, unsigned char* png_a, 
 // int png_width, int png_height, MatrixXd* newImR,MatrixXd* newImG,MatrixXd* newImB, MatrixXd* newImA, MatrixXd H){
     dim3 blockDim(16, 16, 1);
-    dim3 gridDim((png_width + blockDim.x - 1) / blockDim.x, ((png_height + blockDim.y - 1) / blockDim.y));
+    dim3 gridDim((png_height + blockDim.x - 1) / blockDim.x, ((png_width + blockDim.y - 1) / blockDim.y));
 
     double* H_device;
     double *H_data = H.data();
