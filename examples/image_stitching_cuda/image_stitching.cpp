@@ -325,45 +325,45 @@ void placeImage(unsigned char* newImage, int newImWidth, MatrixXd* resImg, doubl
     double startTime = CycleTimer::currentSeconds();
     int start_i = (int)fmax(min_y,0);
     int start_j = (int)fmax(min_x,0);
-    // #pragma omp parallel for collapse(2) 
-    // #pragma omp parallel for
-    // //FIX: another for loop that goes over the 4 image channels
-    // for (int i = start_i; i < (int)max_y; i++){ //access as row col
-    //     for (int j = start_j; j < (int)max_x; j++){
-    //         if ((*resImg)(i,j) == 0){
-    //             (*resImg)(i,j) = newImage[i*newImWidth + j]; //(i,j);
-    //         }
-    //         if ((*resImg)(i,j) != 0 && newImage[i*newImWidth + j] != 0){
-    //             (*resImg)(i,j) = fmax(newImage[i*newImWidth + j], (*resImg)(i,j));
-    //         }
-    //     }
-    // }
-    // MatrixXd copyRes = (*resImg);
-    // #pragma omp parallel for //schedule(dynamic)
-    // // #pragma omp parallel for collapse(2) schedule(dynamic)
-    // for(int i = start_i; i < (int)max_y; i++){
-    //     for(int j = start_j; j < (int)max_x; j++){
-    //         if((*resImg)(i, j) == 0){
-    //             if (i+1 < max_y && copyRes(i+1,j) != 0){ // && i-1 >=fmax(min_y,0) && j+1 < max_x && j-1 >=fmax(min_x,0) ){
-    //                 (*resImg)(i, j) = copyRes(i+1,j);
-    //             }else if(i-1 >= fmax(min_y,0) && copyRes(i-1,j) != 0){
-    //                 (*resImg)(i, j) = copyRes(i-1,j);
-    //             }else if(j+1 < max_x && copyRes(i,j+1) != 0){
-    //                 (*resImg)(i, j) = copyRes(i,j+1);
-    //             }else if(j-1 >=fmax(min_x,0) && copyRes(i,j-1) != 0){
-    //                 (*resImg)(i,j) = copyRes(i,j-1);
-    //             }else if(i+1 < max_y && j+1 < max_x && copyRes(i+1,j+1)){
-    //                 (*resImg)(i,j) = copyRes(i+1,j+1);
-    //             }else if(i-1 >= fmax(min_y,0) && j+1 < max_x && copyRes(i-1,j+1)){
-    //                 (*resImg)(i,j) = copyRes(i-1,j+1);
-    //             }else if(i+1 < max_y && j-1 >=fmax(min_x,0) && copyRes(i+1,j-1)){
-    //                 (*resImg)(i,j) = copyRes(i+1,j-1);
-    //             }else if(i-1 >= fmax(min_y,0) && j-1 >=fmax(min_x,0) && copyRes(i-1,j-1)){
-    //                 (*resImg)(i,j) = copyRes(i-1,j-1);
-    //             }
-    //         }
-        // }
-    // }
+    #pragma omp parallel for collapse(2) 
+    #pragma omp parallel for
+    //FIX: another for loop that goes over the 4 image channels
+    for (int i = start_i; i < (int)max_y; i++){ //access as row col
+        for (int j = start_j; j < (int)max_x; j++){
+            if ((*resImg)(i,j) == 0){
+                (*resImg)(i,j) = newImage[i*newImWidth + j]; //(i,j);
+            }
+            if ((*resImg)(i,j) != 0 && newImage[i*newImWidth + j] != 0){
+                (*resImg)(i,j) = fmax(newImage[i*newImWidth + j], (*resImg)(i,j));
+            }
+        }
+    }
+    MatrixXd copyRes = (*resImg);
+    #pragma omp parallel for //schedule(dynamic)
+    // #pragma omp parallel for collapse(2) schedule(dynamic)
+    for(int i = start_i; i < (int)max_y; i++){
+        for(int j = start_j; j < (int)max_x; j++){
+            if((*resImg)(i, j) == 0){
+                if (i+1 < max_y && copyRes(i+1,j) != 0){ // && i-1 >=fmax(min_y,0) && j+1 < max_x && j-1 >=fmax(min_x,0) ){
+                    (*resImg)(i, j) = copyRes(i+1,j);
+                }else if(i-1 >= fmax(min_y,0) && copyRes(i-1,j) != 0){
+                    (*resImg)(i, j) = copyRes(i-1,j);
+                }else if(j+1 < max_x && copyRes(i,j+1) != 0){
+                    (*resImg)(i, j) = copyRes(i,j+1);
+                }else if(j-1 >=fmax(min_x,0) && copyRes(i,j-1) != 0){
+                    (*resImg)(i,j) = copyRes(i,j-1);
+                }else if(i+1 < max_y && j+1 < max_x && copyRes(i+1,j+1)){
+                    (*resImg)(i,j) = copyRes(i+1,j+1);
+                }else if(i-1 >= fmax(min_y,0) && j+1 < max_x && copyRes(i-1,j+1)){
+                    (*resImg)(i,j) = copyRes(i-1,j+1);
+                }else if(i+1 < max_y && j-1 >=fmax(min_x,0) && copyRes(i+1,j-1)){
+                    (*resImg)(i,j) = copyRes(i+1,j-1);
+                }else if(i-1 >= fmax(min_y,0) && j-1 >=fmax(min_x,0) && copyRes(i-1,j-1)){
+                    (*resImg)(i,j) = copyRes(i-1,j-1);
+                }
+            }
+        }
+    }
     double endTime = CycleTimer::currentSeconds();
     std::cout << "Place image time " << endTime-startTime << std::endl;
 }
@@ -570,7 +570,7 @@ int main(int argc, char *argv[])
         unsigned char* newImR = new unsigned char[curr_height*curr_width]{};
         unsigned char* newImG = new unsigned char[curr_height*curr_width]{};
         unsigned char* newImB = new unsigned char[curr_height*curr_width]{};
-        unsigned char* newImA = new unsigned char[curr_height*curr_width]{1};
+        unsigned char* newImA = new unsigned char[curr_height*curr_width]{};
         
         double warpPerspectiveStart = CycleTimer::currentSeconds();
         warpPerspective(png_r[i], png_g[i], png_b[i], png_alpha[i], widths[i], heights[i], newImR, newImG, newImB, newImA, homographies[i], curr_width, curr_height);
