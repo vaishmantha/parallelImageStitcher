@@ -465,8 +465,9 @@ int main(int argc, char *argv[])
     
     ezsift::double_original_image(true);
     double siftStart = CycleTimer::currentSeconds();
+
     #pragma parallel for schedule(dynamic) 
-    for(int i=0; i<images.size()+1; i++){
+    for(int i=0; i<images.size(); i++){
         if(i < images.size()){
             sift_cpu(images[i], kpt_lists[i], true);
         }else{
