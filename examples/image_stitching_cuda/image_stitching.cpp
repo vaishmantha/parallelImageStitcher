@@ -125,12 +125,12 @@ MatrixXd computeNormalizedHomography(MatrixXd x1, MatrixXd x2,
 MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
     int iterations= 500; 
     int threshold = 3; //check on this threshold
-    int maxCount = 0; 
     
     MatrixXd locs1 = MatrixXd(match_li.size(), 2);
     MatrixXd locs2 = MatrixXd(match_li.size(), 2);
     MatrixXd homogeneous_loc1 = MatrixXd(match_li.size(), 3);
     MatrixXd homogeneous_loc2 = MatrixXd(match_li.size(), 3);
+    // FIX: add pragma here
     std::list<ezsift::MatchPair>::iterator itr;
     int i=0;
     for (itr = match_li.begin(); itr != match_li.end(); itr++){
@@ -147,8 +147,8 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
         i++;
     }
 
-
     int* rand_inds = (int*) calloc(sizeof(int), 4 * iterations);
+    #pragma omp parallel for schedule(dynamic)
     for(int it = 0; it < iterations; it++){
         int rand_counter = 0; 
         while(rand_counter != 4){
@@ -175,15 +175,16 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
         double diff;
         bool divide_by_zero = false;
         for(int i = 0; i < prod.cols(); i++){
+            // FIX: this is wrong
             if(prod.transpose()(i, 2) == 0){
                 divide_by_zero = true;
-                break;
             }
-            diff = (Matslice(prod.transpose(), i, 0, 1, 2)/prod.transpose()(i, 2) - Matslice(locs1, i, 0, 1, locs1.cols())).norm(); 
-            // diff = (prod.transpose()(i, {0,1})/prod.transpose()(i, 2) - Matslice(locs1, i, 0, 1, locs1.cols())).norm(); 
-            if(diff < threshold){
-                count++;
-                inlier_inds_current.push_back(i);
+            if(!divide_by_zero){
+                diff = (Matslice(prod.transpose(), i, 0, 1, 2)/prod.transpose()(i, 2) - Matslice(locs1, i, 0, 1, locs1.cols())).norm(); 
+                if(diff < threshold){
+                    count++;
+                    inlier_inds_current.push_back(i);
+                }
             }
         }
 
