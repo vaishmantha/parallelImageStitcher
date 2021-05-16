@@ -187,7 +187,6 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
                 }
             }
         }
-
         if (!divide_by_zero){
             count_list[it] = count;
         }      
@@ -553,10 +552,10 @@ int main(int argc, char *argv[])
     #pragma omp parallel for collapse(2)
     for(int i=0; i<pan_height; i++){
         for(int j=0; j<pan_width; j++){
-            resImg_vect[i] = resImageR(i, j); //color
-            resImg_vect[i+1] = resImageG(i, j);
-            resImg_vect[i+2] = resImageB(i, j);
-            resImg_vect[i+3] = resImageA(i, j); /////This cannot be 0 or the entire program breaks
+            resImg_vect[4*i] = resImageR(i, j); //color
+            resImg_vect[4*i+1] = resImageG(i, j);
+            resImg_vect[4*i+2] = resImageB(i, j);
+            resImg_vect[4*i+3] = resImageA(i, j); /////This cannot be 0 or the entire program breaks
         }
     }
     // cudaFindPeaks();
