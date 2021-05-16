@@ -185,10 +185,10 @@ __global__ void kernelWarpPerspective(double* H, int png_width, int png_height, 
     int res_00 = (int)(prod_00/prod_20);
     int res_10 = (int)(prod_10/prod_20);
     if(res_00 >= 0 && res_00 < curr_width && res_10 >= 0 && res_10 < curr_height){
-        out_r_device[res_10*curr_width+res_00] = png_r[i*png_width + j]; //try flipped too
-        out_g_device[res_10*curr_width+res_00] = png_g[i*png_width + j]; //try flipped too
-        out_b_device[res_10*curr_width+res_00] = png_b[i*png_width + j]; //try flipped too
-        out_a_device[res_10*curr_width+res_00] = png_a[i*png_width + j]; //try flipped too
+        out_r_device[res_10*curr_width+res_00] = png_r[i*png_width + j]; 
+        out_g_device[res_10*curr_width+res_00] = png_g[i*png_width + j]; 
+        out_b_device[res_10*curr_width+res_00] = png_b[i*png_width + j];
+        out_a_device[res_10*curr_width+res_00] = png_a[i*png_width + j]; 
     }
     
 }
@@ -198,7 +198,7 @@ void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* 
     MatrixXd H, int newIm_width, int newIm_height){
 // void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* png_b, unsigned char* png_a, 
 // int png_width, int png_height, MatrixXd* newImR,MatrixXd* newImG,MatrixXd* newImB, MatrixXd* newImA, MatrixXd H){
-    dim3 blockDim(16, 16, 1);
+    dim3 blockDim(32, 32, 1);
     dim3 gridDim((png_width + blockDim.x - 1) / blockDim.x, ((png_height + blockDim.y - 1) / blockDim.y));
 
     double* H_device;
