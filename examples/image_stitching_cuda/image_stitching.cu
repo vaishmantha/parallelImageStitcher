@@ -178,7 +178,6 @@ __global__ void kernelWarpPerspective(double* H, int png_width, int png_height, 
     int tmp10 = i;
     int tmp20 = 1;
 
-    printf("H %d %d %d %d %d %d %d %d %d", H[0], H[1], H[2], H[3], H[4], H[5], H[6], H[7], H[8]);
     double prod_00 = H[0]*tmp00 + H[1]*tmp10 + H[2]*tmp20;
     double prod_10 = H[3]*tmp00 + H[4]*tmp10 + H[5]*tmp20;
     double prod_20 = H[6]*tmp00 + H[7]*tmp10 + H[8]*tmp20;
@@ -227,6 +226,7 @@ void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* 
 
     double* H_device;
     double *H_data = H.data();
+    printf("H data %d %d %d %d %d %d %d %d %d", H_data[0], H_data[1], H_data[2], H_data[3], H_data[4], H_data[5], H_data[6], H_data[7], H_data[8]);
     cudaMalloc((void **)&H_device, 3*3*sizeof(double)); //homography
     cudaMemcpy(H_device, H_data, 3*3*sizeof(double), cudaMemcpyHostToDevice);
 
