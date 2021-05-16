@@ -324,7 +324,7 @@ void placeImage(unsigned char* newImage, int newImWidth, MatrixXd* resImg, doubl
     double startTime = CycleTimer::currentSeconds();
     int start_i = (int)fmax(min_y,0);
     int start_j = (int)fmax(min_x,0);
-    #pragma omp parallel for collapse(2)//schedule(dynamic)
+    #pragma omp parallel for collapse(2) schedule(dynamic)
     //FIX: another for loop that goes over the 4 image channels
     for (int i = start_i; i < (int)max_y; i++){ //access as row col
         for (int j = start_j; j < (int)max_x; j++){
@@ -338,7 +338,7 @@ void placeImage(unsigned char* newImage, int newImWidth, MatrixXd* resImg, doubl
     }
     MatrixXd copyRes = (*resImg);
     // #pragma omp parallel for //schedule(dynamic)
-    #pragma omp parallel for collapse(2)
+    #pragma omp parallel for collapse(2) schedule(dynamic)
     for(int i = start_i; i < (int)max_y; i++){
         for(int j = start_j; j < (int)max_x; j++){
             if((*resImg)(i, j) == 0){
@@ -555,40 +555,25 @@ int main(int argc, char *argv[])
         unsigned char* newImG = new unsigned char[curr_height*curr_width]{};
         unsigned char* newImB = new unsigned char[curr_height*curr_width]{};
         unsigned char* newImA = new unsigned char[curr_height*curr_width]{};
-
-        if (i != 0){
-            double warpPerspectiveStart = CycleTimer::currentSeconds();
-            warpPerspective(png_r[i], png_g[i], png_b[i], png_alpha[i], widths[i], heights[i], newImR, newImG, newImB, newImA, homographies[i], curr_width, curr_height);
-            // warpPerspective(png_r[i], png_g[i], png_b[i], png_alpha[i], widths[i], heights[i], &newImR, &newImG, &newImB, &newImA, homographies[i]);
-            double warpPerspectiveEnd = CycleTimer::currentSeconds();
-            std::cout << "Warp perspective time: " << warpPerspectiveEnd-warpPerspectiveStart << std::endl;
-            for(int j= 0; j<4; j++){
-                if(j==0){
-                    placeImage(newImR, curr_width, &resImageR, min_x, min_y, max_x, max_y);
-                }else if(j==1){
-                    placeImage(newImG, curr_width, &resImageG, min_x, min_y, max_x, max_y);
-                }else if(j==2){
-                    placeImage(newImB, curr_width, &resImageB, min_x, min_y, max_x, max_y);
-                }else{
-                    placeImage(newImA, curr_width, &resImageA, min_x, min_y, max_x, max_y);
-                }
-            }
-        }else{
-            for(int j= 0; j<4; j++){
-                if(j==0){
-                    placeImage(png_r[i], curr_width, &resImageR, min_x, min_y, max_x, max_y);
-                }else if(j==1){
-                    placeImage(png_g[i], curr_width, &resImageG, min_x, min_y, max_x, max_y);
-                }else if(j==2){
-                    placeImage(png_b[i], curr_width, &resImageB, min_x, min_y, max_x, max_y);
-                }else{
-                    placeImage(png_alpha[i], curr_width, &resImageA, min_x, min_y, max_x, max_y);
-                }
-            }
-        }
         
+        double warpPerspectiveStart = CycleTimer::currentSeconds();
+        warpPerspective(png_r[i], png_g[i], png_b[i], png_alpha[i], widths[i], heights[i], newImR, newImG, newImB, newImA, homographies[i], curr_width, curr_height);
+        // warpPerspective(png_r[i], png_g[i], png_b[i], png_alpha[i], widths[i], heights[i], &newImR, &newImG, &newImB, &newImA, homographies[i]);
+        double warpPerspectiveEnd = CycleTimer::currentSeconds();
+        std::cout << "Warp perspective time: " << warpPerspectiveEnd-warpPerspectiveStart << std::endl;
 
         // #pragma omp parallel for schedule(dynamic) // DO NOT ADD BACK IN
+        for(int j= 0; j<4; j++){
+            if(j==0){
+                placeImage(newImR, curr_width, &resImageR, min_x, min_y, max_x, max_y);
+            }else if(j==1){
+                placeImage(newImG, curr_width, &resImageG, min_x, min_y, max_x, max_y);
+            }else if(j==2){
+                placeImage(newImB, curr_width, &resImageB, min_x, min_y, max_x, max_y);
+            }else{
+                placeImage(newImA, curr_width, &resImageA, min_x, min_y, max_x, max_y);
+            }
+        }
         
 
     }
