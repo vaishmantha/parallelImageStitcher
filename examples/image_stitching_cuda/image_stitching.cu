@@ -5,6 +5,7 @@
 #include <driver_functions.h>
 
 #include <list>
+#include <eigen/Eigen/Core>
 #include <eigen/Eigen/Dense>
 
 #include <thrust/scan.h>
@@ -195,11 +196,12 @@ __global__ void kernelWarpPerspective(double* H, int png_width, int png_height, 
 void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* png_b, unsigned char* png_a, 
 int png_width, int png_height, MatrixXd* newImR,MatrixXd* newImG,MatrixXd* newImB, MatrixXd* newImA, MatrixXd H){
     dim3 blockDim(16, 16, 1);
-    dim3 gridDim(((png_width + blockDim.x - 1) / blockDim.x, ((png_height + blockDim.y - 1) / blockDim.y));
+    dim3 gridDim((png_width + blockDim.x - 1) / blockDim.x, ((png_height + blockDim.y - 1) / blockDim.y));
 
     double* H_device;
+    double *H_data = H.data();
     cudaMalloc((void **)&H_device, 3*3*sizeof(double)); //homography
-    cudaMemcpy(H.data(), H_device, 3*3*sizeof(double), cudaMemcpyHostToDevice);
+    cudaMemcpy(H_device, H_data, 3*3*sizeof(double), cudaMemcpyHostToDevice);
 
     unsigned char* png_r_device;
     unsigned char* png_g_device;
@@ -210,10 +212,10 @@ int png_width, int png_height, MatrixXd* newImR,MatrixXd* newImG,MatrixXd* newIm
     cudaMalloc((void **)&png_b_device, png_height*png_width*sizeof(char));
     cudaMalloc((void **)&png_a_device, png_height*png_width*sizeof(char));
 
-    cudaMemcpy(H, png_r_device, png_height*png_width*sizeof(char), cudaMemcpyHostToDevice);
-    cudaMemcpy(H, png_g_device, png_height*png_width*sizeof(char), cudaMemcpyHostToDevice);
-    cudaMemcpy(H, png_b_device, png_height*png_width*sizeof(char), cudaMemcpyHostToDevice);
-    cudaMemcpy(H, png_a_device, png_height*png_width*sizeof(char), cudaMemcpyHostToDevice);
+    cudaMemcpy(png_r_device, H, png_height*png_width*sizeof(char), cudaMemcpyHostToDevice);
+    cudaMemcpy(png_g_device, H, png_height*png_width*sizeof(char), cudaMemcpyHostToDevice);
+    cudaMemcpy(png_b_device, H, png_height*png_width*sizeof(char), cudaMemcpyHostToDevice);
+    cudaMemcpy(png_a_device, H, png_height*png_width*sizeof(char), cudaMemcpyHostToDevice);
 
     unsigned char* out_r_device;
     unsigned char* out_g_device;
