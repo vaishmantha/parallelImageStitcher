@@ -673,7 +673,11 @@ int main(int argc, char *argv[])
         double max_x; 
         double max_y; 
         findDimensions(images[i], homographies[i], &min_x, &min_y, &max_x, &max_y);      
-
+        min_xs.push_back(min_x);
+        min_ys.push_back(min_y);
+        max_xs.push_back(max_x);
+        max_ys.push_back(max_y);
+        
         int curr_width = (int)(fmax(pano_max_x, max_x) - fmax(fmin(pano_min_x, min_x),0));
         int curr_height  = (int)(fmax(pano_max_y, max_y) - fmax(fmin(pano_min_y, min_y),0)); 
 
