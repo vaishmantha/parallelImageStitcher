@@ -9,8 +9,6 @@
 
 using Eigen::MatrixXd;
 
-int NCORES = -1;
-
 #define USE_FIX_FILENAME 0
 
 void dummyWarmup();
@@ -184,7 +182,7 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
 
     int *count_list = (int*)calloc(iterations, sizeof(int));
     int it; 
-    #pragma omp parallel for schedule(dynamic)
+    #pragma omp parallel for schedule(dynamic) num_threads(1)
     for(it = 0; it < iterations; it++){
         MatrixXd x1 = MatVectorslice2(locs1, &rand_inds[4 * it], 4, 0, locs1.cols()); //locs1(rand_inds, Eigen::seqN(0,locs1.cols())); 
         MatrixXd x2 = MatVectorslice2(locs2, &rand_inds[4 * it], 4, 0, locs2.cols());// locs2(rand_inds, Eigen::seqN(0,locs2.cols())); 
@@ -220,7 +218,7 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
     int max_count = -1;
     int k; 
     int best_i; 
-    #pragma omp parallel for reduction(max: max_count)
+    #pragma omp parallel for reduction(max: max_count) num_threads(1)
     for(k = 0; k < iterations; k++){
         if(max_count < count_list[k]){
             max_count = count_list[k];
@@ -338,7 +336,7 @@ void placeImage(unsigned char* newImR, unsigned char* newImG, unsigned char* new
     int start_i = (int)fmax(min_y,0);
     int start_j = (int)fmax(min_x,0);
     // #pragma omp parallel for collapse(2) 
-    #pragma omp parallel for schedule(dynamic)
+    #pragma omp parallel for schedule(dynamic) num_threads(1)
     //FIX: another for loop that goes over the 4 image channels
     for (int i = start_i; i < (int)max_y; i++){ //access as row col
         for (int j = start_j; j < (int)max_x; j++){
@@ -371,7 +369,7 @@ void placeImage(unsigned char* newImR, unsigned char* newImG, unsigned char* new
     MatrixXd copyResR = (*resImageR);
     MatrixXd copyResG = (*resImageG);
     MatrixXd copyResB = (*resImageB);
-    #pragma omp parallel for schedule(dynamic)
+    #pragma omp parallel for schedule(dynamic) num_threads(1)
     // #pragma omp parallel for collapse(2) schedule(dynamic)
     for(int i = start_i; i < (int)max_y; i++){
         for(int j = start_j; j < (int)max_x; j++){
@@ -458,16 +456,12 @@ void write_pgm(const char *filename, unsigned char *data, int w, int h)
 
 int main(int argc, char *argv[])
 {
-    if(argc < 4 || strcmp(argv[1], "-p") != 0) error_exit("Expecting two arguments: -p [processor count] and [file name]\n");
-    NCORES = atoi(argv[2]);
-    if(NCORES < 1) error_exit("Illegal core count: %d\n", NCORES);
 
-    // if (argc < 3) {
-    //     printf("Please input at least two image filenames.\n");
-    //     printf("usage: image_match img1 img2 ...\n");
-    //     return -1;
-    // }
-
+    if (argc < 3) {
+        printf("Please input at least two image filenames.\n");
+        printf("usage: image_match img1 img2 ...\n");
+        return -1;
+    }
     double startTime = CycleTimer::currentSeconds();
     
     std::vector<ezsift::Image<unsigned char> > images;
@@ -481,7 +475,7 @@ int main(int argc, char *argv[])
     std::vector<char * > files; //Should probably switch away from this when switching to video
    
     // All image files
-    for(int i=2; i<argc; i++){
+    for(int i=1; i<argc; i++){
         char* file = (char *)calloc(sizeof(char), strlen(argv[i]));
         memcpy(file, argv[i], sizeof(char) * strlen(argv[i]));
         file[strlen(argv[i])] = 0;
@@ -539,7 +533,7 @@ int main(int argc, char *argv[])
     ezsift::double_original_image(true);
     double siftStart = CycleTimer::currentSeconds();
 
-    #pragma omp parallel for schedule(dynamic) 
+    #pragma omp parallel for schedule(dynamic) num_threads(1)
     for(int i=0; i<images.size()+1; i++){
         if(i < images.size()){
             sift_cpu(images[i], kpt_lists[i], true);
@@ -555,7 +549,7 @@ int main(int argc, char *argv[])
     double findMatchesStart = CycleTimer::currentSeconds();
 
     bool matchListSizeZero = false;
-    #pragma omp parallel for schedule(dynamic) //NEW REMOVAL
+    #pragma omp parallel for schedule(dynamic) num_threads(1) //NEW REMOVAL
     for(int i=0; i<images.size()-1; i++){
 
         std::list<ezsift::MatchPair> match_list;
