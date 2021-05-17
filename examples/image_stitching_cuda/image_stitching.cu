@@ -122,7 +122,7 @@ __global__ void ransacIterationDiffKernel(char* counts, char* divByZero, int thr
         divByZero[col] = 1;
         return;
     }
-    double diff = (double)sqrtf(powf(prod[3*col]/prod[3*col+2] - locs1[col], 2) + powf(prod[3*col+1]/prod[3*col+2] - locs1[locs1Rows+col], 2));
+    double diff = (double)sqrtf(powf(prod[3*col]/prod[3*col+2] - locs1[col], 2.0) + powf(prod[3*col+1]/prod[3*col+2] - locs1[locs1Rows+col], 2.0));
     if(diff < threshold){
         counts[col] = 1;
     }
@@ -168,10 +168,8 @@ void ransacIterationDiff(MatrixXd prod, MatrixXd locs1, int threshold, int* coun
         for (int i = 0; i < prod.cols(); i++){
             totalCount += counts[i]; 
         }
-        *count = totalCount;
-    }else{
-        *count = 0;
     }
+    *count = totalCount;
     //////////
 }
 
