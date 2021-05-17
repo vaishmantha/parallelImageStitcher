@@ -160,9 +160,9 @@ void ransacIterationDiff(MatrixXd prod, MatrixXd locs1, int threshold, int* coun
     
     char* divByZero;
     char* counts;
-    cudaMemcpy(divByZeroDevice, divByZero, prod.cols(), cudaMemcpyDeviceToHost);
-    cudaMemcpy(countsDevice, counts, prod.cols(), cudaMemcpyDeviceToHost);
-    
+    cudaMemcpy(divByZero, divByZeroDevice, prod.cols(), cudaMemcpyDeviceToHost);
+    cudaMemcpy(counts, countsDevice, prod.cols(), cudaMemcpyDeviceToHost);
+
     int totalCount = 0; 
      //prod.cols()
     // #pragma omp parallel for reduction(sum+: totalCount)
