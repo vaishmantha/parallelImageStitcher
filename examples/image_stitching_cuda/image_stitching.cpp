@@ -351,7 +351,9 @@ void findDimensions(ezsift::Image<unsigned char> image, MatrixXd H,
 // }
 
 //newer one
-void placeImage(unsigned char* newImage, int newImWidth, int newImHeight, MatrixXd* resImg, double min_x, double min_y, double max_x, double max_y){
+void placeImage(unsigned char* newImR, unsigned char* newImG, unsigned char* newImB, int newImWidth, int newImHeight, MatrixXd* resImageR, 
+            MatrixXd* resImageG, MatrixXd* resImageB, double min_x, double min_y, double max_x, double max_y){
+// void placeImage(unsigned char* newImage, int newImWidth, int newImHeight, MatrixXd* resImg, double min_x, double min_y, double max_x, double max_y){
     // int w = newImage.cols();
     // int h = newImage.rows();
     // printf("w: %d, h: %d", w, h);
@@ -359,40 +361,98 @@ void placeImage(unsigned char* newImage, int newImWidth, int newImHeight, Matrix
     int start_i = (int)fmax(min_y,0);
     int start_j = (int)fmax(min_x,0);
     // #pragma omp parallel for collapse(2) 
-    #pragma omp parallel for
+    #pragma omp parallel for schedule(dynamic)
     //FIX: another for loop that goes over the 4 image channels
     for (int i = start_i; i < (int)max_y; i++){ //access as row col
         for (int j = start_j; j < (int)max_x; j++){
-            if ((*resImg)(i,j) == 0){
-                (*resImg)(i,j) = newImage[i*newImWidth + j]; //(i,j);
-            }
-            if ((*resImg)(i,j) != 0 && newImage[i*newImWidth + j] != 0){
-                (*resImg)(i,j) = fmax(newImage[i*newImWidth + j], (*resImg)(i,j));
+            for(int im = 0; im<3; im++){
+                if(im == 0){
+                    if ((*resImageR)(i,j) == 0){
+                        (*resImageR)(i,j) = newImR[i*newImWidth + j]; //(i,j);
+                    }
+                    if ((*resImageR)(i,j) != 0 && newImR[i*newImWidth + j] != 0){
+                        (*resImageR)(i,j) = fmax(newImR[i*newImWidth + j], (*resImageR)(i,j));
+                    }
+                }else if(im == 1){
+                    if ((*resImageG)(i,j) == 0){
+                        (*resImageG)(i,j) = newImG[i*newImWidth + j]; //(i,j);
+                    }
+                    if ((*resImageG)(i,j) != 0 && newImG[i*newImWidth + j] != 0){
+                        (*resImageG)(i,j) = fmax(newImG[i*newImWidth + j], (*resImageG)(i,j));
+                    }
+                }else if(im == 2){
+                    if ((*resImageB)(i,j) == 0){
+                        (*resImageB)(i,j) = newImB[i*newImWidth + j]; //(i,j);
+                    }
+                    if ((*resImageB)(i,j) != 0 && newImB[i*newImWidth + j] != 0){
+                        (*resImageB)(i,j) = fmax(newImB[i*newImWidth + j], (*resImageB)(i,j));
+                    }
+                }
             }
         }
     }
-    MatrixXd copyRes = (*resImg);
-    #pragma omp parallel for //schedule(dynamic)
+    MatrixXd copyResR = (*resImageR);
+    MatrixXd copyResG = (*resImageG);
+    MatrixXd copyResB = (*resImageB);
+    #pragma omp parallel for schedule(dynamic)
     // #pragma omp parallel for collapse(2) schedule(dynamic)
     for(int i = start_i; i < (int)max_y; i++){
         for(int j = start_j; j < (int)max_x; j++){
-            if((*resImg)(i, j) == 0){
-                if (i+1 < max_y && copyRes(i+1,j) != 0){ 
-                    (*resImg)(i, j) = copyRes(i+1,j);
-                }else if(i-1 >= fmax(min_y,0) && copyRes(i-1,j) != 0){
-                    (*resImg)(i, j) = copyRes(i-1,j);
-                }else if(j+1 < max_x && copyRes(i,j+1) != 0){
-                    (*resImg)(i, j) = copyRes(i,j+1);
-                }else if(j-1 >=fmax(min_x,0) && copyRes(i,j-1) != 0){
-                    (*resImg)(i,j) = copyRes(i,j-1);
-                }else if(i+1 < max_y && j+1 < max_x && copyRes(i+1,j+1)){
-                    (*resImg)(i,j) = copyRes(i+1,j+1);
-                }else if(i-1 >= fmax(min_y,0) && j+1 < max_x && copyRes(i-1,j+1)){
-                    (*resImg)(i,j) = copyRes(i-1,j+1);
-                }else if(i+1 < max_y && j-1 >=fmax(min_x,0) && copyRes(i+1,j-1)){
-                    (*resImg)(i,j) = copyRes(i+1,j-1);
-                }else if(i-1 >= fmax(min_y,0) && j-1 >=fmax(min_x,0) && copyRes(i-1,j-1)){
-                    (*resImg)(i,j) = copyRes(i-1,j-1);
+            for(int im = 0; im<3; im++){
+                if(im == 0 && (*resImageR)(i, j) == 0){
+                    if (i+1 < max_y && copyResR(i+1,j) != 0){ 
+                        (*resImageR)(i, j) = copyResR(i+1,j);
+                    }else if(i-1 >= fmax(min_y,0) && copyResR(i-1,j) != 0){
+                        (*resImageR)(i, j) = copyResR(i-1,j);
+                    }else if(j+1 < max_x && copyResR(i,j+1) != 0){
+                        (*resImageR)(i, j) = copyResR(i,j+1);
+                    }else if(j-1 >=fmax(min_x,0) && copyResR(i,j-1) != 0){
+                        (*resImageR)(i,j) = copyResR(i,j-1);
+                    }else if(i+1 < max_y && j+1 < max_x && copyResR(i+1,j+1)){
+                        (*resImageR)(i,j) = copyResR(i+1,j+1);
+                    }else if(i-1 >= fmax(min_y,0) && j+1 < max_x && copyResR(i-1,j+1)){
+                        (*resImageR)(i,j) = copyResR(i-1,j+1);
+                    }else if(i+1 < max_y && j-1 >=fmax(min_x,0) && copyResR(i+1,j-1)){
+                        (*resImageR)(i,j) = copyResR(i+1,j-1);
+                    }else if(i-1 >= fmax(min_y,0) && j-1 >=fmax(min_x,0) && copyResR(i-1,j-1)){
+                        (*resImageR)(i,j) = copyResR(i-1,j-1);
+                    }
+                }if(im == 1 && (*resImageG)(i, j) == 0){
+                    if (i+1 < max_y && copyResG(i+1,j) != 0){ 
+                        (*resImageG)(i, j) = copyResG(i+1,j);
+                    }else if(i-1 >= fmax(min_y,0) && copyResG(i-1,j) != 0){
+                        (*resImageG)(i, j) = copyResG(i-1,j);
+                    }else if(j+1 < max_x && copyResG(i,j+1) != 0){
+                        (*resImageG)(i, j) = copyResG(i,j+1);
+                    }else if(j-1 >=fmax(min_x,0) && copyResG(i,j-1) != 0){
+                        (*resImageG)(i,j) = copyResG(i,j-1);
+                    }else if(i+1 < max_y && j+1 < max_x && copyResG(i+1,j+1)){
+                        (*resImageG)(i,j) = copyResG(i+1,j+1);
+                    }else if(i-1 >= fmax(min_y,0) && j+1 < max_x && copyResG(i-1,j+1)){
+                        (*resImageG)(i,j) = copyResG(i-1,j+1);
+                    }else if(i+1 < max_y && j-1 >=fmax(min_x,0) && copyResG(i+1,j-1)){
+                        (*resImageG)(i,j) = copyResG(i+1,j-1);
+                    }else if(i-1 >= fmax(min_y,0) && j-1 >=fmax(min_x,0) && copyResG(i-1,j-1)){
+                        (*resImageG)(i,j) = copyResG(i-1,j-1);
+                    }
+                }else if(im == 2 && (*resImageB)(i, j) == 0){
+                    if (i+1 < max_y && copyResB(i+1,j) != 0){ 
+                        (*resImageB)(i, j) = copyResB(i+1,j);
+                    }else if(i-1 >= fmax(min_y,0) && copyResB(i-1,j) != 0){
+                        (*resImageB)(i, j) = copyResB(i-1,j);
+                    }else if(j+1 < max_x && copyResB(i,j+1) != 0){
+                        (*resImageB)(i, j) = copyResB(i,j+1);
+                    }else if(j-1 >=fmax(min_x,0) && copyResB(i,j-1) != 0){
+                        (*resImageB)(i,j) = copyResB(i,j-1);
+                    }else if(i+1 < max_y && j+1 < max_x && copyResB(i+1,j+1)){
+                        (*resImageB)(i,j) = copyResB(i+1,j+1);
+                    }else if(i-1 >= fmax(min_y,0) && j+1 < max_x && copyResB(i-1,j+1)){
+                        (*resImageB)(i,j) = copyResB(i-1,j+1);
+                    }else if(i+1 < max_y && j-1 >=fmax(min_x,0) && copyResB(i+1,j-1)){
+                        (*resImageB)(i,j) = copyResB(i+1,j-1);
+                    }else if(i-1 >= fmax(min_y,0) && j-1 >=fmax(min_x,0) && copyResB(i-1,j-1)){
+                        (*resImageB)(i,j) = copyResB(i-1,j-1);
+                    }
                 }
             }
         }
@@ -500,7 +560,7 @@ int main(int argc, char *argv[])
     ezsift::double_original_image(true);
     double siftStart = CycleTimer::currentSeconds();
 
-    #pragma omp parallel for schedule(dynamic) //NEW REMOVAL
+    #pragma omp parallel for schedule(dynamic) 
     for(int i=0; i<images.size()+1; i++){
         if(i < images.size()){
             sift_cpu(images[i], kpt_lists[i], true);
@@ -519,9 +579,6 @@ int main(int argc, char *argv[])
     #pragma omp parallel for schedule(dynamic) //NEW REMOVAL
     for(int i=0; i<images.size()-1; i++){
 
-        // if(i == images.size() -1 ){
-        //     dummyWarmup();
-        // }else{
         std::list<ezsift::MatchPair> match_list;
         // double matchKeyPointsStart = CycleTimer::currentSeconds();
         ezsift::match_keypoints(kpt_lists[i], kpt_lists[i+1], match_list); //Doesn't take long
@@ -532,7 +589,6 @@ int main(int argc, char *argv[])
         if(match_list.size() == 0){
             matchListSizeZero = true;
         }
-        // } 
     }
 
     if(matchListSizeZero){ 
@@ -611,16 +667,17 @@ int main(int argc, char *argv[])
         double warpPerspectiveEnd = CycleTimer::currentSeconds();
         std::cout << "Warp perspective time: " << warpPerspectiveEnd-warpPerspectiveStart << std::endl;
 
+        placeImage(newImR, newImG, newImB, curr_width, curr_height, &resImageR, &resImageG, &resImageB, min_x, min_y, max_x, max_y);
         // #pragma omp parallel for schedule(dynamic) // DO NOT ADD BACK IN
-        for(int j= 0; j<4; j++){
-            if(j==0){
-                placeImage(newImR, curr_width, curr_height, &resImageR, min_x, min_y, max_x, max_y);
-            }else if(j==1){
-                placeImage(newImG, curr_width, curr_height, &resImageG, min_x, min_y, max_x, max_y);
-            }else if(j==2){
-                placeImage(newImB, curr_width, curr_height, &resImageB, min_x, min_y, max_x, max_y);
-            }
-        }
+        // for(int j= 0; j<4; j++){
+        //     if(j==0){
+        //         placeImage(newImR, curr_width, curr_height, &resImageR, min_x, min_y, max_x, max_y);
+        //     }else if(j==1){
+        //         placeImage(newImG, curr_width, curr_height, &resImageG, min_x, min_y, max_x, max_y);
+        //     }else if(j==2){
+        //         placeImage(newImB, curr_width, curr_height, &resImageB, min_x, min_y, max_x, max_y);
+        //     }
+        // }
         
 
     }
@@ -629,14 +686,7 @@ int main(int argc, char *argv[])
 
     std::vector<unsigned char> resImg_vect;
     double finalLoopStart = CycleTimer::currentSeconds();
-    // for(int i=0; i<pan_height; i++){
-    //     for(int j=0; j<pan_width; j++){
-    //         resImg_vect.push_back(resImageR(i, j)); //color
-    //         resImg_vect.push_back(resImageG(i, j));
-    //         resImg_vect.push_back(resImageB(i, j));
-    //         resImg_vect.push_back(255); /////This cannot be 0 or the entire program breaks
-    //     }
-    // }
+  
     for(int i=0; i<pan_height; i++){
         for(int j=0; j<pan_width; j++){
             resImg_vect.push_back(resImageR(i, j)); //color
