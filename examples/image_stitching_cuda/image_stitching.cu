@@ -158,8 +158,13 @@ void ransacIterationDiff(MatrixXd prod, MatrixXd locs1, int threshold, int* coun
 
     ransacIterationDiffKernel<<<gridDim, blockDim>>>(countsDevice, divByZeroDevice, threshold, prodDevice, locs1Device, prod.cols(), locs1.rows());
     
+    char* divByZero;
+    char* counts;
+    cudaMemcpy(divByZeroDevice, divByZero, prod.cols(), cudaMemcpyDeviceToHost);
+    cudaMemcpy(countsDevice, counts, prod.cols(), cudaMemcpyDeviceToHost);
+    
     int totalCount = 0; 
-    char* divByZero; //prod.cols()
+     //prod.cols()
     // #pragma omp parallel for reduction(sum+: totalCount)
     for (int i = 0; i < prod.cols(); i++){
         totalCount += divByZero[i]; 
@@ -167,7 +172,7 @@ void ransacIterationDiff(MatrixXd prod, MatrixXd locs1, int threshold, int* coun
 
     if(totalCount != 0){
         totalCount = 0; 
-        char* counts; //prod.cols()
+         //prod.cols()
         // #pragma omp parallel for reduction(sum+: totalCount)
         for (int i = 0; i < prod.cols(); i++){
             totalCount += counts[i]; 
