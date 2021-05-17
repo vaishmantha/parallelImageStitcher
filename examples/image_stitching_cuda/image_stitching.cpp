@@ -4,7 +4,7 @@
 #include <iostream>
 #include <list>
 #include <eigen/Eigen/Dense>
-
+#include <thread>
 #include "lodepng/lodepng.h"
 
 using Eigen::MatrixXd;
@@ -462,6 +462,8 @@ int main(int argc, char *argv[])
         printf("usage: image_match img1 img2 ...\n");
         return -1;
     }
+
+    printf("numCores: %d\n", std::thread::hardware_concurrency());
     double startTime = CycleTimer::currentSeconds();
     
     std::vector<ezsift::Image<unsigned char> > images;
