@@ -48,7 +48,6 @@ void dummyWarmup(){
     cudaFree(0);
 }
 
-
 void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* png_b, 
     int png_width, int png_height, unsigned char* newImR, unsigned char* newImG, unsigned char* newImB, 
     MatrixXd H, int newIm_width, int newIm_height){
