@@ -359,6 +359,7 @@ void placeImage(std::vector<unsigned char*> newImRs, std::vector<unsigned char*>
     // int w = newImage.cols();
     // int h = newImage.rows();
     // printf("w: %d, h: %d", w, h);
+    std::cout << "Entered place image" << std::endl;
     double startTime = CycleTimer::currentSeconds();
     // int start_i = (int)fmax(min_y,0);
     // int start_j = (int)fmax(min_x,0);
@@ -395,6 +396,7 @@ void placeImage(std::vector<unsigned char*> newImRs, std::vector<unsigned char*>
             }
         }
     }
+    std::cout << "Finished first loop place image" << std::endl;
     MatrixXd copyResR = (*resImageR);
     MatrixXd copyResG = (*resImageG);
     MatrixXd copyResB = (*resImageB);
