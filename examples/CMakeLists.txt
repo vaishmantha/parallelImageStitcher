@@ -5,7 +5,7 @@ add_subdirectory(image_stitching_seq)
 if(CUDA_FOUND)
     add_subdirectory(image_stitching_cuda)
 endif()
-add_subdirectory(image_stitching_pure_openmp)
+add_subdirectory(image_stitching_openmp)
 
 
 file(GLOB_RECURSE TEST_IMAGES "../data/*.png")
