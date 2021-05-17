@@ -398,7 +398,6 @@ int match_keypoints(std::list<SiftKeypoint> &kpt_list1,
     std::list<SiftKeypoint>::iterator kpt1 = kpt_list1.begin();
     std::list<SiftKeypoint>::iterator kpt2;
 
-    double startTime = CycleTimer::currentSeconds();
     int i;
     // #pragma omp parallel for schedule(dynamic)
     // for (kpt1 = kpt_list1.begin(); kpt1 != kpt_list1.end(); kpt1++) {
@@ -452,10 +451,6 @@ int match_keypoints(std::list<SiftKeypoint> &kpt_list1,
     }
 
     match_list.unique(same_match_pair);
-    double endTime = CycleTimer::currentSeconds();
-    std::cout << "Match keypoints time::: " << endTime - startTime << std::endl;
-
-
     return 0;
 }
 

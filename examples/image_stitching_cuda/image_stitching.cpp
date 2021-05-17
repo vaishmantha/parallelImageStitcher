@@ -182,7 +182,6 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
 
     int *count_list = (int*)calloc(iterations, sizeof(int));
     int it; 
-    // double loopStart = CycleTimer::currentSeconds();
     #pragma omp parallel for schedule(dynamic)
     for(it = 0; it < iterations; it++){
         MatrixXd x1 = MatVectorslice2(locs1, &rand_inds[4 * it], 4, 0, locs1.cols()); //locs1(rand_inds, Eigen::seqN(0,locs1.cols())); 
@@ -193,12 +192,10 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
 
         MatrixXd H = computeNormalizedHomography(x1, x2, x1_res_h, x2_res_h); 
         int count = 0; 
-        // double prodStart = CycleTimer::currentSeconds();
         MatrixXd prod = H * homogeneous_loc2.transpose();
         double diff;
         bool divide_by_zero = false;
         
-        // double insideLoopStart = CycleTimer::currentSeconds();
         //ransacIterationDiff(prod, locs1, threshold, &count);
         for(int i = 0; i < prod.cols(); i++){ //FIX: 100s of cols here, so cudify
             if(prod.transpose()(i, 2) == 0){
@@ -213,16 +210,10 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
             }
         }
         
-        // double insideLoopEnd = CycleTimer::currentSeconds();
-        // std::cout << "Inside loop time: " << insideLoopEnd - insideLoopStart << std::endl;
-
         if (!divide_by_zero){
             count_list[it] = count;
         }      
     }
-
-    // double loopEnd = CycleTimer::currentSeconds();
-    // std::cout << "Loop ransac time" << loopEnd - loopStart << std::endl;
 
     int max_count = -1;
     int k; 
@@ -235,7 +226,6 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
         }
     }
 
-    // double Start = CycleTimer::currentSeconds();
     // found the best one 
     MatrixXd x1 = MatVectorslice2(locs1, &rand_inds[4 * best_i], 4, 0, locs1.cols()); //locs1(rand_inds, Eigen::seqN(0,locs1.cols())); 
     MatrixXd x2 = MatVectorslice2(locs2, &rand_inds[4 * best_i], 4, 0, locs2.cols());// locs2(rand_inds, Eigen::seqN(0,locs2.cols())); 
@@ -260,17 +250,12 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
             }
         }
     }
-    // double End = CycleTimer::currentSeconds();
-    // std::cout << "End of ransac time" << End - Start << std::endl;
 
-    // double actStart = CycleTimer::currentSeconds();
     MatrixXd x1_res = MatVectorslice(locs1, inlier_inds, 0, locs1.cols()); //locs1(inlier_inds, Eigen::seqN(0,locs1.cols())); 
     MatrixXd x2_res = MatVectorslice(locs2, inlier_inds, 0, locs2.cols()); //locs2(inlier_inds, Eigen::seqN(0,locs2.cols()));
     MatrixXd x1_res_h2 = MatVectorslice(homogeneous_loc1, inlier_inds, 0, homogeneous_loc1.cols()); //homogeneous_loc1(inlier_inds, Eigen::seqN(0,homogeneous_loc1.cols())); 
     MatrixXd x2_res_h2 =  MatVectorslice(homogeneous_loc2, inlier_inds, 0, homogeneous_loc2.cols()); //homogeneous_loc2(inlier_inds, Eigen::seqN(0,homogeneous_loc2.cols()));
     MatrixXd bestNormalizedHomography = computeNormalizedHomography(x1_res, x2_res, x1_res_h2, x2_res_h2);
-    // double actEnd = CycleTimer::currentSeconds();
-    // std::cout << "Actual End of ransac time" << actEnd - actStart << std::endl;
     return bestNormalizedHomography;
 }
 
@@ -348,11 +333,6 @@ void findDimensions(ezsift::Image<unsigned char> image, MatrixXd H,
 //newer one
 void placeImage(unsigned char* newImR, unsigned char* newImG, unsigned char* newImB, int newImWidth, int newImHeight, MatrixXd* resImageR, 
             MatrixXd* resImageG, MatrixXd* resImageB, double min_x, double min_y, double max_x, double max_y){
-// void placeImage(unsigned char* newImage, int newImWidth, int newImHeight, MatrixXd* resImg, double min_x, double min_y, double max_x, double max_y){
-    // int w = newImage.cols();
-    // int h = newImage.rows();
-    // printf("w: %d, h: %d", w, h);
-    // double startTime = CycleTimer::currentSeconds();
     int start_i = (int)fmax(min_y,0);
     int start_j = (int)fmax(min_x,0);
     // #pragma omp parallel for collapse(2) 
@@ -452,8 +432,6 @@ void placeImage(unsigned char* newImR, unsigned char* newImG, unsigned char* new
             }
         }
     }
-    // double endTime = CycleTimer::currentSeconds();
-    // std::cout << "Place image time " << endTime-startTime << std::endl;
 }
 
 
@@ -575,11 +553,7 @@ int main(int argc, char *argv[])
     for(int i=0; i<images.size()-1; i++){
 
         std::list<ezsift::MatchPair> match_list;
-        // double matchKeyPointsStart = CycleTimer::currentSeconds();
         ezsift::match_keypoints(kpt_lists[i], kpt_lists[i+1], match_list); //Doesn't take long
-        // double matchKeyPointsEnd = CycleTimer::currentSeconds();
-        // std::cout << "Actual matching of keypoints time: " << matchKeyPointsEnd-matchKeyPointsStart << std::endl;
-
         matches[i] = match_list;
         if(match_list.size() == 0){
             matchListSizeZero = true;
@@ -600,9 +574,7 @@ int main(int argc, char *argv[])
     MatrixXd first = MatrixXd::Identity(3, 3);
     homographies.push_back(first);
     for(int i=1; i<images.size(); i++){
-        // double ransacInnerStart = CycleTimer::currentSeconds();
         MatrixXd bestH = computeRansac(matches[i-1]);
-        // std::cout << "Inner ransac: " << CycleTimer::currentSeconds() - ransacInnerStart << std::endl;
         homographies.push_back(homographies[i-1]*bestH);
     }
     double ransacEnd = CycleTimer::currentSeconds();
@@ -662,7 +634,11 @@ int main(int argc, char *argv[])
         double warpPerspectiveEnd = CycleTimer::currentSeconds();
         std::cout << "Warp perspective time: " << warpPerspectiveEnd-warpPerspectiveStart << std::endl;
 
+        double placeImageStart = CycleTimer::currentSeconds();
         placeImage(newImR, newImG, newImB, curr_width, curr_height, &resImageR, &resImageG, &resImageB, min_x, min_y, max_x, max_y);
+        double placeImageEnd = CycleTimer::currentSeconds();
+        std::cout << "placeImage time: " << warpPerspectiveEnd-warpPerspectiveStart << std::endl;
+
         // #pragma omp parallel for schedule(dynamic) // DO NOT ADD BACK IN
         // for(int j= 0; j<4; j++){
         //     if(j==0){
