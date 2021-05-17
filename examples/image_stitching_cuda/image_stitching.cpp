@@ -603,7 +603,7 @@ int main(int argc, char *argv[])
         unsigned char* newImR = new unsigned char[curr_height*curr_width]{};
         unsigned char* newImG = new unsigned char[curr_height*curr_width]{};
         unsigned char* newImB = new unsigned char[curr_height*curr_width]{};
-        unsigned char* newImA = new unsigned char[curr_height*curr_width]{};
+        unsigned char* newImA = new unsigned char[curr_height*curr_width]{255};
         
         double warpPerspectiveStart = CycleTimer::currentSeconds();
         warpPerspective(png_r[i], png_g[i], png_b[i], png_alpha[i], widths[i], heights[i], newImR, newImG, newImB, newImA, homographies[i], curr_width, curr_height);
