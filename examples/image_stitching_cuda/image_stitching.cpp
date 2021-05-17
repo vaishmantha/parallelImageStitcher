@@ -14,9 +14,9 @@ using Eigen::MatrixXd;
 void dummyWarmup();
 void ransacIterationDiff(MatrixXd prod, MatrixXd locs1, int threshold, int* count);
 // void placeImage(MatrixXd newImage, MatrixXd* resImg, double min_x, double min_y, double max_x, double max_y);
-void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* png_b, unsigned char* png_a, 
-        int png_width, int png_height, unsigned char* newImR, unsigned char* newImG, unsigned char* newImB, unsigned char* newImA, 
-        MatrixXd H, int curr_width, int curr_height);
+// void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* png_b, unsigned char* png_a, 
+//         int png_width, int png_height, unsigned char* newImR, unsigned char* newImG, unsigned char* newImB, unsigned char* newImA, 
+//         MatrixXd H, int curr_width, int curr_height);
 
 MatrixXd Matslice(MatrixXd array, int start_row, int start_col, int height, int width){
     MatrixXd sl = MatrixXd::Constant(height, width, 0);
@@ -84,28 +84,28 @@ MatrixXd computeHomography(MatrixXd x1, MatrixXd x2){
     return finalH.transpose();
 }
 
-// void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* png_b, unsigned char* png_a, 
-//         int png_width, int png_height, unsigned char* newImR, unsigned char* newImG, unsigned char* newImB, unsigned char* newImA, 
-//         MatrixXd H, int curr_width, int curr_height){
-//     int i; 
-//     for(i=0; i< png_height; i++){ 
-//         for(int j=0; j<png_width; j++){
-//             MatrixXd tmp = MatrixXd::Constant(3,1, 0.0);
-//             tmp(0,0) = j;
-//             tmp(1,0) = i;
-//             tmp(2,0) = 1;
-//             MatrixXd res = H*tmp;
-//             MatrixXd tm =  Matslice(res, 2, 0, 1, res.cols()).replicate(3,1); //(MatrixXd array, int start_row, int start_col, int height, int width)
-//             res = res.cwiseQuotient(tm);
-//             if ((int)res(0,0) >= 0 && (int)res(0,0) < curr_width && (int)res(1,0) >= 0 && (int)res(1,0) < curr_height){
-//                 newImR[((int)res(1,0))*curr_width +  (int)res(0,0)] = (int)png_r[i*png_width + j];
-//                 newImG[((int)res(1,0))*curr_width +  (int)res(0,0)] = (int)png_g[i*png_width + j];
-//                 newImB[((int)res(1,0))*curr_width +  (int)res(0,0)] = (int)png_b[i*png_width + j];
-//                 newImA[((int)res(1,0))*curr_width +  (int)res(0,0)] = (int)png_a[i*png_width + j];
-//             }
-//         }
-//     }
-// }
+void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* png_b, unsigned char* png_a, 
+        int png_width, int png_height, unsigned char* newImR, unsigned char* newImG, unsigned char* newImB, unsigned char* newImA, 
+        MatrixXd H, int curr_width, int curr_height){
+    int i; 
+    for(i=0; i< png_height; i++){ 
+        for(int j=0; j<png_width; j++){
+            MatrixXd tmp = MatrixXd::Constant(3,1, 0.0);
+            tmp(0,0) = j;
+            tmp(1,0) = i;
+            tmp(2,0) = 1;
+            MatrixXd res = H*tmp;
+            MatrixXd tm =  Matslice(res, 2, 0, 1, res.cols()).replicate(3,1); //(MatrixXd array, int start_row, int start_col, int height, int width)
+            res = res.cwiseQuotient(tm);
+            if ((int)res(0,0) >= 0 && (int)res(0,0) < curr_width && (int)res(1,0) >= 0 && (int)res(1,0) < curr_height){
+                newImR[((int)res(1,0))*curr_width +  (int)res(0,0)] = (int)png_r[i*png_width + j];
+                newImG[((int)res(1,0))*curr_width +  (int)res(0,0)] = (int)png_g[i*png_width + j];
+                newImB[((int)res(1,0))*curr_width +  (int)res(0,0)] = (int)png_b[i*png_width + j];
+                newImA[((int)res(1,0))*curr_width +  (int)res(0,0)] = (int)png_a[i*png_width + j];
+            }
+        }
+    }
+}
 
 MatrixXd computeNormalizedHomography(MatrixXd x1, MatrixXd x2, 
                                     MatrixXd homogeneous_x1, 
@@ -309,60 +309,12 @@ void findDimensions(ezsift::Image<unsigned char> image, MatrixXd H,
     *max_y = Matslice(imgDimss, 1, 0, 1, imgDimss.cols()).maxCoeff(); 
 }
 
-void placeImage(unsigned char* newImage, int newImWidth, int newImHeight, MatrixXd* resImg, double min_x, double min_y, double max_x, double max_y){
-    int w = newImWidth; //newImage.cols();
-    int h = newImHeight; //newImage.rows();
-    // printf("w: %d, h: %d", w, h);
-    for (int i = 0; i < h; i++){ //access as row col
-        for (int j = 0; j < w; j++){
-            if ((*resImg)(i,j) == 0){
-                (*resImg)(i,j) = newImage[i*newImWidth + j]; //(i,j);
-            }
-            if ((*resImg)(i,j) != 0 && newImage[i*newImWidth + j] != 0){
-                (*resImg)(i,j) = fmax(newImage[i*newImWidth + j], (*resImg)(i,j));
-            }
-        }
-    }
-    MatrixXd copyRes = *resImg;
-    for(int i = fmax(min_y,0); i < max_y; i++){
-        for(int j = fmax(min_x,0); j < max_x; j++){
-            if((*resImg)(i, j) == 0){
-                if (i+1 < max_y && copyRes(i+1,j) != 0){ 
-                    (*resImg)(i, j) = copyRes(i+1,j);
-                }else if(i-1 >= fmax(min_y,0) && copyRes(i-1,j) != 0){
-                    (*resImg)(i, j) = copyRes(i-1,j);
-                }else if(j+1 < max_x && copyRes(i,j+1) != 0){
-                    (*resImg)(i, j) = copyRes(i,j+1);
-                }else if(j-1 >=fmax(min_x,0) && copyRes(i,j-1) != 0){
-                    (*resImg)(i,j) = copyRes(i,j-1);
-                }else if(i+1 < max_y && j+1 < max_x && copyRes(i+1,j+1)){
-                    (*resImg)(i,j) = copyRes(i+1,j+1);
-                }else if(i-1 >= fmax(min_y,0) && j+1 < max_x && copyRes(i-1,j+1)){
-                    (*resImg)(i,j) = copyRes(i-1,j+1);
-                }else if(i+1 < max_y && j-1 >=fmax(min_x,0) && copyRes(i+1,j-1)){
-                    (*resImg)(i,j) = copyRes(i+1,j-1);
-                }else if(i-1 >= fmax(min_y,0) && j-1 >=fmax(min_x,0) && copyRes(i-1,j-1)){
-                    (*resImg)(i,j) = copyRes(i-1,j-1);
-                }
-            }
-        }
-    }
-    // return resImg;
-}
-
-//newer one
 // void placeImage(unsigned char* newImage, int newImWidth, int newImHeight, MatrixXd* resImg, double min_x, double min_y, double max_x, double max_y){
-//     // int w = newImage.cols();
-//     // int h = newImage.rows();
+//     int w = newImWidth; //newImage.cols();
+//     int h = newImHeight; //newImage.rows();
 //     // printf("w: %d, h: %d", w, h);
-//     double startTime = CycleTimer::currentSeconds();
-//     int start_i = (int)fmax(min_y,0);
-//     int start_j = (int)fmax(min_x,0);
-//     // #pragma omp parallel for collapse(2) 
-//     #pragma omp parallel for
-//     //FIX: another for loop that goes over the 4 image channels
-//     for (int i = start_i; i < (int)max_y; i++){ //access as row col
-//         for (int j = start_j; j < (int)max_x; j++){
+//     for (int i = 0; i < h; i++){ //access as row col
+//         for (int j = 0; j < w; j++){
 //             if ((*resImg)(i,j) == 0){
 //                 (*resImg)(i,j) = newImage[i*newImWidth + j]; //(i,j);
 //             }
@@ -371,11 +323,9 @@ void placeImage(unsigned char* newImage, int newImWidth, int newImHeight, Matrix
 //             }
 //         }
 //     }
-//     MatrixXd copyRes = (*resImg);
-//     #pragma omp parallel for //schedule(dynamic)
-//     // #pragma omp parallel for collapse(2) schedule(dynamic)
-//     for(int i = start_i; i < (int)max_y; i++){
-//         for(int j = start_j; j < (int)max_x; j++){
+//     MatrixXd copyRes = *resImg;
+//     for(int i = fmax(min_y,0); i < max_y; i++){
+//         for(int j = fmax(min_x,0); j < max_x; j++){
 //             if((*resImg)(i, j) == 0){
 //                 if (i+1 < max_y && copyRes(i+1,j) != 0){ 
 //                     (*resImg)(i, j) = copyRes(i+1,j);
@@ -397,9 +347,59 @@ void placeImage(unsigned char* newImage, int newImWidth, int newImHeight, Matrix
 //             }
 //         }
 //     }
-//     double endTime = CycleTimer::currentSeconds();
-//     std::cout << "Place image time " << endTime-startTime << std::endl;
+//     // return resImg;
 // }
+
+//newer one
+void placeImage(unsigned char* newImage, int newImWidth, int newImHeight, MatrixXd* resImg, double min_x, double min_y, double max_x, double max_y){
+    // int w = newImage.cols();
+    // int h = newImage.rows();
+    // printf("w: %d, h: %d", w, h);
+    double startTime = CycleTimer::currentSeconds();
+    int start_i = (int)fmax(min_y,0);
+    int start_j = (int)fmax(min_x,0);
+    // #pragma omp parallel for collapse(2) 
+    #pragma omp parallel for
+    //FIX: another for loop that goes over the 4 image channels
+    for (int i = start_i; i < (int)max_y; i++){ //access as row col
+        for (int j = start_j; j < (int)max_x; j++){
+            if ((*resImg)(i,j) == 0){
+                (*resImg)(i,j) = newImage[i*newImWidth + j]; //(i,j);
+            }
+            if ((*resImg)(i,j) != 0 && newImage[i*newImWidth + j] != 0){
+                (*resImg)(i,j) = fmax(newImage[i*newImWidth + j], (*resImg)(i,j));
+            }
+        }
+    }
+    MatrixXd copyRes = (*resImg);
+    #pragma omp parallel for //schedule(dynamic)
+    // #pragma omp parallel for collapse(2) schedule(dynamic)
+    for(int i = start_i; i < (int)max_y; i++){
+        for(int j = start_j; j < (int)max_x; j++){
+            if((*resImg)(i, j) == 0){
+                if (i+1 < max_y && copyRes(i+1,j) != 0){ 
+                    (*resImg)(i, j) = copyRes(i+1,j);
+                }else if(i-1 >= fmax(min_y,0) && copyRes(i-1,j) != 0){
+                    (*resImg)(i, j) = copyRes(i-1,j);
+                }else if(j+1 < max_x && copyRes(i,j+1) != 0){
+                    (*resImg)(i, j) = copyRes(i,j+1);
+                }else if(j-1 >=fmax(min_x,0) && copyRes(i,j-1) != 0){
+                    (*resImg)(i,j) = copyRes(i,j-1);
+                }else if(i+1 < max_y && j+1 < max_x && copyRes(i+1,j+1)){
+                    (*resImg)(i,j) = copyRes(i+1,j+1);
+                }else if(i-1 >= fmax(min_y,0) && j+1 < max_x && copyRes(i-1,j+1)){
+                    (*resImg)(i,j) = copyRes(i-1,j+1);
+                }else if(i+1 < max_y && j-1 >=fmax(min_x,0) && copyRes(i+1,j-1)){
+                    (*resImg)(i,j) = copyRes(i+1,j-1);
+                }else if(i-1 >= fmax(min_y,0) && j-1 >=fmax(min_x,0) && copyRes(i-1,j-1)){
+                    (*resImg)(i,j) = copyRes(i-1,j-1);
+                }
+            }
+        }
+    }
+    double endTime = CycleTimer::currentSeconds();
+    std::cout << "Place image time " << endTime-startTime << std::endl;
+}
 
 
 void write_pgm(const char *filename, unsigned char *data, int w, int h)
