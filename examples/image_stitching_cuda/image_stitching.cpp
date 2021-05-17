@@ -517,7 +517,7 @@ int main(int argc, char *argv[])
 
     bool matchListSizeZero = false;
     //#pragma omp parallel for schedule(dynamic) NEW REMOVAL
-    for(int i=0; i<images.size(); i++){
+    for(int i=0; i<images.size()-1; i++){
         // if(i == images.size() -1 ){
         //     dummyWarmup();
         // }else{
