@@ -400,7 +400,7 @@ int match_keypoints(std::list<SiftKeypoint> &kpt_list1,
     std::vector<SiftKeypoint> kpt_vect1(kpt_list1.size());
     std::copy(kpt_list1.begin(), kpt_list1.end(), kpt_vect1.begin());
 
-    std::vector<MatchPair> match_vector(kpt_list1.size());
+    MatchPair match_array[kpt_list1.size()];
     //std::list<SiftKeypoint>::iterator kpt1 = kpt_list1.begin();
     std::list<SiftKeypoint>::iterator kpt2;
 
@@ -457,12 +457,15 @@ int match_keypoints(std::list<SiftKeypoint> &kpt_list1,
 
             // #pragma omp critical
             //     match_list.push_back(mp);
-            match_vector[i] = mp;
+            match_array[i] = mp;
             
         }
         // kpt1++;
     }
-    std::copy(match_vector.begin(), match_vector.end(), std::back_inserter(match_list));
+    for(int i=0; i<kpt_list1.size(); i++){
+        match_list.push_back(match_array[i]);
+    }
+    // std::copy(match_vector.begin(), match_vector.end(), std::back_inserter(match_list));
     // match_list(match_vector.begin(), match_vector.end());
     // std::copy(match_vector.begin(), match_vector.end(), match_list.begin());
     match_list.unique(same_match_pair);
