@@ -107,6 +107,8 @@ void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* 
     cudaFree(out_b_device);
     cudaFree(out_a_device);
 
+    cudaDeviceSynchronize();
+
     cudaError_t errCode = cudaPeekAtLastError();
     if (errCode != cudaSuccess) {
         fprintf(stderr, "WARNING: A CUDA error occured: code=%d, %s\n", errCode, cudaGetErrorString(errCode));
