@@ -126,6 +126,7 @@ __global__ void ransacIterationDiffKernel(char* counts, bool* divByZero, int thr
     if(diff < threshold){
         counts[col] = 1;
     }
+    
     //if(!divide_by_zero){
         //         diff = (Matslice(prod.transpose(), i, 0, 1, 2)/prod.transpose()(i, 2) - Matslice(locs1, i, 0, 1, locs1.cols())).norm(); 
         //         if(diff < threshold){
