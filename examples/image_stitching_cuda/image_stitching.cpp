@@ -404,11 +404,11 @@ void placeImage(std::vector<unsigned char*> newImRs, std::vector<unsigned char*>
         for(int i = fmax(min_ys[imNum],0); i < (int)max_ys[imNum]; i++){
             for(int j = fmax(min_xs[imNum],0); j < (int)max_xs[imNum]; j++){
                 for(int im = 0; im<3; im++){
+                    int max_y = max_ys[imNum];
+                    int min_y = fmax(min_ys[imNum],0);
+                    int max_x = max_xs[imNum];
+                    int min_x = fmax(min_xs[imNum],0);
                     if(im == 0 && (*resImageR)(i, j) == 0){
-                        int max_y = max_ys[imNum];
-                        int min_y = fmax(min_ys[imNum],0);
-                        int max_x = max_xs[imNum];
-                        int min_x = fmax(min_xs[imNum],0);
                         if (i+1 < max_y && copyResR(i+1,j) != 0){ 
                             (*resImageR)(i, j) = copyResR(i+1,j);
                         }else if(i-1 >= fmax(min_y,0) && copyResR(i-1,j) != 0){
