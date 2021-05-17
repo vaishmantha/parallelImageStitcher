@@ -366,7 +366,7 @@ void placeImage(std::vector<unsigned char*> newImRs, std::vector<unsigned char*>
     // int imNum = 0;
     // #pragma omp parallel for collapse(2) 
     // int imNum = 0;
-    // #pragma omp parallel for collapse(4) schedule(dynamic)
+    #pragma omp parallel for collapse(4) //schedule(dynamic)
     for(int imNum=0; imNum<newImRs.size(); imNum++){
         for (int i = (int)fmax(min_ys[imNum],0); i < (int)max_ys[imNum]; i++){ //access as row col
             for (int j = (int)fmax(min_xs[imNum],0); j < (int)max_xs[imNum]; j++){
@@ -401,7 +401,7 @@ void placeImage(std::vector<unsigned char*> newImRs, std::vector<unsigned char*>
     MatrixXd copyResR = (*resImageR);
     MatrixXd copyResG = (*resImageG);
     MatrixXd copyResB = (*resImageB);
-    // #pragma omp parallel for collapse(4) schedule(dynamic)
+    #pragma omp parallel for collapse(4) 
     for(int imNum=0; imNum<newImRs.size(); imNum++){
     // #pragma omp parallel for collapse(2) schedule(dynamic)
         for(int i = fmax(min_ys[imNum],0); i < (int)max_ys[imNum]; i++){
