@@ -500,7 +500,7 @@ int main(int argc, char *argv[])
     ezsift::double_original_image(true);
     double siftStart = CycleTimer::currentSeconds();
 
-    //#pragma omp parallel for schedule(dynamic) NEW REMOVAL
+    #pragma omp parallel for schedule(dynamic) //NEW REMOVAL
     for(int i=0; i<images.size()+1; i++){
         if(i < images.size()){
             sift_cpu(images[i], kpt_lists[i], true);
@@ -516,9 +516,9 @@ int main(int argc, char *argv[])
     double findMatchesStart = CycleTimer::currentSeconds();
 
     bool matchListSizeZero = false;
-    //#pragma omp parallel for schedule(dynamic) NEW REMOVAL
+    #pragma omp parallel for schedule(dynamic) //NEW REMOVAL
     for(int i=0; i<images.size()-1; i++){
-        
+
         // if(i == images.size() -1 ){
         //     dummyWarmup();
         // }else{
@@ -635,7 +635,7 @@ int main(int argc, char *argv[])
             resImg_vect.push_back(resImageR(i, j)); //color
             resImg_vect.push_back(resImageG(i, j));
             resImg_vect.push_back(resImageB(i, j));
-            resImg_vect.push_back(resImageA(i, j)); /////This cannot be 0 or the entire program breaks
+            resImg_vect.push_back(255); /////This cannot be 0 or the entire program breaks
         }
     }
     unsigned err = lodepng::encode("result.png", resImg_vect, pan_width, pan_height);
