@@ -629,16 +629,24 @@ int main(int argc, char *argv[])
 
     std::vector<unsigned char> resImg_vect;
     double finalLoopStart = CycleTimer::currentSeconds();
-    for(int j=0; j<pan_width; j++){
-        for(int i=0; i<pan_height; i++){
-            resImg_vect.push_back(resImageR(i, j)); //color
-            resImg_vect.push_back(resImageG(i, j));
-            resImg_vect.push_back(resImageB(i, j));
-            resImg_vect.push_back(255); /////This cannot be 0 or the entire program breaks
+    // for(int i=0; i<pan_height; i++){
+    //     for(int j=0; j<pan_width; j++){
+    //         resImg_vect.push_back(resImageR(i, j)); //color
+    //         resImg_vect.push_back(resImageG(i, j));
+    //         resImg_vect.push_back(resImageB(i, j));
+    //         resImg_vect.push_back(255); /////This cannot be 0 or the entire program breaks
+    //     }
+    // }
+    for(int i=0; i<pan_height; i++){
+        for(int j=0; j<pan_width; j++){
+            resImg_vect.push_back(resImage(i, j)); //color
+            resImg_vect.push_back(resImage(i, j));
+            resImg_vect.push_back(resImage(i, j));
+            resImg_vect.push_back(255);
         }
     }
     double finalLoopEnd = CycleTimer::currentSeconds();
-    std::cout << "Final loop time: " << finalLoopEnd-finalLoopStart << std::endl;
+    std::cout << "Final loop time: " << finalLoopEnd-startTime << std::endl;
 
     unsigned err = lodepng::encode("result.png", resImg_vect, pan_width, pan_height);
     if(err) std::cout << "encoder error " << err << ": "<< lodepng_error_text(err) << std::endl;
