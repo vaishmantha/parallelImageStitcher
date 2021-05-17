@@ -42,7 +42,6 @@ __global__ void kernelWarpPerspective(int png_width, int png_height, int curr_wi
         out_b_device[(int)res_10*curr_width+(int)res_00] = (int)png_b[i*png_width + j];
         // out_a_device[(int)res_10*curr_width+(int)res_00] = (int)png_a[i*png_width + j]; 
     }
-    
 }
 
 void dummyWarmup(){
