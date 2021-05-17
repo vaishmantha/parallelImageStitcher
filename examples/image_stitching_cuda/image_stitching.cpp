@@ -576,7 +576,6 @@ int main(int argc, char *argv[])
             resImg_vect.push_back(resImageA(i, j)); /////This cannot be 0 or the entire program breaks
         }
     }
-    // cudaFindPeaks();
     unsigned err = lodepng::encode("result.png", resImg_vect, pan_width, pan_height);
     if(err) std::cout << "encoder error " << err << ": "<< lodepng_error_text(err) << std::endl;
     double endTime = CycleTimer::currentSeconds();
