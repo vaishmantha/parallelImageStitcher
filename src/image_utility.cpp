@@ -395,7 +395,12 @@ int match_keypoints(std::list<SiftKeypoint> &kpt_list1,
                     std::list<SiftKeypoint> &kpt_list2,
                     std::list<MatchPair> &match_list)
 {
-    std::list<SiftKeypoint>::iterator kpt1 = kpt_list1.begin();
+    // std::list<char> list = { 'a', 'b', 'c' };
+ 
+    std::vector<SiftKeypoint> kpt_vect1(kpt_list1.size());
+    std::copy(kpt_list1.begin(), kpt_list1.end(), kpt_vect1.begin());
+
+    //std::list<SiftKeypoint>::iterator kpt1 = kpt_list1.begin();
     std::list<SiftKeypoint>::iterator kpt2;
 
     double startTime = CycleTimer::currentSeconds();
@@ -403,12 +408,15 @@ int match_keypoints(std::list<SiftKeypoint> &kpt_list1,
     #pragma omp parallel for schedule(dynamic)
     // for (kpt1 = kpt_list1.begin(); kpt1 != kpt_list1.end(); kpt1++) {
     for (i = 0; i < kpt_list1.size(); i++) {
-
+        
         // Position of the matched feature.
-        int r1 = (int)kpt1->r;
-        int c1 = (int)kpt1->c;
+        // int r1 = (int)kpt1->r;
+        // int c1 = (int)kpt1->c;
+        int r1 = kpt_vect1[i].r;
+        int c1 = kpt_vect1[i].c;
 
-        float *descr1 = kpt1->descriptors;
+        float *descr1 = kpt_vect1[i].descriptors;
+        // float *descr1 = kpt1->descriptors;
         float score1 = (std::numeric_limits<float>::max)(); // highest score
         float score2 = (std::numeric_limits<float>::max)(); // 2nd highest score
 
@@ -450,7 +458,7 @@ int match_keypoints(std::list<SiftKeypoint> &kpt_list1,
                 match_list.push_back(mp);
             
         }
-        kpt1++;
+        // kpt1++;
     }
 
     match_list.unique(same_match_pair);
