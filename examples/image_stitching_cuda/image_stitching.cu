@@ -129,7 +129,7 @@ __global__ void ransacIterationDiffKernel(char* counts, char* divByZero, int thr
 
 }
 
-void ransacIterationDiff(MatrixXd prod, MatrixXd locs1, int threshold, char* counts, char* divideByZero){
+void ransacIterationDiff(MatrixXd prod, MatrixXd locs1, int threshold, int* count){
     dim3 blockDim(BLOCKSIZE, 1);
     dim3 gridDim((prod.cols() + blockDim.x - 1) / blockDim.x, 1);
 
@@ -151,14 +151,24 @@ void ransacIterationDiff(MatrixXd prod, MatrixXd locs1, int threshold, char* cou
 
     ransacIterationDiffKernel<<<gridDim, blockDim>>>(countsDevice, divByZeroDevice, threshold, prodDevice, locs1Device, prod.cols(), locs1.rows());
     
-    cudaMemcpy(divideByZero, divByZeroDevice, prod.cols()*sizeof(char), cudaMemcpyDeviceToHost);
+    char* divByZero = (char *)calloc(prod.cols(), sizeof(char));
+    char* counts = (char *)calloc(prod.cols(), sizeof(char));
+    cudaMemcpy(divByZero, divByZeroDevice, prod.cols()*sizeof(char), cudaMemcpyDeviceToHost);
     cudaMemcpy(counts, countsDevice, prod.cols()*sizeof(char), cudaMemcpyDeviceToHost);
 
-    cudaFree(countsDevice);
-    cudaFree(divByZeroDevice);
-    cudaFree(prodDevice);
-    cudaFree(locs1Device);
+    int totalCount = 0; 
+    // #pragma omp parallel for reduction(sum+: totalCount)
+    for (int i = 0; i < prod.cols(); i++){
+        totalCount += divByZero[i]; 
+    }
 
+    if(totalCount != 0){
+        totalCount = 0; 
+        // #pragma omp parallel for reduction(sum+: totalCount)
+        for (int i = 0; i < prod.cols(); i++){
+            totalCount += counts[i]; 
+        }
+    }
+    *count = totalCount;
+    //////////
 }
-
-
