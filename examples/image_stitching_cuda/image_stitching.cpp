@@ -114,7 +114,6 @@ MatrixXd computeNormalizedHomography(MatrixXd x1, MatrixXd x2,
     
     MatrixXd centroid1 = x1.colwise().mean(); //shape: (1,2)
     MatrixXd centroid2 = x2.colwise().mean(); //shape: (1,2)
-    // std::cout << "Centroid 1 " << centroid1 << " \n" << "Centroid 2 " << centroid2 << std::endl;
 
     double scale1 = sqrt(2) / x1.colwise().norm().maxCoeff();
     double scale2 = sqrt(2) / x2.colwise().norm().maxCoeff();
@@ -146,9 +145,6 @@ MatrixXd computeNormalizedHomography(MatrixXd x1, MatrixXd x2,
     return T1.inverse() * (H * T2);  //correct
 }
 
-    
-
-
 MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
     int iterations= 1000; 
     int threshold = 3; //check on this threshold
@@ -173,7 +169,6 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
         i++;
     }
 
-
     int* rand_inds = (int*) calloc(sizeof(int), 4 * iterations);
     // #pragma omp parallel for schedule(dynamic) // DO NOT ADD BACK
     for(int it = 0; it < iterations; it++){
@@ -187,7 +182,7 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
 
     int *count_list = (int*)calloc(iterations, sizeof(int));
     int it; 
-    double loopStart = CycleTimer::currentSeconds();
+    // double loopStart = CycleTimer::currentSeconds();
     #pragma omp parallel for schedule(dynamic)
     for(it = 0; it < iterations; it++){
         MatrixXd x1 = MatVectorslice2(locs1, &rand_inds[4 * it], 4, 0, locs1.cols()); //locs1(rand_inds, Eigen::seqN(0,locs1.cols())); 
@@ -357,7 +352,7 @@ void placeImage(unsigned char* newImR, unsigned char* newImG, unsigned char* new
     // int w = newImage.cols();
     // int h = newImage.rows();
     // printf("w: %d, h: %d", w, h);
-    double startTime = CycleTimer::currentSeconds();
+    // double startTime = CycleTimer::currentSeconds();
     int start_i = (int)fmax(min_y,0);
     int start_j = (int)fmax(min_x,0);
     // #pragma omp parallel for collapse(2) 
@@ -457,8 +452,8 @@ void placeImage(unsigned char* newImR, unsigned char* newImG, unsigned char* new
             }
         }
     }
-    double endTime = CycleTimer::currentSeconds();
-    std::cout << "Place image time " << endTime-startTime << std::endl;
+    // double endTime = CycleTimer::currentSeconds();
+    // std::cout << "Place image time " << endTime-startTime << std::endl;
 }
 
 
@@ -570,7 +565,7 @@ int main(int argc, char *argv[])
     }
     // ezsift::sift_gpu(images, kpt_lists, true);
     double siftEnd = CycleTimer::currentSeconds();
-    std::cout << "Sift time: " << siftEnd-siftStart << std::endl;
+    std::cout << "Keypoint detection " << siftEnd-siftStart << std::endl;
     std::vector<std::list<ezsift::MatchPair>> matches(images.size()-1);
 
     double findMatchesStart = CycleTimer::currentSeconds();
@@ -597,7 +592,7 @@ int main(int argc, char *argv[])
     }
 
     double findMatchesEnd = CycleTimer::currentSeconds();
-    std::cout << "Generating matches time: " << findMatchesEnd-findMatchesStart << std::endl;
+    std::cout << "Keypoint matches: " << findMatchesEnd-findMatchesStart << std::endl;
 
     //homographies multiplication must be sequential but ransac does not need to be
     double ransacStart = CycleTimer::currentSeconds();
