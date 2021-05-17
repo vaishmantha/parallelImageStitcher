@@ -113,7 +113,7 @@ void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* 
     }
 }
 
-__global__ void ransacIterationDiffKernel(char* counts, bool* divByZero, int threshold, double* prod, double* locs1
+__global__ void ransacIterationDiffKernel(char* counts, char* divByZero, int threshold, double* prod, double* locs1,
                                           int prodCols, int locs1Rows){
     int col = blockIdx.x * blockDim.x + threadIdx.x;
     if(col >= prodCols)
@@ -126,7 +126,7 @@ __global__ void ransacIterationDiffKernel(char* counts, bool* divByZero, int thr
     if(diff < threshold){
         counts[col] = 1;
     }
-    
+
     //if(!divide_by_zero){
         //         diff = (Matslice(prod.transpose(), i, 0, 1, 2)/prod.transpose()(i, 2) - Matslice(locs1, i, 0, 1, locs1.cols())).norm(); 
         //         if(diff < threshold){
@@ -156,7 +156,7 @@ void ransacIterationDiff(MatrixXd prod, MatrixXd locs1, int threshold, int* coun
     cudaMalloc((void **)&locs1Device, locs1.cols()*locs1.rows()*sizeof(double));
     cudaMemcpy(locs1Device, locs1.data(), locs1.cols()*locs1.rows()*sizeof(double), cudaMemcpyHostToDevice);
 
-    ransacIterationDiffKernel<<<gridDim, blockDim>>>(countsDevice, threshold, prodDevice, locs1Device, prod.cols());
+    ransacIterationDiffKernel<<<gridDim, blockDim>>>(countsDevice, divByZeroDevice, threshold, prodDevice, locs1Device, prod.cols(), locs1.rows());
     
     int totalCount = 0; 
     char* divByZero; //prod.cols()
