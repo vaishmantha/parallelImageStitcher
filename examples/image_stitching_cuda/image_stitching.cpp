@@ -667,10 +667,10 @@ int main(int argc, char *argv[])
         }
     }
     double finalLoopEnd = CycleTimer::currentSeconds();
-    std::cout << "Final loop time: " << finalLoopEnd-startTime << std::endl;
 
     unsigned err = lodepng::encode("result.png", resImg_vect, pan_width, pan_height);
     if(err) std::cout << "encoder error " << err << ": "<< lodepng_error_text(err) << std::endl;
+    std::cout << "Final loop time: " << finalLoopEnd-startTime << std::endl;
     double endTime = CycleTimer::currentSeconds();
 
     std::cout << "Overall time: " << endTime-startTime << std::endl;
