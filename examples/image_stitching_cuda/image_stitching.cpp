@@ -14,9 +14,9 @@ using Eigen::MatrixXd;
 void dummyWarmup();
 void ransacIterationDiff(MatrixXd prod, MatrixXd locs1, int threshold, int* count);
 // void placeImage(MatrixXd newImage, MatrixXd* resImg, double min_x, double min_y, double max_x, double max_y);
-// void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* png_b, unsigned char* png_a, 
-//         int png_width, int png_height, unsigned char* newImR, unsigned char* newImG, unsigned char* newImB, unsigned char* newImA, 
-//         MatrixXd H, int curr_width, int curr_height);
+void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* png_b, unsigned char* png_a, 
+        int png_width, int png_height, unsigned char* newImR, unsigned char* newImG, unsigned char* newImB, unsigned char* newImA, 
+        MatrixXd H, int curr_width, int curr_height);
 
 MatrixXd Matslice(MatrixXd array, int start_row, int start_col, int height, int width){
     MatrixXd sl = MatrixXd::Constant(height, width, 0);
@@ -84,28 +84,28 @@ MatrixXd computeHomography(MatrixXd x1, MatrixXd x2){
     return finalH.transpose();
 }
 
-void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* png_b, unsigned char* png_a, 
-        int png_width, int png_height, unsigned char* newImR, unsigned char* newImG, unsigned char* newImB, unsigned char* newImA, 
-        MatrixXd H, int curr_width, int curr_height){
-    int i; 
-    for(i=0; i< png_height; i++){ 
-        for(int j=0; j<png_width; j++){
-            MatrixXd tmp = MatrixXd::Constant(3,1, 0.0);
-            tmp(0,0) = j;
-            tmp(1,0) = i;
-            tmp(2,0) = 1;
-            MatrixXd res = H*tmp;
-            MatrixXd tm =  Matslice(res, 2, 0, 1, res.cols()).replicate(3,1); //(MatrixXd array, int start_row, int start_col, int height, int width)
-            res = res.cwiseQuotient(tm);
-            if ((int)res(0,0) >= 0 && (int)res(0,0) < curr_width && (int)res(1,0) >= 0 && (int)res(1,0) < curr_height){
-                newImR[((int)res(1,0))*curr_width +  (int)res(0,0)] = (int)png_r[i*png_width + j];
-                newImG[((int)res(1,0))*curr_width +  (int)res(0,0)] = (int)png_g[i*png_width + j];
-                newImB[((int)res(1,0))*curr_width +  (int)res(0,0)] = (int)png_b[i*png_width + j];
-                newImA[((int)res(1,0))*curr_width +  (int)res(0,0)] = (int)png_a[i*png_width + j];
-            }
-        }
-    }
-}
+// void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* png_b, unsigned char* png_a, 
+//         int png_width, int png_height, unsigned char* newImR, unsigned char* newImG, unsigned char* newImB, unsigned char* newImA, 
+//         MatrixXd H, int curr_width, int curr_height){
+//     int i; 
+//     for(i=0; i< png_height; i++){ 
+//         for(int j=0; j<png_width; j++){
+//             MatrixXd tmp = MatrixXd::Constant(3,1, 0.0);
+//             tmp(0,0) = j;
+//             tmp(1,0) = i;
+//             tmp(2,0) = 1;
+//             MatrixXd res = H*tmp;
+//             MatrixXd tm =  Matslice(res, 2, 0, 1, res.cols()).replicate(3,1); //(MatrixXd array, int start_row, int start_col, int height, int width)
+//             res = res.cwiseQuotient(tm);
+//             if ((int)res(0,0) >= 0 && (int)res(0,0) < curr_width && (int)res(1,0) >= 0 && (int)res(1,0) < curr_height){
+//                 newImR[((int)res(1,0))*curr_width +  (int)res(0,0)] = (int)png_r[i*png_width + j];
+//                 newImG[((int)res(1,0))*curr_width +  (int)res(0,0)] = (int)png_g[i*png_width + j];
+//                 newImB[((int)res(1,0))*curr_width +  (int)res(0,0)] = (int)png_b[i*png_width + j];
+//                 newImA[((int)res(1,0))*curr_width +  (int)res(0,0)] = (int)png_a[i*png_width + j];
+//             }
+//         }
+//     }
+// }
 
 MatrixXd computeNormalizedHomography(MatrixXd x1, MatrixXd x2, 
                                     MatrixXd homogeneous_x1, 
@@ -500,7 +500,7 @@ int main(int argc, char *argv[])
     ezsift::double_original_image(true);
     double siftStart = CycleTimer::currentSeconds();
 
-    #pragma omp parallel for schedule(dynamic) 
+    //#pragma omp parallel for schedule(dynamic) NEW REMOVAL
     for(int i=0; i<images.size()+1; i++){
         if(i < images.size()){
             sift_cpu(images[i], kpt_lists[i], true);
@@ -516,23 +516,22 @@ int main(int argc, char *argv[])
     double findMatchesStart = CycleTimer::currentSeconds();
 
     bool matchListSizeZero = false;
-    #pragma omp parallel for schedule(dynamic)
+    //#pragma omp parallel for schedule(dynamic) NEW REMOVAL
     for(int i=0; i<images.size(); i++){
-        if(i == images.size() -1 ){
-            dummyWarmup();
-        }else{
-            std::list<ezsift::MatchPair> match_list;
-            // double matchKeyPointsStart = CycleTimer::currentSeconds();
-            ezsift::match_keypoints(kpt_lists[i], kpt_lists[i+1], match_list); //Doesn't take long
-            // double matchKeyPointsEnd = CycleTimer::currentSeconds();
-            // std::cout << "Actual matching of keypoints time: " << matchKeyPointsEnd-matchKeyPointsStart << std::endl;
+        // if(i == images.size() -1 ){
+        //     dummyWarmup();
+        // }else{
+        std::list<ezsift::MatchPair> match_list;
+        // double matchKeyPointsStart = CycleTimer::currentSeconds();
+        ezsift::match_keypoints(kpt_lists[i], kpt_lists[i+1], match_list); //Doesn't take long
+        // double matchKeyPointsEnd = CycleTimer::currentSeconds();
+        // std::cout << "Actual matching of keypoints time: " << matchKeyPointsEnd-matchKeyPointsStart << std::endl;
 
-            matches[i] = match_list;
-            if(match_list.size() == 0){
-                matchListSizeZero = true;
-            }
+        matches[i] = match_list;
+        if(match_list.size() == 0){
+            matchListSizeZero = true;
         }
-        
+        // } 
     }
 
     if(matchListSizeZero){ 
@@ -563,7 +562,7 @@ int main(int argc, char *argv[])
     int pano_max_x = images[0].w; 
     int pano_max_y = images[0].h; 
 
-    // #pragma omp parallel for schedule(dynamic)
+    
     for(int i=1; i<images.size(); i++){
         double min_x;
         double min_y;
