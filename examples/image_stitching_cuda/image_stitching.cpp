@@ -178,6 +178,7 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
         std::vector<int> inlier_inds_current; 
         double diff;
         bool divide_by_zero = false;
+        
         // std::cout << "Num cols in product " << prod.cols() << std::endl;
         for(int i = 0; i < prod.cols(); i++){ //FIX: 100s of cols here, so cudify
             if(prod.transpose()(i, 2) == 0){
@@ -483,7 +484,7 @@ int main(int argc, char *argv[])
     double findMatchesStart = CycleTimer::currentSeconds();
 
     bool matchListSizeZero = false;
-    #pragma omp parallel for schedule(dynamic)
+    // #pragma omp parallel for schedule(dynamic)
     for(int i=0; i<images.size(); i++){
         if(i == images.size() -1 ){
             dummyWarmup();
