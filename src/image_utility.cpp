@@ -400,6 +400,7 @@ int match_keypoints(std::list<SiftKeypoint> &kpt_list1,
     std::vector<SiftKeypoint> kpt_vect1(kpt_list1.size());
     std::copy(kpt_list1.begin(), kpt_list1.end(), kpt_vect1.begin());
 
+    std::vector<MatchPair> match_vector(kpt_list1.size());
     //std::list<SiftKeypoint>::iterator kpt1 = kpt_list1.begin();
     std::list<SiftKeypoint>::iterator kpt2;
 
@@ -454,13 +455,15 @@ int match_keypoints(std::list<SiftKeypoint> &kpt_list1,
             mp.r2 = r2;
             mp.c2 = c2;
 
-            #pragma omp critical
-                match_list.push_back(mp);
+            // #pragma omp critical
+            //     match_list.push_back(mp);
+            match_vector[i] = mp;
             
         }
         // kpt1++;
     }
-
+    
+    std::copy(match_vector.begin(), match_vector.end(), match_list.begin());
     match_list.unique(same_match_pair);
     double endTime = CycleTimer::currentSeconds();
     std::cout << "Match keypoints time::: " << endTime - startTime << std::endl;
