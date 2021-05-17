@@ -366,36 +366,37 @@ void placeImage(std::vector<unsigned char*> newImRs, std::vector<unsigned char*>
     // int imNum = 0;
     // #pragma omp parallel for collapse(2) 
     #pragma omp parallel for schedule(dynamic)
-    for(int imNum=0; imNum<newImRs.size(); imNum++){
-        for (int i = (int)fmax(min_ys[imNum],0); i < (int)max_ys[imNum]; i++){ //access as row col
-            for (int j = (int)fmax(min_xs[imNum],0); j < (int)max_xs[imNum]; j++){
-                for(int im = 0; im<3; im++){
-                    if(im == 0){
-                        if ((*resImageR)(i,j) == 0){
-                            (*resImageR)(i,j) = newImRs[imNum][i*newImWidths[imNum] + j]; //(i,j);
-                        }
-                        if ((*resImageR)(i,j) != 0 && newImRs[imNum][i*newImWidths[imNum] + j] != 0){
-                            (*resImageR)(i,j) = fmax(newImRs[imNum][i*newImWidths[imNum] + j], (*resImageR)(i,j));
-                        }
-                    }else if(im == 1){
-                        if ((*resImageG)(i,j) == 0){
-                            (*resImageG)(i,j) = newImGs[imNum][i*newImWidths[imNum] + j]; //(i,j);
-                        }
-                        if ((*resImageG)(i,j) != 0 && newImGs[imNum][i*newImWidths[imNum] + j] != 0){
-                            (*resImageG)(i,j) = fmax(newImGs[imNum][i*newImWidths[imNum] + j], (*resImageG)(i,j));
-                        }
-                    }else if(im == 2){
-                        if ((*resImageB)(i,j) == 0){
-                            (*resImageB)(i,j) = newImBs[imNum][i*newImWidths[imNum] + j]; //(i,j);
-                        }
-                        if ((*resImageB)(i,j) != 0 && newImBs[imNum][i*newImWidths[imNum] + j] != 0){
-                            (*resImageB)(i,j) = fmax(newImBs[imNum][i*newImWidths[imNum] + j], (*resImageB)(i,j));
-                        }
+    int imNum = 0;
+    // for(int imNum=0; imNum<newImRs.size(); imNum++){
+    for (int i = (int)fmax(min_ys[imNum],0); i < (int)max_ys[imNum]; i++){ //access as row col
+        for (int j = (int)fmax(min_xs[imNum],0); j < (int)max_xs[imNum]; j++){
+            for(int im = 0; im<3; im++){
+                if(im == 0){
+                    if ((*resImageR)(i,j) == 0){
+                        (*resImageR)(i,j) = newImRs[imNum][i*newImWidths[imNum] + j]; //(i,j);
+                    }
+                    if ((*resImageR)(i,j) != 0 && newImRs[imNum][i*newImWidths[imNum] + j] != 0){
+                        (*resImageR)(i,j) = fmax(newImRs[imNum][i*newImWidths[imNum] + j], (*resImageR)(i,j));
+                    }
+                }else if(im == 1){
+                    if ((*resImageG)(i,j) == 0){
+                        (*resImageG)(i,j) = newImGs[imNum][i*newImWidths[imNum] + j]; //(i,j);
+                    }
+                    if ((*resImageG)(i,j) != 0 && newImGs[imNum][i*newImWidths[imNum] + j] != 0){
+                        (*resImageG)(i,j) = fmax(newImGs[imNum][i*newImWidths[imNum] + j], (*resImageG)(i,j));
+                    }
+                }else if(im == 2){
+                    if ((*resImageB)(i,j) == 0){
+                        (*resImageB)(i,j) = newImBs[imNum][i*newImWidths[imNum] + j]; //(i,j);
+                    }
+                    if ((*resImageB)(i,j) != 0 && newImBs[imNum][i*newImWidths[imNum] + j] != 0){
+                        (*resImageB)(i,j) = fmax(newImBs[imNum][i*newImWidths[imNum] + j], (*resImageB)(i,j));
                     }
                 }
             }
         }
     }
+    // }
     std::cout << "Finished first loop place image" << std::endl;
     MatrixXd copyResR = (*resImageR);
     MatrixXd copyResG = (*resImageG);
