@@ -659,10 +659,10 @@ int main(int argc, char *argv[])
     std::vector<unsigned char*> newImageBs;
     std::vector<int> curr_widths;
     std::vector<int> curr_heights;
-    std::vector<int> min_xs;
-    std::vector<int> min_ys;
-    std::vector<int> max_xs;
-    std::vector<int> max_ys;
+    std::vector<double> min_xs;
+    std::vector<double> min_ys;
+    std::vector<double> max_xs;
+    std::vector<double> max_ys;
     // #pragma omp parallel for schedule(dynamic)
     for (int i = 0; i < images.size(); i++){
         double min_x; 
