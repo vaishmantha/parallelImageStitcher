@@ -13,7 +13,7 @@
 #include <thrust/device_malloc.h>
 #include <thrust/device_free.h>
 
-// #define BLOCKSIZE 1024
+#define BLOCKSIZE 1024
 #include "CycleTimer.h"
 
 using Eigen::MatrixXd;
@@ -53,20 +53,16 @@ void dummyWarmup(){
 void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* png_b, unsigned char* png_a, 
     int png_width, int png_height, unsigned char* newImR, unsigned char* newImG, unsigned char* newImB, unsigned char* newImA, 
     MatrixXd H, int newIm_width, int newIm_height){
-    // double overallStartTime = CycleTimer::currentSeconds();
+
     dim3 blockDim(32, 32, 1);
     dim3 gridDim((png_width + blockDim.x - 1) / blockDim.x, ((png_height + blockDim.y - 1) / blockDim.y));
     
     //UNAVOIDABLE TIME COST: CUDA WARMUP TIME is 0.67 seconds
-    // double section1S = CycleTimer::currentSeconds();
-    // double* H_device;
     double *H_data = H.data();
-    // double section1E = CycleTimer::currentSeconds();
-    // std::cout << "Section1 time " << section1E-section1S << std::endl;
+   
     cudaMemcpyToSymbol(homography, H_data, sizeof(double)*9);
     
     
-    // double section2S = CycleTimer::currentSeconds();
     unsigned char* png_r_device;
     unsigned char* png_g_device;
     unsigned char* png_b_device;
@@ -80,10 +76,7 @@ void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* 
     cudaMemcpy(png_g_device, png_g, png_height*png_width*sizeof(unsigned char), cudaMemcpyHostToDevice);
     cudaMemcpy(png_b_device, png_b, png_height*png_width*sizeof(unsigned char), cudaMemcpyHostToDevice);
     cudaMemcpy(png_a_device, png_a, png_height*png_width*sizeof(unsigned char), cudaMemcpyHostToDevice);
-    // double section2E = CycleTimer::currentSeconds();
-    // std::cout << "Section2 time " << section2E-section2S << std::endl;
     
-    // double section3S = CycleTimer::currentSeconds();
     unsigned char* out_r_device;
     unsigned char* out_g_device;
     unsigned char* out_b_device;
@@ -99,19 +92,12 @@ void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* 
     kernelWarpPerspective<<<gridDim, blockDim>>>(png_width, png_height, newIm_width, newIm_height,
                                                 out_r_device, out_g_device, out_b_device, out_a_device, png_r_device, png_g_device,
                                                 png_b_device, png_a_device);
-    // double endTime = CycleTimer::currentSeconds();
-    // std::cout << "Actual kernel time " << endTime-startTime << std::endl;
     
-
-    // double lMemcpyTime = CycleTimer::currentSeconds();
     cudaMemcpy(newImR, out_r_device, newIm_width*newIm_height*sizeof(unsigned char), cudaMemcpyDeviceToHost); //CHECK ORDER OF ARGS HERE
     cudaMemcpy(newImG, out_g_device, newIm_width*newIm_height*sizeof(unsigned char), cudaMemcpyDeviceToHost);
     cudaMemcpy(newImB, out_b_device, newIm_width*newIm_height*sizeof(unsigned char), cudaMemcpyDeviceToHost);
     cudaMemcpy(newImA, out_a_device, newIm_width*newIm_height*sizeof(unsigned char), cudaMemcpyDeviceToHost);
-    // double lEndMemcpyTime = CycleTimer::currentSeconds();
-    // std::cout << "Memcpy kernel time " << lEndMemcpyTime-lMemcpyTime << std::endl;
-    
-    // double section4S = CycleTimer::currentSeconds();
+   
     cudaFree(png_r_device);
     cudaFree(png_g_device);
     cudaFree(png_b_device);
@@ -120,16 +106,76 @@ void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* 
     cudaFree(out_g_device);
     cudaFree(out_b_device);
     cudaFree(out_a_device);
-    // double section4E = CycleTimer::currentSeconds();
-    // std::cout << "Section4 time " << section4E-section4S << std::endl;
-    
-    // double overallEndTime = CycleTimer::currentSeconds();
-    // std::cout << "Overall warp persp time " << overallEndTime-overallStartTime << std::endl;
 
     cudaError_t errCode = cudaPeekAtLastError();
     if (errCode != cudaSuccess) {
         fprintf(stderr, "WARNING: A CUDA error occured: code=%d, %s\n", errCode, cudaGetErrorString(errCode));
     }
+}
+
+__global__ void ransacIterationDiffKernel(char* counts, bool* divByZero, int threshold, double* prod, double* locs1
+                                          int prodCols, int locs1Rows){
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+    if(col >= prodCols)
+        return;
+    if (prod[3*col+2] == 0){
+        divByZero[col] = 1;
+        return;
+    }
+    double diff = (double)sqrtf(powf(prod[3*col]/prod[3*col+2] - locs1[col], 2) + powf(prod[3*col+1]/prod[3*col+2] - locs1[locs1Rows+col], 2));
+    if(diff < threshold){
+        counts[col] = 1;
+    }
+    //if(!divide_by_zero){
+        //         diff = (Matslice(prod.transpose(), i, 0, 1, 2)/prod.transpose()(i, 2) - Matslice(locs1, i, 0, 1, locs1.cols())).norm(); 
+        //         if(diff < threshold){
+        //             count++;
+        //         }
+        //     }
+
+}
+
+void ransacIterationDiff(MatrixXd prod, MatrixXd locs1, int threshold, int* count){
+    dim3 blockDim(BLOCKSIZE, 1);
+    dim3 gridDim((prod.cols() + blockDim.x - 1) / blockDim.x, 1);
+
+    char* countsDevice;
+    cudaMalloc((void **)&countsDevice, prod.cols()*sizeof(char));
+    cudaMemset(countsDevice, 0, prod.cols()*sizeof(char));
+
+    char* divByZeroDevice;
+    cudaMalloc((void **)&divByZeroDevice, prod.cols()*sizeof(char));
+    cudaMemset(divByZeroDevice, 0, prod.cols()*sizeof(char));
+
+    double* prodDevice;
+    cudaMalloc((void **)&prodDevice, prod.cols()*prod.rows()*sizeof(double));
+    cudaMemcpy(prodDevice, prod.data(), prod.cols()*prod.rows()*sizeof(double), cudaMemcpyHostToDevice);
+
+    double* locs1Device;
+    cudaMalloc((void **)&locs1Device, locs1.cols()*locs1.rows()*sizeof(double));
+    cudaMemcpy(locs1Device, locs1.data(), locs1.cols()*locs1.rows()*sizeof(double), cudaMemcpyHostToDevice);
+
+    ransacIterationDiffKernel<<<gridDim, blockDim>>>(countsDevice, threshold, prodDevice, locs1Device, prod.cols());
+    
+    int totalCount = 0; 
+    char* divByZero; //prod.cols()
+    // #pragma omp parallel for reduction(sum+: totalCount)
+    for (int i = 0; i < prod.cols(); i++){
+        totalCount += divByZero[i]; 
+    }
+
+    if(totalCount != 0){
+        totalCount = 0; 
+        char* counts; //prod.cols()
+        // #pragma omp parallel for reduction(sum+: totalCount)
+        for (int i = 0; i < prod.cols(); i++){
+            totalCount += counts[i]; 
+        }
+        *count = totalCount;
+    }else{
+        *count = 0;
+    }
+    //////////
 }
 
 

@@ -12,6 +12,7 @@ using Eigen::MatrixXd;
 #define USE_FIX_FILENAME 0
 
 void dummyWarmup();
+void ransacIterationDiff(MatrixXd prod, MatrixXd locs1, int threshold, int* count);
 // void placeImage(MatrixXd newImage, MatrixXd* resImg, double min_x, double min_y, double max_x, double max_y);
 void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* png_b, unsigned char* png_a, 
         int png_width, int png_height, unsigned char* newImR, unsigned char* newImG, unsigned char* newImB, unsigned char* newImA, 
@@ -175,36 +176,34 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
 
         MatrixXd H = computeNormalizedHomography(x1, x2, x1_res_h, x2_res_h); 
         int count = 0; 
-        double prodStart = CycleTimer::currentSeconds();
+        // double prodStart = CycleTimer::currentSeconds();
         MatrixXd prod = H * homogeneous_loc2.transpose();
-        std::vector<int> inlier_inds_current; 
         double diff;
-        bool divide_by_zero = false;
+        // bool divide_by_zero = false;
         
         // double insideLoopStart = CycleTimer::currentSeconds();
-
-        for(int i = 0; i < prod.cols(); i++){ //FIX: 100s of cols here, so cudify
-            if(prod.transpose()(i, 2) == 0){
-                divide_by_zero = true;
-            }
-            if(!divide_by_zero){
-                diff = (Matslice(prod.transpose(), i, 0, 1, 2)/prod.transpose()(i, 2) - Matslice(locs1, i, 0, 1, locs1.cols())).norm(); 
-                if(diff < threshold){
-                    count++;
-                    inlier_inds_current.push_back(i);
-                }
-            }
-        }
+        ransacIterationDiff(prod, locs1, threshold, &count);
+        // for(int i = 0; i < prod.cols(); i++){ //FIX: 100s of cols here, so cudify
+        //     if(prod.transpose()(i, 2) == 0){
+        //         divide_by_zero = true;
+        //     }
+        //     if(!divide_by_zero){
+        //         diff = (Matslice(prod.transpose(), i, 0, 1, 2)/prod.transpose()(i, 2) - Matslice(locs1, i, 0, 1, locs1.cols())).norm(); 
+        //         if(diff < threshold){
+        //             count++;
+        //         }
+        //     }
+        // }
         // double insideLoopEnd = CycleTimer::currentSeconds();
         // std::cout << "Inside loop time: " << insideLoopEnd - insideLoopStart << std::endl;
 
-        if (!divide_by_zero){
-            count_list[it] = count;
-        }      
+        // if (!divide_by_zero){
+        count_list[it] = count;
+        // }      
     }
 
-    double loopEnd = CycleTimer::currentSeconds();
-    std::cout << "Loop ransac time" << loopEnd - loopStart << std::endl;
+    // double loopEnd = CycleTimer::currentSeconds();
+    // std::cout << "Loop ransac time" << loopEnd - loopStart << std::endl;
 
     int max_count = -1;
     int k; 
@@ -217,7 +216,7 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
         }
     }
 
-    double Start = CycleTimer::currentSeconds();
+    // double Start = CycleTimer::currentSeconds();
     // found the best one 
     MatrixXd x1 = MatVectorslice2(locs1, &rand_inds[4 * best_i], 4, 0, locs1.cols()); //locs1(rand_inds, Eigen::seqN(0,locs1.cols())); 
     MatrixXd x2 = MatVectorslice2(locs2, &rand_inds[4 * best_i], 4, 0, locs2.cols());// locs2(rand_inds, Eigen::seqN(0,locs2.cols())); 
@@ -242,17 +241,17 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
             }
         }
     }
-    double End = CycleTimer::currentSeconds();
-    std::cout << "End of ransac time" << End - Start << std::endl;
+    // double End = CycleTimer::currentSeconds();
+    // std::cout << "End of ransac time" << End - Start << std::endl;
 
-    double actStart = CycleTimer::currentSeconds();
+    // double actStart = CycleTimer::currentSeconds();
     MatrixXd x1_res = MatVectorslice(locs1, inlier_inds, 0, locs1.cols()); //locs1(inlier_inds, Eigen::seqN(0,locs1.cols())); 
     MatrixXd x2_res = MatVectorslice(locs2, inlier_inds, 0, locs2.cols()); //locs2(inlier_inds, Eigen::seqN(0,locs2.cols()));
     MatrixXd x1_res_h2 = MatVectorslice(homogeneous_loc1, inlier_inds, 0, homogeneous_loc1.cols()); //homogeneous_loc1(inlier_inds, Eigen::seqN(0,homogeneous_loc1.cols())); 
     MatrixXd x2_res_h2 =  MatVectorslice(homogeneous_loc2, inlier_inds, 0, homogeneous_loc2.cols()); //homogeneous_loc2(inlier_inds, Eigen::seqN(0,homogeneous_loc2.cols()));
     MatrixXd bestNormalizedHomography = computeNormalizedHomography(x1_res, x2_res, x1_res_h2, x2_res_h2);
-    double actEnd = CycleTimer::currentSeconds();
-    std::cout << "Actual End of ransac time" << actEnd - actStart << std::endl;
+    // double actEnd = CycleTimer::currentSeconds();
+    // std::cout << "Actual End of ransac time" << actEnd - actStart << std::endl;
     return bestNormalizedHomography;
 }
 
