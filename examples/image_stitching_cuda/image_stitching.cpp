@@ -174,12 +174,15 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
 
         MatrixXd H = computeNormalizedHomography(x1, x2, x1_res_h, x2_res_h); 
         int count = 0; 
+        double prodStart = CycleTimer::currentSeconds();
         MatrixXd prod = H * homogeneous_loc2.transpose();
+        double prodEnd = CycleTimer::currentSeconds();
+        std::cout << "Prod time" << prodEnd - prodStart << std::endl;
         std::vector<int> inlier_inds_current; 
         double diff;
         bool divide_by_zero = false;
         
-        double insideLoopStart = CycleTimer::currentSeconds();
+        // double insideLoopStart = CycleTimer::currentSeconds();
         for(int i = 0; i < prod.cols(); i++){ //FIX: 100s of cols here, so cudify
             if(prod.transpose()(i, 2) == 0){
                 divide_by_zero = true;
@@ -192,8 +195,8 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
                 }
             }
         }
-        double insideLoopEnd = CycleTimer::currentSeconds();
-        std::cout << "Inside loop time: " << insideLoopEnd - insideLoopStart << std::endl;
+        // double insideLoopEnd = CycleTimer::currentSeconds();
+        // std::cout << "Inside loop time: " << insideLoopEnd - insideLoopStart << std::endl;
 
         if (!divide_by_zero){
             count_list[it] = count;
