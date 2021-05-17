@@ -188,7 +188,7 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
                 divide_by_zero = true;
             }
             if(!divide_by_zero){
-                diff = sqrt(pow((prod(i,0)/prod.transpose()(i, 2) - locs1(0,i)),2) + pow((prod(i,1)/prod.transpose()(i, 2) - locs1(1,i)), 2)); 
+                diff = sqrt(pow((prod(0,i)/prod.transpose()(2, i) - locs1(i,0)),2) + pow((prod(1,i)/prod.transpose()(2,i) - locs1(i,1)), 2)); 
                 // diff = (Matslice(prod.transpose(), i, 0, 1, 2)/prod.transpose()(i, 2) - Matslice(locs1, i, 0, 1, locs1.cols())).norm(); 
                 if(diff < threshold){
                     count++;
