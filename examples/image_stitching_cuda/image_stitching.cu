@@ -153,7 +153,7 @@ void ransacIterationDiff(MatrixXd prod, MatrixXd locs1, int threshold, char* cou
     
     // char* divByZero = (char *)calloc(prod.cols(), sizeof(char));
     // char* counts = (char *)calloc(prod.cols(), sizeof(char));
-    cudaMemcpy(divByZero, divByZeroDevice, prod.cols()*sizeof(char), cudaMemcpyDeviceToHost);
+    cudaMemcpy(divideByZero, divByZeroDevice, prod.cols()*sizeof(char), cudaMemcpyDeviceToHost);
     cudaMemcpy(counts, countsDevice, prod.cols()*sizeof(char), cudaMemcpyDeviceToHost);
 
     // int totalCount = 0; 
