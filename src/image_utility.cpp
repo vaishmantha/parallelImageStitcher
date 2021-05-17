@@ -446,7 +446,9 @@ int match_keypoints(std::list<SiftKeypoint> &kpt_list1,
             mp.r2 = r2;
             mp.c2 = c2;
 
-            match_list.push_back(mp);
+            #pragma omp critical{
+                match_list.push_back(mp);
+            }
         }
         kpt1++;
     }
