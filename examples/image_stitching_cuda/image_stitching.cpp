@@ -9,6 +9,8 @@
 
 using Eigen::MatrixXd;
 
+int NCORES = -1;
+
 #define USE_FIX_FILENAME 0
 
 void dummyWarmup();
@@ -456,12 +458,16 @@ void write_pgm(const char *filename, unsigned char *data, int w, int h)
 
 int main(int argc, char *argv[])
 {
+    if(argc < 4 || strcmp(argv[1], "-p") != 0) error_exit("Expecting two arguments: -p [processor count] and [file name]\n");
+    NCORES = atoi(argv[2]);
+    if(NCORES < 1) error_exit("Illegal core count: %d\n", NCORES);
 
-    if (argc < 3) {
-        printf("Please input at least two image filenames.\n");
-        printf("usage: image_match img1 img2 ...\n");
-        return -1;
-    }
+    // if (argc < 3) {
+    //     printf("Please input at least two image filenames.\n");
+    //     printf("usage: image_match img1 img2 ...\n");
+    //     return -1;
+    // }
+
     double startTime = CycleTimer::currentSeconds();
     
     std::vector<ezsift::Image<unsigned char> > images;
@@ -475,7 +481,7 @@ int main(int argc, char *argv[])
     std::vector<char * > files; //Should probably switch away from this when switching to video
    
     // All image files
-    for(int i=1; i<argc; i++){
+    for(int i=2; i<argc; i++){
         char* file = (char *)calloc(sizeof(char), strlen(argv[i]));
         memcpy(file, argv[i], sizeof(char) * strlen(argv[i]));
         file[strlen(argv[i])] = 0;
