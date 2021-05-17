@@ -164,6 +164,7 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
 
     int *count_list = (int*)calloc(iterations, sizeof(int));
     int it; 
+    double loopStart = CycleTimer::currentSeconds();
     #pragma omp parallel for schedule(dynamic)
     for(it = 0; it < iterations; it++){
         MatrixXd x1 = MatVectorslice2(locs1, &rand_inds[4 * it], 4, 0, locs1.cols()); //locs1(rand_inds, Eigen::seqN(0,locs1.cols())); 
@@ -176,13 +177,12 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
         int count = 0; 
         double prodStart = CycleTimer::currentSeconds();
         MatrixXd prod = H * homogeneous_loc2.transpose();
-        double prodEnd = CycleTimer::currentSeconds();
-        std::cout << "Prod time" << prodEnd - prodStart << std::endl;
         std::vector<int> inlier_inds_current; 
         double diff;
         bool divide_by_zero = false;
         
         // double insideLoopStart = CycleTimer::currentSeconds();
+
         for(int i = 0; i < prod.cols(); i++){ //FIX: 100s of cols here, so cudify
             if(prod.transpose()(i, 2) == 0){
                 divide_by_zero = true;
@@ -202,6 +202,8 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
             count_list[it] = count;
         }      
     }
+    double loopEnd = CycleTimer::currentSeconds();
+    std::cout << "Loop ransac time" << loopEnd - loopStart << std::endl;
 
     int max_count = -1;
     int k; 
