@@ -129,7 +129,7 @@ __global__ void ransacIterationDiffKernel(char* counts, char* divByZero, int thr
 
 }
 
-void ransacIterationDiff(MatrixXd prod, MatrixXd locs1, int threshold, int* count){
+void ransacIterationDiff(MatrixXd prod, MatrixXd locs1, int threshold, char* counts, char* divideByZero){
     dim3 blockDim(BLOCKSIZE, 1);
     dim3 gridDim((prod.cols() + blockDim.x - 1) / blockDim.x, 1);
 
@@ -151,25 +151,31 @@ void ransacIterationDiff(MatrixXd prod, MatrixXd locs1, int threshold, int* coun
 
     ransacIterationDiffKernel<<<gridDim, blockDim>>>(countsDevice, divByZeroDevice, threshold, prodDevice, locs1Device, prod.cols(), locs1.rows());
     
-    char* divByZero = (char *)calloc(prod.cols(), sizeof(char));
-    char* counts = (char *)calloc(prod.cols(), sizeof(char));
+    // char* divByZero = (char *)calloc(prod.cols(), sizeof(char));
+    // char* counts = (char *)calloc(prod.cols(), sizeof(char));
     cudaMemcpy(divByZero, divByZeroDevice, prod.cols()*sizeof(char), cudaMemcpyDeviceToHost);
     cudaMemcpy(counts, countsDevice, prod.cols()*sizeof(char), cudaMemcpyDeviceToHost);
 
-    int totalCount = 0; 
+    // int totalCount = 0; 
     // #pragma omp parallel for reduction(sum+: totalCount)
-    for (int i = 0; i < prod.cols(); i++){
-        totalCount += divByZero[i]; 
-    }
+    // for (int i = 0; i < prod.cols(); i++){
+    //     totalCount += divByZero[i]; 
+    // }
 
-    if(totalCount != 0){
-        totalCount = 0; 
-        // #pragma omp parallel for reduction(sum+: totalCount)
-        for (int i = 0; i < prod.cols(); i++){
-            totalCount += counts[i]; 
-        }
-    }
-    *count = totalCount;
+    // if(totalCount != 0){
+    //     totalCount = 0; 
+    //     // #pragma omp parallel for reduction(sum+: totalCount)
+    //     for (int i = 0; i < prod.cols(); i++){
+    //         totalCount += counts[i]; 
+    //     }
+    // }
+    // *count = totalCount;
+    cudaFree(countsDevice);
+    cudaFree(divByZeroDevice);
+    cudaFree(prodDevice);
+    cudaFree(locs1Device);
+    // free
+    // cudaFree(out_r_device);
     //////////
 }
 

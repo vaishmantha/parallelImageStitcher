@@ -12,7 +12,7 @@ using Eigen::MatrixXd;
 #define USE_FIX_FILENAME 0
 
 void dummyWarmup();
-void ransacIterationDiff(MatrixXd prod, MatrixXd locs1, int threshold, int* count);
+void ransacIterationDiff(MatrixXd prod, MatrixXd locs1, int threshold, char* count, char* divideByZero);
 // void placeImage(MatrixXd newImage, MatrixXd* resImg, double min_x, double min_y, double max_x, double max_y);
 void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* png_b, unsigned char* png_a, 
         int png_width, int png_height, unsigned char* newImR, unsigned char* newImG, unsigned char* newImB, unsigned char* newImA, 
@@ -164,6 +164,8 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
     }
 
     int *count_list = (int*)calloc(iterations, sizeof(int));
+    // std::vector<char*> count_vect;
+    // std::vector<char*> divByZero_vect;
     int it; 
     double loopStart = CycleTimer::currentSeconds();
     #pragma omp parallel for schedule(dynamic)
@@ -175,34 +177,31 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
         MatrixXd x2_res_h = MatVectorslice2(homogeneous_loc2, &rand_inds[4 * it], 4, 0, homogeneous_loc2.cols()); //homogeneous_loc2(rand_inds, Eigen::seqN(0,homogeneous_loc2.cols())); 
 
         MatrixXd H = computeNormalizedHomography(x1, x2, x1_res_h, x2_res_h); 
-        int count = 0; 
+        // int count = 0; 
         // double prodStart = CycleTimer::currentSeconds();
         MatrixXd prod = H * homogeneous_loc2.transpose();
-        double diff;
-        bool divide_by_zero = false;
+        char* count = (char*)calloc(prod.cols(), sizeof(char));
+        char* divideByZero = (char*)calloc(prod.cols(), sizeof(char));
+        // double diff;
+        // bool divide_by_zero = false;
         
-        // double insideLoopStart = CycleTimer::currentSeconds();
-        ransacIterationDiff(prod, locs1, threshold, &count);
-        // for(int i = 0; i < prod.cols(); i++){ //FIX: 100s of cols here, so cudify
-        //     if(prod.transpose()(i, 2) == 0){
-        //         divide_by_zero = true;
-        //     }
-        //     if(!divide_by_zero){
-        //         diff = sqrt(pow((prod(0,i)/prod(2, i) - locs1(i,0)),2) + pow((prod(1,i)/prod(2,i) - locs1(i,1)), 2)); 
-        //         // diff = (Matslice(prod.transpose(), i, 0, 1, 2)/prod.transpose()(i, 2) - Matslice(locs1, i, 0, 1, locs1.cols())).norm(); 
-        //         if(diff < threshold){
-        //             count++;
-        //         }
-        //     }
-        // }
-        
-        // double insideLoopEnd = CycleTimer::currentSeconds();
-        // std::cout << "Inside loop time: " << insideLoopEnd - insideLoopStart << std::endl;
+        ransacIterationDiff(prod, locs1, threshold, count, divideByZero);
+        int totalCount = 0;
+        for (int i = 0; i < prod.cols(); i++){
+            totalCount += divideByZero[i]; 
+        }
 
-        // if (!divide_by_zero){
-        count_list[it] = count;
-        // }      
+        if(totalCount != 0){
+            totalCount = 0; 
+            // #pragma omp parallel for reduction(sum+: totalCount)
+            for (int i = 0; i < prod.cols(); i++){
+                totalCount += count[i]; 
+            }
+        }
+        count_list[it] = totalCount;
+        
     }
+    // for(int i=0; )
 
     // double loopEnd = CycleTimer::currentSeconds();
     // std::cout << "Loop ransac time" << loopEnd - loopStart << std::endl;
@@ -231,18 +230,27 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
     std::vector<int> inlier_inds; 
     double diff;
     bool divide_by_zero = false;
-    for(int i = 0; i < prod.cols(); i++){
-        if(prod.transpose()(i, 2) == 0){
-            divide_by_zero = true;
-        }
-        if(!divide_by_zero){
-            diff = (Matslice(prod.transpose(), i, 0, 1, 2)/prod.transpose()(i, 2) - Matslice(locs1, i, 0, 1, locs1.cols())).norm(); 
-            // diff = (prod.transpose()(i, {0,1})/prod.transpose()(i, 2) - Matslice(locs1, i, 0, 1, locs1.cols())).norm(); 
-            if(diff < threshold){
-                inlier_inds.push_back(i);
-            }
+    char* count = (char*)calloc(prod.cols(), sizeof(char));
+    char* divideByZero = (char*)calloc(prod.cols(), sizeof(char));
+    ransacIterationDiff(prod, locs1, threshold, count, divideByZero);
+    for(int i=0; i<prod.cols(); i++){
+        if(count[i] == 1){
+            inlier_inds.push_back(i);
         }
     }
+    // ransacIterationDiff(prod, locs1, threshold, &count);
+    // for(int i = 0; i < prod.cols(); i++){
+    //     if(prod.transpose()(i, 2) == 0){
+    //         divide_by_zero = true;
+    //     }
+    //     if(!divide_by_zero){
+    //         diff = (Matslice(prod.transpose(), i, 0, 1, 2)/prod.transpose()(i, 2) - Matslice(locs1, i, 0, 1, locs1.cols())).norm(); 
+    //         // diff = (prod.transpose()(i, {0,1})/prod.transpose()(i, 2) - Matslice(locs1, i, 0, 1, locs1.cols())).norm(); 
+    //         if(diff < threshold){
+    //             inlier_inds.push_back(i);
+    //         }
+    //     }
+    // }
     // double End = CycleTimer::currentSeconds();
     // std::cout << "End of ransac time" << End - Start << std::endl;
 
