@@ -395,29 +395,20 @@ int match_keypoints(std::list<SiftKeypoint> &kpt_list1,
                     std::list<SiftKeypoint> &kpt_list2,
                     std::list<MatchPair> &match_list)
 {
-    // std::list<char> list = { 'a', 'b', 'c' };
- 
-    std::vector<SiftKeypoint> kpt_vect1(kpt_list1.size());
-    std::copy(kpt_list1.begin(), kpt_list1.end(), kpt_vect1.begin());
-
-    MatchPair match_array[kpt_list1.size()];
-    //std::list<SiftKeypoint>::iterator kpt1 = kpt_list1.begin();
+    std::list<SiftKeypoint>::iterator kpt1 = kpt_list1.begin();
     std::list<SiftKeypoint>::iterator kpt2;
 
     double startTime = CycleTimer::currentSeconds();
     int i;
-    #pragma omp parallel for schedule(dynamic)
+    // #pragma omp parallel for schedule(dynamic)
     // for (kpt1 = kpt_list1.begin(); kpt1 != kpt_list1.end(); kpt1++) {
     for (i = 0; i < kpt_list1.size(); i++) {
-        
-        // Position of the matched feature.
-        // int r1 = (int)kpt1->r;
-        // int c1 = (int)kpt1->c;
-        int r1 = kpt_vect1[i].r;
-        int c1 = kpt_vect1[i].c;
 
-        float *descr1 = kpt_vect1[i].descriptors;
-        // float *descr1 = kpt1->descriptors;
+        // Position of the matched feature.
+        int r1 = (int)kpt1->r;
+        int c1 = (int)kpt1->c;
+
+        float *descr1 = kpt1->descriptors;
         float score1 = (std::numeric_limits<float>::max)(); // highest score
         float score2 = (std::numeric_limits<float>::max)(); // 2nd highest score
 
@@ -455,22 +446,15 @@ int match_keypoints(std::list<SiftKeypoint> &kpt_list1,
             mp.r2 = r2;
             mp.c2 = c2;
 
-            // #pragma omp critical
-            //     match_list.push_back(mp);
-            match_array[i] = mp;
-            
+            match_list.push_back(mp);
         }
-        // kpt1++;
+        kpt1++;
     }
-    for(int i=0; i<kpt_list1.size(); i++){
-        match_list.push_back(match_array[i]);
-    }
-    // std::copy(match_vector.begin(), match_vector.end(), std::back_inserter(match_list));
-    // match_list(match_vector.begin(), match_vector.end());
-    // std::copy(match_vector.begin(), match_vector.end(), match_list.begin());
+
     match_list.unique(same_match_pair);
     double endTime = CycleTimer::currentSeconds();
     std::cout << "Match keypoints time::: " << endTime - startTime << std::endl;
+
 
     return 0;
 }

@@ -484,7 +484,7 @@ int main(int argc, char *argv[])
     double findMatchesStart = CycleTimer::currentSeconds();
 
     bool matchListSizeZero = false;
-    // #pragma omp parallel for schedule(dynamic)
+    #pragma omp parallel for schedule(dynamic)
     for(int i=0; i<images.size(); i++){
         if(i == images.size() -1 ){
             dummyWarmup();
