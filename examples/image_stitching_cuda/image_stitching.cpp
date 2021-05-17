@@ -639,9 +639,9 @@ int main(int argc, char *argv[])
     // }
     for(int i=0; i<pan_height; i++){
         for(int j=0; j<pan_width; j++){
-            resImg_vect.push_back(resImage(i, j)); //color
-            resImg_vect.push_back(resImage(i, j));
-            resImg_vect.push_back(resImage(i, j));
+            resImg_vect.push_back(resImageR(i, j)); //color
+            resImg_vect.push_back(resImageG(i, j));
+            resImg_vect.push_back(resImageB(i, j));
             resImg_vect.push_back(255);
         }
     }
