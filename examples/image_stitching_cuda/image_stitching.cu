@@ -114,6 +114,7 @@ void dummyWarmup(){
 //         fprintf(stderr, "WARNING: A CUDA error occured: code=%d, %s\n", errCode, cudaGetErrorString(errCode));
 //     }
 // }
+
 __global__ void ransacIterationDiffKernel(char* counts, char* divByZero, int threshold, double* prod, double* locs1,
                                           int prodCols, int locs1Rows){
     int col = blockIdx.x * blockDim.x + threadIdx.x;
