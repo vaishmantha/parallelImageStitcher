@@ -637,7 +637,7 @@ int main(int argc, char *argv[])
         double placeImageStart = CycleTimer::currentSeconds();
         placeImage(newImR, newImG, newImB, curr_width, curr_height, &resImageR, &resImageG, &resImageB, min_x, min_y, max_x, max_y);
         double placeImageEnd = CycleTimer::currentSeconds();
-        std::cout << "placeImage time: " << warpPerspectiveEnd-warpPerspectiveStart << std::endl;
+        std::cout << "placeImage time: " << placeImageEnd-placeImageStart << std::endl;
 
         // #pragma omp parallel for schedule(dynamic) // DO NOT ADD BACK IN
         // for(int j= 0; j<4; j++){
