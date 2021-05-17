@@ -179,7 +179,7 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
         double diff;
         bool divide_by_zero = false;
         
-        // std::cout << "Num cols in product " << prod.cols() << std::endl;
+        double insideLoopStart = CycleTimer::currentSeconds();
         for(int i = 0; i < prod.cols(); i++){ //FIX: 100s of cols here, so cudify
             if(prod.transpose()(i, 2) == 0){
                 divide_by_zero = true;
@@ -192,6 +192,8 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
                 }
             }
         }
+        double insideLoopEnd = CycleTimer::currentSeconds();
+        std::cout << "Inside loop time: " << insideLoopEnd - insideLoopStart << std::endl;
 
         if (!divide_by_zero){
             count_list[it] = count;
