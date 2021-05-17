@@ -365,7 +365,7 @@ void placeImage(std::vector<unsigned char*> newImRs, std::vector<unsigned char*>
     // int start_j = (int)fmax(min_x,0);
     // int imNum = 0;
     // #pragma omp parallel for collapse(2) 
-    int imNum = 0;
+    // int imNum = 0;
     #pragma omp parallel for collapse(4) schedule(dynamic)
     for(int imNum=0; imNum<newImRs.size(); imNum++){
         for (int i = (int)fmax(min_ys[imNum],0); i < (int)max_ys[imNum]; i++){ //access as row col
