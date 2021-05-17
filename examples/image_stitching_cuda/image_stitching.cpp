@@ -149,9 +149,140 @@ MatrixXd computeNormalizedHomography(MatrixXd x1, MatrixXd x2,
     
 
 
+// MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
+//     int iterations= 1000; 
+//     int threshold = 3; //check on this threshold
+    
+//     MatrixXd locs1 = MatrixXd(match_li.size(), 2);
+//     MatrixXd locs2 = MatrixXd(match_li.size(), 2);
+//     MatrixXd homogeneous_loc1 = MatrixXd(match_li.size(), 3);
+//     MatrixXd homogeneous_loc2 = MatrixXd(match_li.size(), 3);
+//     std::list<ezsift::MatchPair>::iterator itr;
+//     int i=0;
+//     for (itr = match_li.begin(); itr != match_li.end(); itr++){
+//         locs1(i, 0) = itr->c1;
+//         locs1(i, 1) = itr->r1;
+//         locs2(i, 0) = itr->c2;
+//         locs2(i, 1) = itr->r2;
+//         homogeneous_loc1(i, 0) = itr->c1;
+//         homogeneous_loc1(i, 1) = itr->r1;
+//         homogeneous_loc1(i, 2) = 1.0;
+//         homogeneous_loc2(i, 0) = itr->c2;
+//         homogeneous_loc2(i, 1) = itr->r2;
+//         homogeneous_loc2(i, 2) = 1.0;
+//         i++;
+//     }
+
+
+//     int* rand_inds = (int*) calloc(sizeof(int), 4 * iterations);
+//     // #pragma omp parallel for schedule(dynamic) // DO NOT ADD BACK
+//     for(int it = 0; it < iterations; it++){
+//         int rand_counter = 0; 
+//         while(rand_counter != 4){
+//             int r = (int)((size_t)rand() % match_li.size()); 
+//             rand_inds[4*it + rand_counter] = r;
+//             rand_counter++; 
+//         }
+//     }
+
+//     int *count_list = (int*)calloc(iterations, sizeof(int));
+//     int it; 
+//     double loopStart = CycleTimer::currentSeconds();
+//     #pragma omp parallel for schedule(dynamic)
+//     for(it = 0; it < iterations; it++){
+//         MatrixXd x1 = MatVectorslice2(locs1, &rand_inds[4 * it], 4, 0, locs1.cols()); //locs1(rand_inds, Eigen::seqN(0,locs1.cols())); 
+//         MatrixXd x2 = MatVectorslice2(locs2, &rand_inds[4 * it], 4, 0, locs2.cols());// locs2(rand_inds, Eigen::seqN(0,locs2.cols())); 
+
+//         MatrixXd x1_res_h = MatVectorslice2(homogeneous_loc1, &rand_inds[4 * it], 4, 0, homogeneous_loc1.cols()); //homogeneous_loc1(rand_inds,  Eigen::seqN(0,homogeneous_loc1.cols())); 
+//         MatrixXd x2_res_h = MatVectorslice2(homogeneous_loc2, &rand_inds[4 * it], 4, 0, homogeneous_loc2.cols()); //homogeneous_loc2(rand_inds, Eigen::seqN(0,homogeneous_loc2.cols())); 
+
+//         MatrixXd H = computeNormalizedHomography(x1, x2, x1_res_h, x2_res_h); 
+//         int count = 0; 
+//         // double prodStart = CycleTimer::currentSeconds();
+//         MatrixXd prod = H * homogeneous_loc2.transpose();
+//         double diff;
+//         bool divide_by_zero = false;
+        
+//         // double insideLoopStart = CycleTimer::currentSeconds();
+//         //ransacIterationDiff(prod, locs1, threshold, &count);
+//         for(int i = 0; i < prod.cols(); i++){ //FIX: 100s of cols here, so cudify
+//             if(prod.transpose()(i, 2) == 0){
+//                 divide_by_zero = true;
+//             }
+//             if(!divide_by_zero){
+//                 // diff = sqrt(pow((prod(0,i)/prod(2, i) - locs1(i,0)),2) + pow((prod(1,i)/prod(2,i) - locs1(i,1)), 2)); 
+//                 diff = (Matslice(prod.transpose(), i, 0, 1, 2)/prod.transpose()(i, 2) - Matslice(locs1, i, 0, 1, locs1.cols())).norm(); 
+//                 if(diff < threshold){
+//                     count++;
+//                 }
+//             }
+//         }
+        
+//         // double insideLoopEnd = CycleTimer::currentSeconds();
+//         // std::cout << "Inside loop time: " << insideLoopEnd - insideLoopStart << std::endl;
+
+//         if (!divide_by_zero){
+//             count_list[it] = count;
+//         }      
+//     }
+
+//     // double loopEnd = CycleTimer::currentSeconds();
+//     // std::cout << "Loop ransac time" << loopEnd - loopStart << std::endl;
+
+//     int max_count = -1;
+//     int k; 
+//     int best_i; 
+//     #pragma omp parallel for reduction(max: max_count)
+//     for(k = 0; k < iterations; k++){
+//         if(max_count < count_list[k]){
+//             max_count = count_list[k];
+//             best_i = k; 
+//         }
+//     }
+
+//     // double Start = CycleTimer::currentSeconds();
+//     // found the best one 
+//     MatrixXd x1 = MatVectorslice2(locs1, &rand_inds[4 * best_i], 4, 0, locs1.cols()); //locs1(rand_inds, Eigen::seqN(0,locs1.cols())); 
+//     MatrixXd x2 = MatVectorslice2(locs2, &rand_inds[4 * best_i], 4, 0, locs2.cols());// locs2(rand_inds, Eigen::seqN(0,locs2.cols())); 
+
+//     MatrixXd x1_res_h = MatVectorslice2(homogeneous_loc1, &rand_inds[4 * best_i], 4, 0, homogeneous_loc1.cols()); //homogeneous_loc1(rand_inds,  Eigen::seqN(0,homogeneous_loc1.cols())); 
+//     MatrixXd x2_res_h = MatVectorslice2(homogeneous_loc2, &rand_inds[4 * best_i], 4, 0, homogeneous_loc2.cols()); //homogeneous_loc2(rand_inds, Eigen::seqN(0,homogeneous_loc2.cols())); 
+
+//     MatrixXd H = computeNormalizedHomography(x1, x2, x1_res_h, x2_res_h); 
+//     MatrixXd prod = H * homogeneous_loc2.transpose();
+//     std::vector<int> inlier_inds; 
+//     double diff;
+//     bool divide_by_zero = false;
+//     for(int i = 0; i < prod.cols(); i++){
+//         if(prod.transpose()(i, 2) == 0){
+//             divide_by_zero = true;
+//         }
+//         if(!divide_by_zero){
+//             diff = (Matslice(prod.transpose(), i, 0, 1, 2)/prod.transpose()(i, 2) - Matslice(locs1, i, 0, 1, locs1.cols())).norm(); 
+//             // diff = (prod.transpose()(i, {0,1})/prod.transpose()(i, 2) - Matslice(locs1, i, 0, 1, locs1.cols())).norm(); 
+//             if(diff < threshold){
+//                 inlier_inds.push_back(i);
+//             }
+//         }
+//     }
+//     // double End = CycleTimer::currentSeconds();
+//     // std::cout << "End of ransac time" << End - Start << std::endl;
+
+//     // double actStart = CycleTimer::currentSeconds();
+//     MatrixXd x1_res = MatVectorslice(locs1, inlier_inds, 0, locs1.cols()); //locs1(inlier_inds, Eigen::seqN(0,locs1.cols())); 
+//     MatrixXd x2_res = MatVectorslice(locs2, inlier_inds, 0, locs2.cols()); //locs2(inlier_inds, Eigen::seqN(0,locs2.cols()));
+//     MatrixXd x1_res_h2 = MatVectorslice(homogeneous_loc1, inlier_inds, 0, homogeneous_loc1.cols()); //homogeneous_loc1(inlier_inds, Eigen::seqN(0,homogeneous_loc1.cols())); 
+//     MatrixXd x2_res_h2 =  MatVectorslice(homogeneous_loc2, inlier_inds, 0, homogeneous_loc2.cols()); //homogeneous_loc2(inlier_inds, Eigen::seqN(0,homogeneous_loc2.cols()));
+//     MatrixXd bestNormalizedHomography = computeNormalizedHomography(x1_res, x2_res, x1_res_h2, x2_res_h2);
+//     // double actEnd = CycleTimer::currentSeconds();
+//     // std::cout << "Actual End of ransac time" << actEnd - actStart << std::endl;
+//     return bestNormalizedHomography;
+// }
+
 MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
     int iterations= 1000; 
     int threshold = 3; //check on this threshold
+    int maxCount = 0; 
     
     MatrixXd locs1 = MatrixXd(match_li.size(), 2);
     MatrixXd locs2 = MatrixXd(match_li.size(), 2);
@@ -173,109 +304,49 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
         i++;
     }
 
-
-    int* rand_inds = (int*) calloc(sizeof(int), 4 * iterations);
-    // #pragma omp parallel for schedule(dynamic) // DO NOT ADD BACK
-    for(int it = 0; it < iterations; it++){
-        int rand_counter = 0; 
-        while(rand_counter != 4){
-            int r = (int)((size_t)rand() % match_li.size()); 
-            rand_inds[4*it + rand_counter] = r;
-            rand_counter++; 
-        }
-    }
-
-    int *count_list = (int*)calloc(iterations, sizeof(int));
+    int max_count = 0;
+    std::vector<int> inlier_inds; 
     int it; 
-    double loopStart = CycleTimer::currentSeconds();
-    #pragma omp parallel for schedule(dynamic)
     for(it = 0; it < iterations; it++){
-        MatrixXd x1 = MatVectorslice2(locs1, &rand_inds[4 * it], 4, 0, locs1.cols()); //locs1(rand_inds, Eigen::seqN(0,locs1.cols())); 
-        MatrixXd x2 = MatVectorslice2(locs2, &rand_inds[4 * it], 4, 0, locs2.cols());// locs2(rand_inds, Eigen::seqN(0,locs2.cols())); 
+        std::vector<int> rand_inds; 
+        while(rand_inds.size() != 4){
+            int r = (int)((size_t)rand() % match_li.size()); 
+            rand_inds.push_back(r);
+        }
+        MatrixXd x1 = MatVectorslice(locs1, rand_inds, 0, locs1.cols()); //locs1(rand_inds, Eigen::seqN(0,locs1.cols())); 
+        MatrixXd x2 = MatVectorslice(locs2, rand_inds, 0, locs2.cols());// locs2(rand_inds, Eigen::seqN(0,locs2.cols())); 
 
-        MatrixXd x1_res_h = MatVectorslice2(homogeneous_loc1, &rand_inds[4 * it], 4, 0, homogeneous_loc1.cols()); //homogeneous_loc1(rand_inds,  Eigen::seqN(0,homogeneous_loc1.cols())); 
-        MatrixXd x2_res_h = MatVectorslice2(homogeneous_loc2, &rand_inds[4 * it], 4, 0, homogeneous_loc2.cols()); //homogeneous_loc2(rand_inds, Eigen::seqN(0,homogeneous_loc2.cols())); 
+        MatrixXd x1_res_h = MatVectorslice(homogeneous_loc1, rand_inds, 0, homogeneous_loc1.cols()); //homogeneous_loc1(rand_inds,  Eigen::seqN(0,homogeneous_loc1.cols())); 
+        MatrixXd x2_res_h = MatVectorslice(homogeneous_loc2, rand_inds, 0, homogeneous_loc2.cols()); //homogeneous_loc2(rand_inds, Eigen::seqN(0,homogeneous_loc2.cols())); 
 
         MatrixXd H = computeNormalizedHomography(x1, x2, x1_res_h, x2_res_h); 
         int count = 0; 
-        // double prodStart = CycleTimer::currentSeconds();
         MatrixXd prod = H * homogeneous_loc2.transpose();
+        std::vector<int> inlier_inds_current; 
         double diff;
         bool divide_by_zero = false;
-        
-        // double insideLoopStart = CycleTimer::currentSeconds();
-        //ransacIterationDiff(prod, locs1, threshold, &count);
-        for(int i = 0; i < prod.cols(); i++){ //FIX: 100s of cols here, so cudify
+        for(int i = 0; i < prod.cols(); i++){
             if(prod.transpose()(i, 2) == 0){
                 divide_by_zero = true;
+                break;
             }
-            if(!divide_by_zero){
-                // diff = sqrt(pow((prod(0,i)/prod(2, i) - locs1(i,0)),2) + pow((prod(1,i)/prod(2,i) - locs1(i,1)), 2)); 
-                diff = (Matslice(prod.transpose(), i, 0, 1, 2)/prod.transpose()(i, 2) - Matslice(locs1, i, 0, 1, locs1.cols())).norm(); 
-                if(diff < threshold){
-                    count++;
-                }
-            }
-        }
-        
-        // double insideLoopEnd = CycleTimer::currentSeconds();
-        // std::cout << "Inside loop time: " << insideLoopEnd - insideLoopStart << std::endl;
-
-        if (!divide_by_zero){
-            count_list[it] = count;
-        }      
-    }
-
-    // double loopEnd = CycleTimer::currentSeconds();
-    // std::cout << "Loop ransac time" << loopEnd - loopStart << std::endl;
-
-    int max_count = -1;
-    int k; 
-    int best_i; 
-    #pragma omp parallel for reduction(max: max_count)
-    for(k = 0; k < iterations; k++){
-        if(max_count < count_list[k]){
-            max_count = count_list[k];
-            best_i = k; 
-        }
-    }
-
-    // double Start = CycleTimer::currentSeconds();
-    // found the best one 
-    MatrixXd x1 = MatVectorslice2(locs1, &rand_inds[4 * best_i], 4, 0, locs1.cols()); //locs1(rand_inds, Eigen::seqN(0,locs1.cols())); 
-    MatrixXd x2 = MatVectorslice2(locs2, &rand_inds[4 * best_i], 4, 0, locs2.cols());// locs2(rand_inds, Eigen::seqN(0,locs2.cols())); 
-
-    MatrixXd x1_res_h = MatVectorslice2(homogeneous_loc1, &rand_inds[4 * best_i], 4, 0, homogeneous_loc1.cols()); //homogeneous_loc1(rand_inds,  Eigen::seqN(0,homogeneous_loc1.cols())); 
-    MatrixXd x2_res_h = MatVectorslice2(homogeneous_loc2, &rand_inds[4 * best_i], 4, 0, homogeneous_loc2.cols()); //homogeneous_loc2(rand_inds, Eigen::seqN(0,homogeneous_loc2.cols())); 
-
-    MatrixXd H = computeNormalizedHomography(x1, x2, x1_res_h, x2_res_h); 
-    MatrixXd prod = H * homogeneous_loc2.transpose();
-    std::vector<int> inlier_inds; 
-    double diff;
-    bool divide_by_zero = false;
-    for(int i = 0; i < prod.cols(); i++){
-        if(prod.transpose()(i, 2) == 0){
-            divide_by_zero = true;
-        }
-        if(!divide_by_zero){
             diff = (Matslice(prod.transpose(), i, 0, 1, 2)/prod.transpose()(i, 2) - Matslice(locs1, i, 0, 1, locs1.cols())).norm(); 
             // diff = (prod.transpose()(i, {0,1})/prod.transpose()(i, 2) - Matslice(locs1, i, 0, 1, locs1.cols())).norm(); 
             if(diff < threshold){
-                inlier_inds.push_back(i);
+                count++;
+                inlier_inds_current.push_back(i);
             }
         }
+        if (!divide_by_zero && max_count <= count){
+            max_count = count;
+            inlier_inds = inlier_inds_current;
+        }      
     }
-    // double End = CycleTimer::currentSeconds();
-    // std::cout << "End of ransac time" << End - Start << std::endl;
-
-    // double actStart = CycleTimer::currentSeconds();
     MatrixXd x1_res = MatVectorslice(locs1, inlier_inds, 0, locs1.cols()); //locs1(inlier_inds, Eigen::seqN(0,locs1.cols())); 
     MatrixXd x2_res = MatVectorslice(locs2, inlier_inds, 0, locs2.cols()); //locs2(inlier_inds, Eigen::seqN(0,locs2.cols()));
-    MatrixXd x1_res_h2 = MatVectorslice(homogeneous_loc1, inlier_inds, 0, homogeneous_loc1.cols()); //homogeneous_loc1(inlier_inds, Eigen::seqN(0,homogeneous_loc1.cols())); 
-    MatrixXd x2_res_h2 =  MatVectorslice(homogeneous_loc2, inlier_inds, 0, homogeneous_loc2.cols()); //homogeneous_loc2(inlier_inds, Eigen::seqN(0,homogeneous_loc2.cols()));
-    MatrixXd bestNormalizedHomography = computeNormalizedHomography(x1_res, x2_res, x1_res_h2, x2_res_h2);
-    // double actEnd = CycleTimer::currentSeconds();
-    // std::cout << "Actual End of ransac time" << actEnd - actStart << std::endl;
+    MatrixXd x1_res_h = MatVectorslice(homogeneous_loc1, inlier_inds, 0, homogeneous_loc1.cols()); //homogeneous_loc1(inlier_inds, Eigen::seqN(0,homogeneous_loc1.cols())); 
+    MatrixXd x2_res_h =  MatVectorslice(homogeneous_loc2, inlier_inds, 0, homogeneous_loc2.cols()); //homogeneous_loc2(inlier_inds, Eigen::seqN(0,homogeneous_loc2.cols()));
+    MatrixXd bestNormalizedHomography = computeNormalizedHomography(x1_res, x2_res, x1_res_h, x2_res_h);
     return bestNormalizedHomography;
 }
 
