@@ -195,6 +195,7 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
         //         }
         //     }
         // }
+        
         // double insideLoopEnd = CycleTimer::currentSeconds();
         // std::cout << "Inside loop time: " << insideLoopEnd - insideLoopStart << std::endl;
 
