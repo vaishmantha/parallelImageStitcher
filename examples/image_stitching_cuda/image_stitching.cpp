@@ -199,6 +199,8 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
             }
         }
         count_list[it] = totalCount;
+        free(count);
+        free(divideByZero);
         
     }
     // for(int i=0; )
@@ -238,6 +240,8 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
             inlier_inds.push_back(i);
         }
     }
+    free(count);
+    free(divideByZero);
     // ransacIterationDiff(prod, locs1, threshold, &count);
     // for(int i = 0; i < prod.cols(); i++){
     //     if(prod.transpose()(i, 2) == 0){
