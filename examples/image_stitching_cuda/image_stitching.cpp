@@ -14,8 +14,8 @@ using Eigen::MatrixXd;
 void dummyWarmup();
 void ransacIterationDiff(MatrixXd prod, MatrixXd locs1, int threshold, int* count);
 // void placeImage(MatrixXd newImage, MatrixXd* resImg, double min_x, double min_y, double max_x, double max_y);
-void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* png_b, unsigned char* png_a, 
-        int png_width, int png_height, unsigned char* newImR, unsigned char* newImG, unsigned char* newImB, unsigned char* newImA, 
+void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* png_b, 
+        int png_width, int png_height, unsigned char* newImR, unsigned char* newImG, unsigned char* newImB, 
         MatrixXd H, int curr_width, int curr_height);
 
 MatrixXd Matslice(MatrixXd array, int start_row, int start_col, int height, int width){
@@ -603,10 +603,10 @@ int main(int argc, char *argv[])
         unsigned char* newImR = new unsigned char[curr_height*curr_width]{};
         unsigned char* newImG = new unsigned char[curr_height*curr_width]{};
         unsigned char* newImB = new unsigned char[curr_height*curr_width]{};
-        unsigned char* newImA = new unsigned char[curr_height*curr_width]{255};
+        // unsigned char* newImA = new unsigned char[curr_height*curr_width]{255};
         
         double warpPerspectiveStart = CycleTimer::currentSeconds();
-        warpPerspective(png_r[i], png_g[i], png_b[i], png_alpha[i], widths[i], heights[i], newImR, newImG, newImB, newImA, homographies[i], curr_width, curr_height);
+        warpPerspective(png_r[i], png_g[i], png_b[i], widths[i], heights[i], newImR, newImG, newImB, homographies[i], curr_width, curr_height);
         // warpPerspective(png_r[i], png_g[i], png_b[i], png_alpha[i], widths[i], heights[i], &newImR, &newImG, &newImB, &newImA, homographies[i]);
         double warpPerspectiveEnd = CycleTimer::currentSeconds();
         std::cout << "Warp perspective time: " << warpPerspectiveEnd-warpPerspectiveStart << std::endl;
@@ -619,8 +619,6 @@ int main(int argc, char *argv[])
                 placeImage(newImG, curr_width, curr_height, &resImageG, min_x, min_y, max_x, max_y);
             }else if(j==2){
                 placeImage(newImB, curr_width, curr_height, &resImageB, min_x, min_y, max_x, max_y);
-            }else{
-                placeImage(newImA, curr_width, curr_height, &resImageA, min_x, min_y, max_x, max_y);
             }
         }
         
@@ -635,7 +633,7 @@ int main(int argc, char *argv[])
             resImg_vect.push_back(resImageR(i, j)); //color
             resImg_vect.push_back(resImageG(i, j));
             resImg_vect.push_back(resImageB(i, j));
-            resImg_vect.push_back(resImageA(i, j)); /////This cannot be 0 or the entire program breaks
+            resImg_vect.push_back(255); /////This cannot be 0 or the entire program breaks
         }
     }
     unsigned err = lodepng::encode("result.png", resImg_vect, pan_width, pan_height);
