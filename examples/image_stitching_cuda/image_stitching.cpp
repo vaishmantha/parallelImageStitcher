@@ -202,6 +202,7 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
             count_list[it] = count;
         }      
     }
+    
     double loopEnd = CycleTimer::currentSeconds();
     std::cout << "Loop ransac time" << loopEnd - loopStart << std::endl;
 
