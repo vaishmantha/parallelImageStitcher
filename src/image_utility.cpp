@@ -462,8 +462,8 @@ int match_keypoints(std::list<SiftKeypoint> &kpt_list1,
         }
         // kpt1++;
     }
-    
-    std::copy(match_vector.begin(), match_vector.end(), match_list.begin());
+    match_list(match_vector.begin(), match_vector.end());
+    // std::copy(match_vector.begin(), match_vector.end(), match_list.begin());
     match_list.unique(same_match_pair);
     double endTime = CycleTimer::currentSeconds();
     std::cout << "Match keypoints time::: " << endTime - startTime << std::endl;
