@@ -127,13 +127,6 @@ __global__ void ransacIterationDiffKernel(char* counts, char* divByZero, int thr
         counts[col] = 1;
     }
 
-    //if(!divide_by_zero){
-        //         diff = (Matslice(prod.transpose(), i, 0, 1, 2)/prod.transpose()(i, 2) - Matslice(locs1, i, 0, 1, locs1.cols())).norm(); 
-        //         if(diff < threshold){
-        //             count++;
-        //         }
-        //     }
-
 }
 
 void ransacIterationDiff(MatrixXd prod, MatrixXd locs1, int threshold, int* count){
@@ -160,11 +153,10 @@ void ransacIterationDiff(MatrixXd prod, MatrixXd locs1, int threshold, int* coun
     
     char* divByZero;
     char* counts;
-    cudaMemcpy(divByZero, divByZeroDevice, prod.cols(), cudaMemcpyDeviceToHost);
-    cudaMemcpy(counts, countsDevice, prod.cols(), cudaMemcpyDeviceToHost);
+    cudaMemcpy(divByZero, divByZeroDevice, prod.cols()*sizeof(char), cudaMemcpyDeviceToHost);
+    cudaMemcpy(counts, countsDevice, prod.cols()*sizeof(char), cudaMemcpyDeviceToHost);
 
     int totalCount = 0; 
-     //prod.cols()
     // #pragma omp parallel for reduction(sum+: totalCount)
     for (int i = 0; i < prod.cols(); i++){
         totalCount += divByZero[i]; 
@@ -172,7 +164,6 @@ void ransacIterationDiff(MatrixXd prod, MatrixXd locs1, int threshold, int* coun
 
     if(totalCount != 0){
         totalCount = 0; 
-         //prod.cols()
         // #pragma omp parallel for reduction(sum+: totalCount)
         for (int i = 0; i < prod.cols(); i++){
             totalCount += counts[i]; 
