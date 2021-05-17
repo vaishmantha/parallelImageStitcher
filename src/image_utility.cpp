@@ -405,7 +405,7 @@ int match_keypoints(std::list<SiftKeypoint> &kpt_list1,
 
     double startTime = CycleTimer::currentSeconds();
     int i;
-    #pragma omp parallel for schedule(dynamic)
+    // #pragma omp parallel for schedule(dynamic)
     // for (kpt1 = kpt_list1.begin(); kpt1 != kpt_list1.end(); kpt1++) {
     for (i = 0; i < kpt_list1.size(); i++) {
         
