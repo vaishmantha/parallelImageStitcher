@@ -565,6 +565,7 @@ int main(int argc, char *argv[])
     int pan_height  = (int)(pano_max_y - pano_min_y); 
     int pan_width = (int)(pano_max_x - pano_min_x);
 
+    std::cout << "Allocating arrays of size " << pan_height*pan_width << std::endl;
     MatrixXd resImageR = MatrixXd::Constant(pan_height, pan_width, 0);
     MatrixXd resImageG = MatrixXd::Constant(pan_height, pan_width, 0);
     MatrixXd resImageB = MatrixXd::Constant(pan_height, pan_width, 0);
