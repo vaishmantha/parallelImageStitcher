@@ -560,10 +560,14 @@ int main(int argc, char *argv[])
     }
     double findingDimsEnd = CycleTimer::currentSeconds();
     std::cout << "Finding dims time: " << findingDimsEnd-findingDimsStart << std::endl;
-
+    std::cout << "min y " << pano_min_y <<  "min x " << pano_min_x << "max y " << pano_max_y << "max x " << pano_max_x << std::endl;
     double imgCompositionStart = CycleTimer::currentSeconds();
     int pan_height  = (int)(pano_max_y - pano_min_y); 
     int pan_width = (int)(pano_max_x - pano_min_x);
+    if(pan_width < 0 || pan_height < 0){
+        std::cerr << "Was not able to compute homographies correctly and terminating" << std::endl;
+        return -1;
+    }
 
     std::cout << "Allocating arrays of size " << pan_height*pan_width << std::endl;
     MatrixXd resImageR = MatrixXd::Constant(pan_height, pan_width, 0);
