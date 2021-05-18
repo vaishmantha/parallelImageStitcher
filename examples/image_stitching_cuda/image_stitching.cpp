@@ -642,6 +642,9 @@ int main(int argc, char *argv[])
         double placeImageEnd = CycleTimer::currentSeconds();
         std::cout << "placeImage time: " << placeImageEnd-placeImageStart << std::endl;
 
+        delete newImR;
+        delete newImG;
+        delete newImB;
         // #pragma omp parallel for schedule(dynamic) // DO NOT ADD BACK IN
         // for(int j= 0; j<4; j++){
         //     if(j==0){
