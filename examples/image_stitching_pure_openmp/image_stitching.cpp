@@ -315,7 +315,6 @@ void placeImage(unsigned char* newImage, int newImWidth, MatrixXd* resImg, doubl
     // int w = newImage.cols();
     // int h = newImage.rows();
     // printf("w: %d, h: %d", w, h);
-    double startTime = CycleTimer::currentSeconds();
     int start_i = (int)fmax(min_y,0);
     int start_j = (int)fmax(min_x,0);
     #pragma omp parallel for collapse(2) num_threads(1) //schedule(dynamic)
@@ -356,8 +355,6 @@ void placeImage(unsigned char* newImage, int newImWidth, MatrixXd* resImg, doubl
             }
         }
     }
-    double endTime = CycleTimer::currentSeconds();
-    std::cout << "Place image time " << endTime-startTime << std::endl;
 }
 
 
