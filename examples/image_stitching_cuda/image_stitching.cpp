@@ -625,6 +625,7 @@ int main(int argc, char *argv[])
         int curr_height  = (int)(fmax(pano_max_y, max_y) - fmax(fmin(pano_min_y, min_y),0)); 
 
         //does not cache that well-- look into this
+        std::cout << curr_height*curr_width << std::endl;
         unsigned char* newImR = new unsigned char[curr_height*curr_width]{};
         unsigned char* newImG = new unsigned char[curr_height*curr_width]{};
         unsigned char* newImB = new unsigned char[curr_height*curr_width]{};
@@ -645,17 +646,6 @@ int main(int argc, char *argv[])
         delete newImR;
         delete newImG;
         delete newImB;
-        // #pragma omp parallel for schedule(dynamic) // DO NOT ADD BACK IN
-        // for(int j= 0; j<4; j++){
-        //     if(j==0){
-        //         placeImage(newImR, curr_width, curr_height, &resImageR, min_x, min_y, max_x, max_y);
-        //     }else if(j==1){
-        //         placeImage(newImG, curr_width, curr_height, &resImageG, min_x, min_y, max_x, max_y);
-        //     }else if(j==2){
-        //         placeImage(newImB, curr_width, curr_height, &resImageB, min_x, min_y, max_x, max_y);
-        //     }
-        // }
-        
 
     }
     double imgCompositionEnd = CycleTimer::currentSeconds();
