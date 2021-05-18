@@ -289,55 +289,13 @@ void findDimensions(ezsift::Image<unsigned char> image, MatrixXd H,
     *max_y = Matslice(imgDimss, 1, 0, 1, imgDimss.cols()).maxCoeff(); 
 }
 
-// void placeImage(unsigned char* newImage, int newImWidth, int newImHeight, MatrixXd* resImg, double min_x, double min_y, double max_x, double max_y){
-//     int w = newImWidth; //newImage.cols();
-//     int h = newImHeight; //newImage.rows();
-//     // printf("w: %d, h: %d", w, h);
-//     for (int i = 0; i < h; i++){ //access as row col
-//         for (int j = 0; j < w; j++){
-//             if ((*resImg)(i,j) == 0){
-//                 (*resImg)(i,j) = newImage[i*newImWidth + j]; //(i,j);
-//             }
-//             if ((*resImg)(i,j) != 0 && newImage[i*newImWidth + j] != 0){
-//                 (*resImg)(i,j) = fmax(newImage[i*newImWidth + j], (*resImg)(i,j));
-//             }
-//         }
-//     }
-//     MatrixXd copyRes = *resImg;
-//     for(int i = fmax(min_y,0); i < max_y; i++){
-//         for(int j = fmax(min_x,0); j < max_x; j++){
-//             if((*resImg)(i, j) == 0){
-//                 if (i+1 < max_y && copyRes(i+1,j) != 0){ 
-//                     (*resImg)(i, j) = copyRes(i+1,j);
-//                 }else if(i-1 >= fmax(min_y,0) && copyRes(i-1,j) != 0){
-//                     (*resImg)(i, j) = copyRes(i-1,j);
-//                 }else if(j+1 < max_x && copyRes(i,j+1) != 0){
-//                     (*resImg)(i, j) = copyRes(i,j+1);
-//                 }else if(j-1 >=fmax(min_x,0) && copyRes(i,j-1) != 0){
-//                     (*resImg)(i,j) = copyRes(i,j-1);
-//                 }else if(i+1 < max_y && j+1 < max_x && copyRes(i+1,j+1)){
-//                     (*resImg)(i,j) = copyRes(i+1,j+1);
-//                 }else if(i-1 >= fmax(min_y,0) && j+1 < max_x && copyRes(i-1,j+1)){
-//                     (*resImg)(i,j) = copyRes(i-1,j+1);
-//                 }else if(i+1 < max_y && j-1 >=fmax(min_x,0) && copyRes(i+1,j-1)){
-//                     (*resImg)(i,j) = copyRes(i+1,j-1);
-//                 }else if(i-1 >= fmax(min_y,0) && j-1 >=fmax(min_x,0) && copyRes(i-1,j-1)){
-//                     (*resImg)(i,j) = copyRes(i-1,j-1);
-//                 }
-//             }
-//         }
-//     }
-//     // return resImg;
-// }
-
 //newer one
 void placeImage(unsigned char* newImR, unsigned char* newImG, unsigned char* newImB, int newImWidth, int newImHeight, MatrixXd* resImageR, 
             MatrixXd* resImageG, MatrixXd* resImageB, double min_x, double min_y, double max_x, double max_y){
     int start_i = (int)fmax(min_y,0);
     int start_j = (int)fmax(min_x,0);
-    // #pragma omp parallel for collapse(2) 
+
     #pragma omp parallel for schedule(dynamic) num_threads(16)
-    //FIX: another for loop that goes over the 4 image channels
     for (int i = start_i; i < (int)max_y; i++){ //access as row col
         for (int j = start_j; j < (int)max_x; j++){
             for(int im = 0; im<3; im++){
@@ -370,7 +328,6 @@ void placeImage(unsigned char* newImR, unsigned char* newImG, unsigned char* new
     MatrixXd copyResG = (*resImageG);
     MatrixXd copyResB = (*resImageB);
     #pragma omp parallel for schedule(dynamic) num_threads(16)
-    // #pragma omp parallel for collapse(2) schedule(dynamic)
     for(int i = start_i; i < (int)max_y; i++){
         for(int j = start_j; j < (int)max_x; j++){
             for(int im = 0; im<3; im++){
@@ -612,7 +569,7 @@ int main(int argc, char *argv[])
     MatrixXd resImageG = MatrixXd::Constant(pan_height, pan_width, 0);
     MatrixXd resImageB = MatrixXd::Constant(pan_height, pan_width, 0);
     MatrixXd resImageA = MatrixXd::Constant(pan_height, pan_width, 0);
-    
+    std::cout << "Entering imgs loop" << std::endl;
     // #pragma omp parallel for schedule(dynamic)
     for (int i = 0; i < images.size(); i++){
         double min_x; 
@@ -638,7 +595,6 @@ int main(int argc, char *argv[])
         std::cout << "Warp perspective time: " << warpPerspectiveEnd-warpPerspectiveStart << std::endl;
 
         double placeImageStart = CycleTimer::currentSeconds();
-        std::cout << "debug: " << (max_x - min_x) * (max_y * min_y) << std::endl;
         placeImage(newImR, newImG, newImB, curr_width, curr_height, &resImageR, &resImageG, &resImageB, min_x, min_y, max_x, max_y);
         double placeImageEnd = CycleTimer::currentSeconds();
         std::cout << "placeImage time: " << placeImageEnd-placeImageStart << std::endl;
