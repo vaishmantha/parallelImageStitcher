@@ -120,7 +120,7 @@ MatrixXd computeNormalizedHomography(MatrixXd x1, MatrixXd x2,
 
 
 MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
-    int iterations= 500; 
+    int iterations= 1000; 
     int threshold = 3; //check on this threshold
     
     MatrixXd locs1 = MatrixXd(match_li.size(), 2);
