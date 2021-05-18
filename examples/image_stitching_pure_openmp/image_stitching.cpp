@@ -388,8 +388,6 @@ int main(int argc, char *argv[])
         printf("usage: image_match img1 img2 ...\n");
         return -1;
     }
-
-    printf("numCores: %d\n", std::thread::hardware_concurrency());
     double startTime = CycleTimer::currentSeconds();
     
     std::vector<ezsift::Image<unsigned char> > images;
@@ -460,26 +458,20 @@ int main(int argc, char *argv[])
     
     ezsift::double_original_image(true);
     double siftStart = CycleTimer::currentSeconds();
-
-    #pragma omp parallel for schedule(dynamic) num_threads(16)
-    for(int i=0; i<images.size()+1; i++){
-        if(i < images.size()){
-            sift_cpu(images[i], kpt_lists[i], true);
-        }else{
-            dummyWarmup();
-        }
+    #pragma omp parallel for schedule(dynamic) num_threads(1)
+    for(int i=0; i<images.size(); i++){
+        sift_cpu(images[i], kpt_lists[i], true);
     }
     // ezsift::sift_gpu(images, kpt_lists, true);
     double siftEnd = CycleTimer::currentSeconds();
-    std::cout << "Keypoint detection " << siftEnd-siftStart << std::endl;
+    std::cout << "Keypoint detection: " << siftEnd-siftStart << std::endl;
     std::vector<std::list<ezsift::MatchPair>> matches(images.size()-1);
 
     double findMatchesStart = CycleTimer::currentSeconds();
 
     bool matchListSizeZero = false;
-    #pragma omp parallel for schedule(dynamic) num_threads(16) //NEW REMOVAL
+    #pragma omp parallel for schedule(dynamic) num_threads(1)
     for(int i=0; i<images.size()-1; i++){
-
         std::list<ezsift::MatchPair> match_list;
         ezsift::match_keypoints(kpt_lists[i], kpt_lists[i+1], match_list); //Doesn't take long
         matches[i] = match_list;
@@ -502,7 +494,9 @@ int main(int argc, char *argv[])
     MatrixXd first = MatrixXd::Identity(3, 3);
     homographies.push_back(first);
     for(int i=1; i<images.size(); i++){
+        // double ransacInnerStart = CycleTimer::currentSeconds();
         MatrixXd bestH = computeRansac(matches[i-1]);
+        // std::cout << "Inner ransac: " << CycleTimer::currentSeconds() - ransacInnerStart << std::endl;
         homographies.push_back(homographies[i-1]*bestH);
     }
     double ransacEnd = CycleTimer::currentSeconds();
@@ -514,7 +508,7 @@ int main(int argc, char *argv[])
     int pano_max_x = images[0].w; 
     int pano_max_y = images[0].h; 
 
-    
+    // #pragma omp parallel for schedule(dynamic)
     for(int i=1; i<images.size(); i++){
         double min_x;
         double min_y;
@@ -554,31 +548,31 @@ int main(int argc, char *argv[])
         unsigned char* newImR = new unsigned char[curr_height*curr_width]{};
         unsigned char* newImG = new unsigned char[curr_height*curr_width]{};
         unsigned char* newImB = new unsigned char[curr_height*curr_width]{};
-        // unsigned char* newImA = new unsigned char[curr_height*curr_width]{255};
-        
+        unsigned char* newImA = new unsigned char[curr_height*curr_width]{};
+       
         double warpPerspectiveStart = CycleTimer::currentSeconds();
-        warpPerspective(png_r[i], png_g[i], png_b[i], widths[i], heights[i], newImR, newImG, newImB, homographies[i], curr_width, curr_height);
+        warpPerspective(png_r[i], png_g[i], png_b[i], png_alpha[i], widths[i], heights[i], newImR, newImG, newImB, newImA, homographies[i], curr_width, curr_height);
         // warpPerspective(png_r[i], png_g[i], png_b[i], png_alpha[i], widths[i], heights[i], &newImR, &newImG, &newImB, &newImA, homographies[i]);
         double warpPerspectiveEnd = CycleTimer::currentSeconds();
         std::cout << "Warp perspective time: " << warpPerspectiveEnd-warpPerspectiveStart << std::endl;
 
         double placeImageStart = CycleTimer::currentSeconds();
-        std::cout << "debug: " << (max_x - min_x) * (max_y * min_y) << std::endl;
-        placeImage(newImR, newImG, newImB, curr_width, curr_height, &resImageR, &resImageG, &resImageB, min_x, min_y, max_x, max_y);
+
+        // #pragma omp parallel for schedule(dynamic) // DO NOT ADD BACK IN
+        for(int j= 0; j<4; j++){
+            if(j==0){
+                placeImage(newImR, curr_width, &resImageR, min_x, min_y, max_x, max_y);
+            }else if(j==1){
+                placeImage(newImG, curr_width, &resImageG, min_x, min_y, max_x, max_y);
+            }else if(j==2){
+                placeImage(newImB, curr_width, &resImageB, min_x, min_y, max_x, max_y);
+            }else{
+                placeImage(newImA, curr_width, &resImageA, min_x, min_y, max_x, max_y);
+            }
+        }
         double placeImageEnd = CycleTimer::currentSeconds();
         std::cout << "placeImage time: " << placeImageEnd-placeImageStart << std::endl;
 
-        // #pragma omp parallel for schedule(dynamic) // DO NOT ADD BACK IN
-        // for(int j= 0; j<4; j++){
-        //     if(j==0){
-        //         placeImage(newImR, curr_width, curr_height, &resImageR, min_x, min_y, max_x, max_y);
-        //     }else if(j==1){
-        //         placeImage(newImG, curr_width, curr_height, &resImageG, min_x, min_y, max_x, max_y);
-        //     }else if(j==2){
-        //         placeImage(newImB, curr_width, curr_height, &resImageB, min_x, min_y, max_x, max_y);
-        //     }
-        // }
-        
 
     }
     double imgCompositionEnd = CycleTimer::currentSeconds();
@@ -586,17 +580,16 @@ int main(int argc, char *argv[])
 
     std::vector<unsigned char> resImg_vect;
     double finalLoopStart = CycleTimer::currentSeconds();
-  
+
     for(int i=0; i<pan_height; i++){
         for(int j=0; j<pan_width; j++){
             resImg_vect.push_back(resImageR(i, j)); //color
             resImg_vect.push_back(resImageG(i, j));
             resImg_vect.push_back(resImageB(i, j));
-            resImg_vect.push_back(255);
+            resImg_vect.push_back(resImageA(i, j)); /////This cannot be 0 or the entire program breaks
         }
     }
     double finalLoopEnd = CycleTimer::currentSeconds();
-
     unsigned err = lodepng::encode("result.png", resImg_vect, pan_width, pan_height);
     if(err) std::cout << "encoder error " << err << ": "<< lodepng_error_text(err) << std::endl;
     std::cout << "Final loop time: " << finalLoopEnd-finalLoopStart << std::endl;
