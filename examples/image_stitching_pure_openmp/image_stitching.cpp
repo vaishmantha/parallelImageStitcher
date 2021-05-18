@@ -267,7 +267,7 @@ void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* 
         int png_width, int png_height, unsigned char* newImR, unsigned char* newImG, unsigned char* newImB, unsigned char* newImA, 
         MatrixXd H, int curr_width, int curr_height){
     int i; 
-    #pragma parallel for schedule(dynamic) collapse(2) num_threads(4)
+    #pragma parallel for collapse(2) schedule(dynamic) num_threads(4)
     for(i=0; i< png_height; i++){ 
         for(int j=0; j<png_width; j++){
             MatrixXd tmp = MatrixXd::Constant(3,1, 0.0);
