@@ -311,7 +311,7 @@ int main(int argc, char *argv[])
     std::vector<int> heights;
     std::vector<unsigned char*> png_images;
     std::vector<unsigned char*> color_png_images;
-    std::vector<char * > files; //Should probably switch away from this when switching to video
+    std::vector<char * > files; 
     // All image files
     for(int i=1; i<argc; i++){
         char* file = (char *)calloc(sizeof(char), strlen(argv[i]));
@@ -344,14 +344,16 @@ int main(int argc, char *argv[])
         }
         images.push_back(image);
     }
+    double readingImagesEnd = CycleTimer::currentSeconds();
+    std::cout << "Reading images time: " << readingImagesEnd-imageStitchingStart << std::endl;
 
-    
+    double siftStart = CycleTimer::currentSeconds();
     std::vector<std::list<ezsift::MatchPair>> matches;
     ezsift::double_original_image(true);
     for(int i=0; i<images.size()-1; i++){
         int j = i+1;
         std::list<ezsift::SiftKeypoint> kpt_list1, kpt_list2;
-        ezsift::sift_cpu(images[i], kpt_list1, true); //will write gpu version of this function
+        ezsift::sift_cpu(images[i], kpt_list1, true); 
         ezsift::sift_cpu(images[j], kpt_list2, true);
 
         std::list<ezsift::MatchPair> match_list;
@@ -363,7 +365,10 @@ int main(int argc, char *argv[])
             return -1;
         }
     }
+    double siftEnd = CycleTimer::currentSeconds();
+    std::cout << "Keypoint detection + find matches time: " << siftEnd-siftStart << std::endl;
 
+    double ransacStart = CycleTimer::currentSeconds();
     std::vector<MatrixXd> homographies;
     MatrixXd first = MatrixXd::Identity(3, 3);
     homographies.push_back(first);
@@ -371,6 +376,8 @@ int main(int argc, char *argv[])
         MatrixXd bestH = computeRansac(matches[i-1]);
         homographies.push_back(homographies[i-1]*bestH);
     }
+    double ransacEnd = CycleTimer::currentSeconds();
+    std::cout << "Ransac time: " << ransacEnd-ransacStart << std::endl;
 
     int pano_min_x = 0; 
     int pano_min_y = 0; 
@@ -391,13 +398,14 @@ int main(int argc, char *argv[])
         // printf("pano_size: max y: %d, min_y: %d, max_x: %d, min_x: %d \n", pano_max_y, pano_min_y, pano_max_x,pano_min_x );
     }
 
+
     int pan_height  = (int)(pano_max_y - pano_min_y); 
     int pan_width = (int)(pano_max_x - pano_min_x);
     if(pan_width < 0 || pan_height < 0){
         std::cerr << "Not enough space to allocate image array- please try a smaller number of images or images that are closer together" << std::endl;
         return -1;
     }
-
+    double imgCompositionStart = CycleTimer::currentSeconds();
     MatrixXd resImage = MatrixXd::Constant(pan_height, pan_width, 0);
     
     for (int i = 0; i < images.size(); i++){
@@ -415,8 +423,10 @@ int main(int argc, char *argv[])
 
         resImage = placeImage(newIm, resImage, min_x, min_y, max_x, max_y);
     }
-    
+    double imgCompositionEnd = CycleTimer::currentSeconds();
+    std::cout << "Img composition time: " << imgCompositionEnd-imgCompositionStart << std::endl;
 
+    double finalLoopStart = CycleTimer::currentSeconds();
     std::vector<unsigned char> resImg_vect;
     for(int i=0; i<pan_height; i++){
         for(int j=0; j<pan_width; j++){
@@ -427,8 +437,10 @@ int main(int argc, char *argv[])
         }
     }
     unsigned err = lodepng::encode("result.png", resImg_vect, pan_width, pan_height);
+    double finalLoopEnd = CycleTimer::currentSeconds();
+    std::cout << "Final encoding time: " << finalLoopEnd-finalLoopStart << std::endl;
     if(err) std::cout << "encoder error " << err << ": "<< lodepng_error_text(err) << std::endl;
     double imageStitchingEnd = CycleTimer::currentSeconds();
-    std::cout << "Sequential time " << imageStitchingEnd-imageStitchingStart << std::endl;
+    std::cout << "Overall time " << imageStitchingEnd-imageStitchingStart << std::endl;
     return 0;
 }

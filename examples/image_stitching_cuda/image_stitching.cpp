@@ -510,7 +510,6 @@ int main(int argc, char *argv[])
     bool matchListSizeZero = false;
     #pragma omp parallel for schedule(dynamic) num_threads(16) //NEW REMOVAL
     for(int i=0; i<images.size()-1; i++){
-
         std::list<ezsift::MatchPair> match_list;
         ezsift::match_keypoints(kpt_lists[i], kpt_lists[i+1], match_list); //Doesn't take long
         matches[i] = match_list;
@@ -583,16 +582,12 @@ int main(int argc, char *argv[])
         int curr_width = (int)(fmax(pano_max_x, max_x) - fmax(fmin(pano_min_x, min_x),0));
         int curr_height  = (int)(fmax(pano_max_y, max_y) - fmax(fmin(pano_min_y, min_y),0)); 
 
-        //does not cache that well-- look into this
-        std::cout << curr_height*curr_width << std::endl;
         unsigned char* newImR = new unsigned char[curr_height*curr_width]{};
         unsigned char* newImG = new unsigned char[curr_height*curr_width]{};
         unsigned char* newImB = new unsigned char[curr_height*curr_width]{};
-        // unsigned char* newImA = new unsigned char[curr_height*curr_width]{255};
         
         double warpPerspectiveStart = CycleTimer::currentSeconds();
         warpPerspective(png_r[i], png_g[i], png_b[i], widths[i], heights[i], newImR, newImG, newImB, homographies[i], curr_width, curr_height);
-        // warpPerspective(png_r[i], png_g[i], png_b[i], png_alpha[i], widths[i], heights[i], &newImR, &newImG, &newImB, &newImA, homographies[i]);
         double warpPerspectiveEnd = CycleTimer::currentSeconds();
         std::cout << "Warp perspective time: " << warpPerspectiveEnd-warpPerspectiveStart << std::endl;
 
@@ -620,11 +615,11 @@ int main(int argc, char *argv[])
             resImg_vect.push_back(255);
         }
     }
-    double finalLoopEnd = CycleTimer::currentSeconds();
 
     unsigned err = lodepng::encode("result.png", resImg_vect, pan_width, pan_height);
+    double finalLoopEnd = CycleTimer::currentSeconds();
     if(err) std::cout << "encoder error " << err << ": "<< lodepng_error_text(err) << std::endl;
-    std::cout << "Final loop time: " << finalLoopEnd-finalLoopStart << std::endl;
+    std::cout << "Final encoding time: " << finalLoopEnd-finalLoopStart << std::endl;
     double endTime = CycleTimer::currentSeconds();
 
     std::cout << "Overall time: " << endTime-startTime << std::endl;
