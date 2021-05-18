@@ -559,22 +559,19 @@ int main(int argc, char *argv[])
         pano_max_y = (int) (ceil(fmax(max_y, pano_max_y)));
     }
     double findingDimsEnd = CycleTimer::currentSeconds();
-    std::cout << "Finding dims time: " << findingDimsEnd-findingDimsStart << std::endl;
-    std::cout << "min y " << pano_min_y <<  "min x " << pano_min_x << "max y " << pano_max_y << "max x " << pano_max_x << std::endl;
+
     double imgCompositionStart = CycleTimer::currentSeconds();
     int pan_height  = (int)(pano_max_y - pano_min_y); 
     int pan_width = (int)(pano_max_x - pano_min_x);
     if(pan_width < 0 || pan_height < 0){
-        std::cerr << "Was not able to compute homographies correctly and terminating" << std::endl;
+        std::cerr << "Not enough space to allocate image array- please try a smaller number of images or images that are closer together" << std::endl;
         return -1;
     }
 
-    std::cout << "Allocating arrays of size " << pan_height*pan_width << std::endl;
     MatrixXd resImageR = MatrixXd::Constant(pan_height, pan_width, 0);
     MatrixXd resImageG = MatrixXd::Constant(pan_height, pan_width, 0);
     MatrixXd resImageB = MatrixXd::Constant(pan_height, pan_width, 0);
     MatrixXd resImageA = MatrixXd::Constant(pan_height, pan_width, 0);
-    std::cout << "Entering imgs loop" << std::endl;
     // #pragma omp parallel for schedule(dynamic)
     for (int i = 0; i < images.size(); i++){
         double min_x; 

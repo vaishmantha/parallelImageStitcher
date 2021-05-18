@@ -299,20 +299,7 @@ void write_pgm(const char *filename, unsigned char *data, int w, int h)
 int main(int argc, char *argv[])
 {
     double imageStitchingStart = CycleTimer::currentSeconds();
-    bool VIDEO_MODE;
-    char* suffix = strrchr(argv[1], '.');
-    if (argc < 2) {
-        printf("Please input at least two image filenames or one video filename.\n");
-        return -1;
-    }
-
-    if(strncmp(suffix, ".mp4", 4) == 0){
-        VIDEO_MODE = true;  
-    }else{
-        VIDEO_MODE = false;
-    }
-
-    if (argc < 3 && !VIDEO_MODE) {
+    if (argc < 3) {
         printf("Please input at least two image filenames.\n");
         printf("usage: image_match img1 img2 ...\n");
         return -1;
@@ -325,44 +312,39 @@ int main(int argc, char *argv[])
     std::vector<unsigned char*> png_images;
     std::vector<unsigned char*> color_png_images;
     std::vector<char * > files; //Should probably switch away from this when switching to video
-    if(!VIDEO_MODE){
-        // All image files
-        for(int i=1; i<argc; i++){
-            char* file = (char *)calloc(sizeof(char), strlen(argv[i]));
-            memcpy(file, argv[i], sizeof(char) * strlen(argv[i]));
-            file[strlen(argv[i])] = 0;
-            files.push_back(file);
-            ezsift::Image<unsigned char> image;
+    // All image files
+    for(int i=1; i<argc; i++){
+        char* file = (char *)calloc(sizeof(char), strlen(argv[i]));
+        memcpy(file, argv[i], sizeof(char) * strlen(argv[i]));
+        file[strlen(argv[i])] = 0;
+        files.push_back(file);
+        ezsift::Image<unsigned char> image;
 
-            //Finally can convert pngs
-            
-            std::vector<unsigned char> img;
-            unsigned width, height;
-            unsigned error = lodepng::decode(img, width, height, file);
-            if(error) std::cout << "decoder error " << error << ": " << lodepng_error_text(error) << std::endl;
-            
-            unsigned char* data = img.data();
-            unsigned char* new_data = new unsigned char[width * height];
-            for(int i=0; i< width*height; i++){
-                new_data[i] = data[4*i]/3 + data[4*i+1]/3 + data[4*i+2]/3;
-            }
-            write_pgm("tmp.pgm", new_data, width, height);
-            png_images.push_back(new_data);
-            widths.push_back(width);
-            heights.push_back(height);
-            color_png_images.push_back(data); //be careful
-
-            if (image.read_pgm("tmp.pgm") != 0) {
-                std::cerr << "Failed to open input image!" << std::endl;
-                return -1;
-            }
-            images.push_back(image);
+        //Finally can convert pngs
+        
+        std::vector<unsigned char> img;
+        unsigned width, height;
+        unsigned error = lodepng::decode(img, width, height, file);
+        if(error) std::cout << "decoder error " << error << ": " << lodepng_error_text(error) << std::endl;
+        
+        unsigned char* data = img.data();
+        unsigned char* new_data = new unsigned char[width * height];
+        for(int i=0; i< width*height; i++){
+            new_data[i] = data[4*i]/3 + data[4*i+1]/3 + data[4*i+2]/3;
         }
-    }else{
-        char* file;
-        memcpy(file, argv[1], sizeof(char) * strlen(argv[1]));
-        file[strlen(argv[1])] = 0;
+        write_pgm("tmp.pgm", new_data, width, height);
+        png_images.push_back(new_data);
+        widths.push_back(width);
+        heights.push_back(height);
+        color_png_images.push_back(data); //be careful
+
+        if (image.read_pgm("tmp.pgm") != 0) {
+            std::cerr << "Failed to open input image!" << std::endl;
+            return -1;
+        }
+        images.push_back(image);
     }
+
     
     std::vector<std::list<ezsift::MatchPair>> matches;
     ezsift::double_original_image(true);
@@ -411,6 +393,10 @@ int main(int argc, char *argv[])
 
     int pan_height  = (int)(pano_max_y - pano_min_y); 
     int pan_width = (int)(pano_max_x - pano_min_x);
+    if(pan_width < 0 || pan_height < 0){
+        std::cerr << "Not enough space to allocate image array- please try a smaller number of images or images that are closer together" << std::endl;
+        return -1;
+    }
 
     MatrixXd resImage = MatrixXd::Constant(pan_height, pan_width, 0);
     

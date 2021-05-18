@@ -459,7 +459,7 @@ int main(int argc, char *argv[])
     for(int i=0; i<images.size(); i++){
         sift_cpu(images[i], kpt_lists[i], true);
     }
-    // ezsift::sift_gpu(images, kpt_lists, true);
+
     double siftEnd = CycleTimer::currentSeconds();
     std::cout << "Keypoint detection: " << siftEnd-siftStart << std::endl;
     std::vector<std::list<ezsift::MatchPair>> matches(images.size()-1);
@@ -524,6 +524,10 @@ int main(int argc, char *argv[])
     double imgCompositionStart = CycleTimer::currentSeconds();
     int pan_height  = (int)(pano_max_y - pano_min_y); 
     int pan_width = (int)(pano_max_x - pano_min_x);
+    if(pan_width < 0 || pan_height < 0){
+        std::cerr << "Not enough space to allocate image array- please try a smaller number of images or images that are closer together" << std::endl;
+        return -1;
+    }
 
     MatrixXd resImageR = MatrixXd::Constant(pan_height, pan_width, 0);
     MatrixXd resImageG = MatrixXd::Constant(pan_height, pan_width, 0);
