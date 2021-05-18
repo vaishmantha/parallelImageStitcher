@@ -15,7 +15,7 @@ Then you can find the built binary in the same directory. There are three versio
 Here are two examples of how to run:
 ```bash
 ./image_stitching_seq goldengate-00.png goldengate-01.png goldengate-02.png goldengate-03.png goldengate-04.png goldengate-05.png 
-./image_stitching_cuda campus_016.png campus_015.png campus_014.png
+./image_stitching_cuda campus_01.png campus_02.png campus_03.png
 ```
 To run on your own unique png images, add them to the data folder and rebuild the build folder.
 
