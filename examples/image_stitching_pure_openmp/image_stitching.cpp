@@ -460,7 +460,7 @@ int main(int argc, char *argv[])
         double siftIterStart = CycleTimer::currentSeconds();
         sift_cpu(images[i], kpt_lists[i], true);
         double siftIterEnd = CycleTimer::currentSeconds();
-        std::cout << "Sift iteration time" << siftIterEnd-siftIterStart << std::endl
+        std::cout << "Sift iteration time" << siftIterEnd-siftIterStart << std::endl;
     }
 
     double siftEnd = CycleTimer::currentSeconds();
