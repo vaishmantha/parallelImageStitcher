@@ -157,7 +157,7 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
 
     int *count_list = (int*)calloc(iterations, sizeof(int));
     int it; 
-    #pragma omp parallel for schedule(dynamic) num_threads(1)
+    #pragma omp parallel for schedule(dynamic) num_threads(8)
     for(it = 0; it < iterations; it++){
         MatrixXd x1 = MatVectorslice2(locs1, &rand_inds[4 * it], 4, 0, locs1.cols()); //locs1(rand_inds, Eigen::seqN(0,locs1.cols())); 
         MatrixXd x2 = MatVectorslice2(locs2, &rand_inds[4 * it], 4, 0, locs2.cols());// locs2(rand_inds, Eigen::seqN(0,locs2.cols())); 
@@ -193,7 +193,7 @@ MatrixXd computeRansac(std::list<ezsift::MatchPair> match_li){
     int max_count = -1;
     int k; 
     int best_i; 
-    #pragma omp parallel for reduction(max: max_count) num_threads(1)
+    #pragma omp parallel for reduction(max: max_count) num_threads(8)
     for(k = 0; k < iterations; k++){
         if(max_count < count_list[k]){
             max_count = count_list[k];
@@ -267,7 +267,7 @@ void warpPerspective(unsigned char* png_r, unsigned char* png_g, unsigned char* 
         int png_width, int png_height, unsigned char* newImR, unsigned char* newImG, unsigned char* newImB, unsigned char* newImA, 
         MatrixXd H, int curr_width, int curr_height){
     int i; 
-    #pragma omp parallel for collapse(2) schedule(dynamic) num_threads(1)
+    #pragma omp parallel for collapse(2) schedule(dynamic) num_threads(8)
     for(i=0; i< png_height; i++){ 
         for(int j=0; j<png_width; j++){
             MatrixXd tmp = MatrixXd::Constant(3,1, 0.0);
@@ -317,7 +317,7 @@ void placeImage(unsigned char* newImage, int newImWidth, MatrixXd* resImg, doubl
     // printf("w: %d, h: %d", w, h);
     int start_i = (int)fmax(min_y,0);
     int start_j = (int)fmax(min_x,0);
-    #pragma omp parallel for collapse(2) num_threads(1) //schedule(dynamic)
+    #pragma omp parallel for collapse(2) num_threads(8) //schedule(dynamic)
     //FIX: another for loop that goes over the 4 image channels
     for (int i = start_i; i < (int)max_y; i++){ //access as row col
         for (int j = start_j; j < (int)max_x; j++){
@@ -331,7 +331,7 @@ void placeImage(unsigned char* newImage, int newImWidth, MatrixXd* resImg, doubl
     }
     MatrixXd copyRes = (*resImg);
     // #pragma omp parallel for //schedule(dynamic)
-    #pragma omp parallel for collapse(2) num_threads(1)
+    #pragma omp parallel for collapse(2) num_threads(8)
     for(int i = start_i; i < (int)max_y; i++){
         for(int j = start_j; j < (int)max_x; j++){
             if((*resImg)(i, j) == 0){
@@ -455,7 +455,7 @@ int main(int argc, char *argv[])
     
     ezsift::double_original_image(true);
     double siftStart = CycleTimer::currentSeconds();
-    #pragma omp parallel for schedule(dynamic) num_threads(1)
+    #pragma omp parallel for schedule(dynamic) num_threads(8)
     for(int i=0; i<images.size(); i++){
         double siftIterStart = CycleTimer::currentSeconds();
         sift_cpu(images[i], kpt_lists[i], true);
@@ -470,7 +470,7 @@ int main(int argc, char *argv[])
     double findMatchesStart = CycleTimer::currentSeconds();
 
     bool matchListSizeZero = false;
-    #pragma omp parallel for schedule(dynamic) num_threads(1)
+    #pragma omp parallel for schedule(dynamic) num_threads(8)
     for(int i=0; i<images.size()-1; i++){
         std::list<ezsift::MatchPair> match_list;
         ezsift::match_keypoints(kpt_lists[i], kpt_lists[i+1], match_list); //Doesn't take long
