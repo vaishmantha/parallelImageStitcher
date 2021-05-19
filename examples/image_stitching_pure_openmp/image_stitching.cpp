@@ -457,7 +457,10 @@ int main(int argc, char *argv[])
     double siftStart = CycleTimer::currentSeconds();
     #pragma omp parallel for schedule(dynamic) num_threads(8)
     for(int i=0; i<images.size(); i++){
+        double siftIterStart = CycleTimer::currentSeconds();
         sift_cpu(images[i], kpt_lists[i], true);
+        double siftIterEnd = CycleTimer::currentSeconds();
+        std::cout << "Sift iteration time" << siftIterEnd-siftIterStart << std::endl
     }
 
     double siftEnd = CycleTimer::currentSeconds();
